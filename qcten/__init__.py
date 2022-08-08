@@ -2,6 +2,8 @@
 
 # Add imports here
 from .main import *
+from .prepare_input import *
+from .process import *
 
 # Handle versioneer
 from ._version import get_versions

@@ -1,0 +1,30 @@
+# 0. this is inptest; do not work, only verify input data
+--inptest=True
+# 
+# 1. input data:
+#
+--finp=../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; \s+; 2
+#
+# 2. decide which columns correspond to grid points (same grid for every --finp is assumed!)
+#
+#    order of grid points coordinates:
+#       x, y, z
+--grid=[x, y, z]
+#
+# 3. decide which data 'makes a vector':
+#     * the names of vector elements must match the names of columns on input files read in point 1 (with --finp). 
+#     * the order of vector elements matters! see below:
+#
+#                  order of vector elements:
+#                  x       y      z
+--form_vector_3d=[bz_jx, bz_jy, bz_jz]
+#
+# 4. decide what you want to calculate for this vector:
+#
+--calc_from_vector_3d=mean
+#
+# 6. decide what output you need:
+#
+--fout=result.csv
+--fout_select=selected
+--flog=result.log

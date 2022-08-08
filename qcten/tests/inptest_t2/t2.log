@@ -1,0 +1,26 @@
+--------------------------- main job options ---------------------------
+qcten SHA: b8642bc
+
+finp                                         : ['../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; \\s+; 2']
+fout                                         : result.csv
+fout_select                                  : selected
+flog                                         : result.log
+grid                                         : [x, y, z]
+inptest                                      : True
+form_tensor_2order_3d                        : None
+calc_from_tensor_2order_3d                   : None
+calc_from_tensor_2order_3d_fragments         : None
+form_vector_3d                               : [bz_jx, bz_jy, bz_jz]
+form_grad_vector_3d                          : None
+use_grad_from_file                           : None
+calc_from_vector_3d                          : ['mean']
+calc_from_vector_3d_calc_grad                : None
+selected_axis                                : None
+rortex_fill_empty                            : NULL
+
+------------------ set of options for input files ------------------
+file_name      : ../testdata/lih_jbtensor_cubegrid10/data.csv
+column_names   : ['x', 'y', 'z', 'bx_jx', 'bx_jy', 'bx_jz', 'by_jx', 'by_jy', 'by_jz', 'bz_jx', 'bz_jy', 'bz_jz']
+sep            : \s+
+header         : 2
+
