@@ -1,0 +1,8 @@
+--inptest=True
+--finp=../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; \s+; 2
+--grid=[x, y, z]
+--form_vector_3d=[bz_jx, bz_jy, bz_jz]
+--calc_from_vector_3d=mean
+--fout=result.csv
+--fout_select=selected
+--flog=result.log

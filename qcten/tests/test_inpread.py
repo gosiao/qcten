@@ -5,13 +5,37 @@ import qcten
 from pathlib import Path
 
 
-def read_input(finp):
-    args = []
-    with open(finp, 'r') as f:
-        args = [line.strip() for line in f if line[0] != '#' and line != '\n']
-        return args
-
 def test_inpread():
+    """Testing whether input files are read correctly."""
+
+    testdirs = [
+        "inptest_t2"
+        ]
+    
+    for testdir in testdirs:
+
+        # run test in scratch directory:
+        here = Path(__file__).resolve().parent
+        scratch = os.path.join(here, testdir, 'scratch')
+
+        os.makedirs(scratch, exist_ok=True)
+        os.chdir(scratch)
+    
+        # test reading options from *.inp file
+        for tf in os.listdir(os.path.join(here, testdir)):
+            if tf.endswith('.inp'):
+                test_file = os.path.join(here, testdir, tf)
+
+        args=qcten.main.read_input(test_file)
+        with open(Path(os.path.join(here, testdir, 'args_t2')), 'r') as f:
+            args_ref = f.read().splitlines()
+
+        os.chdir(here)
+        error = set(args) ^ set(args_ref)
+        assert not error
+
+
+def FIXMEtest_inptest():
     """Testing whether input files are read correctly."""
 
     testdirs = [
@@ -37,7 +61,7 @@ def test_inpread():
             if tf.endswith('.log'):
                 log_ref = Path(os.path.join(here, testdir, tf))
 
-        args=read_input(test_file)
+        args=qcten.main.read_input(test_file)
         setup = qcten.prepare_input.input_data(args)
         setup.parse_options()
         work = qcten.process.work(setup.options)

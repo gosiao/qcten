@@ -21,6 +21,20 @@ def canvas(with_attribution=True):
     return quote
 
 
+def read_input(finp=None):
+    args = []
+    if finp is None:
+        try:
+            args = sys.argv[1:]
+        except:
+            sys.exit(1)
+    else:
+        with open(finp, 'r') as f:
+            for line in f:
+                if line[0] != '#' and line != '\n':
+                    args.append(line.strip())
+    return args
+
+
 if __name__ == "__main__":
-    # Do something if this file is invoked on its own
-    print(canvas())
+    read_input()
