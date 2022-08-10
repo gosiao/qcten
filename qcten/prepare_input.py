@@ -1,12 +1,13 @@
 import os
 import sys
 import argparse
+from pathlib import Path
 
 class input_data:
 
-    def __init__(self, args_list=None):
+    def __init__(self, args_list):
 
-        self.args_list       = args_list if args_list is not None else sys.argv[1:]
+        self.args_list       = args_list
         self.options         = {}
 
         # list of available functions for a selected type of input data:
@@ -275,16 +276,43 @@ class input_data:
 
     def print_options(self):
 
-        self.parse_options()
+        if self.options == {}:
+            self.parse_options()
 
         print("all input options:")
         for option_key, option_value in self.options.items():
             print("{}: {}".format(option_key, option_value))
 
 
+def read_input(finp=None, verbose=False):
+
+    args = []
+
+    if finp is None:
+        try:
+            args = sys.argv[1:]
+        except:
+            sys.exit(1)
+        if verbose:
+            msg1 = 'Arguments for qcten are read from command line'
+            msg2 = '\n'.join(x for x in args)
+            print(msg1+'\n'+msg2)
+    else:
+        with open(finp, 'r') as f:
+            args = [line.strip() for line in f if line[0] != '#' and line != '\n']
+        if verbose:
+            msg1 = 'Arguments for qcten are read from file {}'.format(Path(finp))
+            msg2 = '\n'.join(x for x in args)
+            print(msg1+'\n'+msg2)
+            
+    return args
+
+
 
 if __name__ == '__main__':
-    data = input_data()
+    args = read_input()
+    data = input_data(args)
+    data.parse_options()
     data.print_options()
 
 

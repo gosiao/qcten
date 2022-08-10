@@ -19,24 +19,11 @@ class work():
         self.flog     = self.options['flog']
 
 
-
-    def run(self):
-        '''
-        main engine function of the qcten
-        '''
-
-        self.prepare_grid()
-
-        self.parse_finp()
-
-        if self.options["inptest"] is not None and self.options["inptest"]:
-            return
-
-
-
     def parse_finp(self):
 
-        '''
+        """
+        here we decode the input to '--finp'
+        
         there are 4 arguments to --finp:
         1. file name
         2. column names
@@ -44,15 +31,17 @@ class work():
         4. number of header lines to skip
 
         there can be many --finp blocks (self.options["finp"] is a list)
+        """
 
-        here we parse these arguments
-        '''
+        if self.allfinp is not None:
+            print('WARNING: --finp arguments are already assigned; will be overwritten')
 
         for f_arg in self.options["finp"]:
 
             args = f_arg.split(';')
             if len(args) < 4:
-                print('error: not enough arguments to finp')
+                msg = 'ERROR: not enough arguments to finp'
+                sys.exit(msg)
 
             finp   = args[0].strip()
             cols   = [arg.strip().strip('[').strip(']') for arg in args[1].split(',')]
@@ -71,14 +60,15 @@ class work():
 
 
     def prepare_data(self):
-        '''
+
+        """
         read the input data into pandas dataframes
 
         TODO: 
         * find what is better to assure floats (dtype = np.float or pd.to_numeric)
         * deal with empty or non-float fields
         * check whether the data has been collected on the same grids
-        '''
+        """
 
         # 1. read all input data into a list of dataframes
         dfs = []
@@ -108,9 +98,9 @@ class work():
 
 
     def prepare_grid(self):
-        '''
+        """
         TODO: make sure the same grid is on all finp files
-        '''
+        """
 
         args = [arg.strip().strip('[').strip(']') for arg in self.options['grid'].split(',')]
 
