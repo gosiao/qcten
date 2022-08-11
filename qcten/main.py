@@ -15,7 +15,9 @@ def run(args_file=None, verbose=False):
     calc.prepare_grid()
     calc.parse_finp()
     if calc.options["inptest"] is not None and calc.options["inptest"]:
-        return
+        msg = 'Input testing. Stopping now.'
+        print(msg)
+        return calc.options
     calc.parse_data()
     return calc.fulldata
 

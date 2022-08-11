@@ -189,88 +189,50 @@ class input_data:
 
         args = parser.parse_args(self.args_list)
 
-        if args.finp is not None:
-            self.options["finp"] = args.finp
-        else:
-            parser.error('--finp is required')
+        # required arguments
+        # ==================
+        self.options["finp"] = args.finp
+        self.options["fout"] = args.fout
+        self.options["fout_select"] = args.fout_select
+        self.options["flog"] = args.flog
+        self.options["grid"] = args.grid
 
-        if args.fout is not None:
-            self.options["fout"] = args.fout
-        else:
-            parser.error('--fout is required')
-
-        if args.fout_select is not None:
-            self.options["fout_select"] = args.fout_select
-        else:
-            parser.error('--fout_select is required')
-
-        if args.flog is not None:
-            self.options["flog"] = args.flog
-        else:
-            parser.error('--flog is required')
-
-        if args.grid is not None:
-            self.options["grid"] = args.grid
-        else:
-            parser.error('--grid is required')
-
+        # optional arguments
+        # ==================
         if args.inptest is not None:
             self.options["inptest"] = args.inptest
-        else:
-            self.options["inptest"] = None
 
         # tensors: 2nd order
         if args.form_tensor_2order_3d is not None:
             self.options["form_tensor_2order_3d"] = args.form_tensor_2order_3d
-        else:
-            self.options["form_tensor_2order_3d"] = None
 
         if args.calc_from_tensor_2order_3d is not None:
             self.options["calc_from_tensor_2order_3d"] = args.calc_from_tensor_2order_3d
-        else:
-            self.options["calc_from_tensor_2order_3d"] = None
 
         if args.calc_from_tensor_2order_3d_fragments is not None:
             self.options["calc_from_tensor_2order_3d_fragments"] = args.calc_from_tensor_2order_3d_fragments
-        else:
-            self.options["calc_from_tensor_2order_3d_fragments"] = None
 
         # vectors
         if args.form_vector_3d is not None:
             self.options["form_vector_3d"] = args.form_vector_3d
-        else:
-            self.options["form_vector_3d"] = None
 
         if args.form_grad_vector_3d is not None:
             self.options["form_grad_vector_3d"] = args.form_grad_vector_3d
-        else:
-            self.options["form_grad_vector_3d"] = None
 
         if args.use_grad_from_file is not None:
             self.options["use_grad_from_file"] = args.use_grad_from_file
-        else:
-            self.options["use_grad_from_file"] = None
 
         if args.calc_from_vector_3d is not None:
             self.options["calc_from_vector_3d"] = args.calc_from_vector_3d
-        else:
-            self.options["calc_from_vector_3d"] = None
 
         if args.calc_from_vector_3d_calc_grad is not None:
             self.options["calc_from_vector_3d_calc_grad"] = args.calc_from_vector_3d_calc_grad
-        else:
-            self.options["calc_from_vector_3d_calc_grad"] = None
 
         if args.selected_axis is not None:
             self.options["selected_axis"] = [float(v.strip().strip('[').strip(']')) for v in args.selected_axis.split(',')]
-        else:
-            self.options["selected_axis"] = None
-
 
         if args.rortex_fill_empty is not None:
             self.options["rortex_fill_empty"] = args.rortex_fill_empty
-        else:
-            self.options["selected_axis"] = None
 
 
 

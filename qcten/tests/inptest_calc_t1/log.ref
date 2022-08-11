@@ -1,7 +1,7 @@
 --------------------------- main job options ---------------------------
 qcten SHA: b8642bc
 
-finp                                         : ['../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; \\s+; 2']
+finp                                         : ['../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; \\s+; 1']
 fout                                         : result.csv
 fout_select                                  : selected
 flog                                         : result.log

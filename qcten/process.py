@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+from pathlib import Path
 import subprocess
 
 class work():
@@ -14,7 +15,7 @@ class work():
         self.grid     = {}
 
         self.data     = {}
-        self.fulldata = {}
+        self.fulldata = pd.DataFrame()
         self.allfinp  = {}
         self.flog     = self.options['flog']
 
@@ -36,6 +37,7 @@ class work():
         if self.allfinp is not None:
             print('WARNING: --finp arguments are already assigned; will be overwritten')
 
+        allfinp = {}
         for f_arg in self.options["finp"]:
 
             args = f_arg.split(';')
@@ -54,9 +56,15 @@ class work():
             d['sep']           = sep
             d['header']        = header
 
+            allfinp[finp] = d
             self.allfinp[finp] = d
 
+            #if self.allfinp[finp] is None:
+            #    self.allfinp[finp] = d
+
             self.print_options_to_log()
+
+        return allfinp
 
 
     def prepare_data(self):
@@ -78,7 +86,7 @@ class work():
                              sep    = v['sep'],
                              header = v['header'],
                              names  = v['column_names'],
-                             dtype = np.float)
+                             dtype = np.float64)
 
             df.apply(pd.to_numeric, errors='coerce')
 
@@ -94,19 +102,28 @@ class work():
         for df in dfs[1:]:
             df.drop(columns=[self.grid['grid_x'], self.grid['grid_y'], self.grid['grid_z']], inplace=True)
 
-        self.fulldata = pd.concat([df for df in dfs], axis=1, sort=False)
+        fulldata = pd.concat([df for df in dfs], axis=1, sort=False)
+        if self.fulldata.empty:
+            self.fulldata = fulldata
+
+        #self.print_inputdata_to_csv()
+
+        return fulldata
 
 
     def prepare_grid(self):
         """
+        find which column names correspond to grid data (in csv)
         TODO: make sure the same grid is on all finp files
         """
 
         args = [arg.strip().strip('[').strip(']') for arg in self.options['grid'].split(',')]
-
-        self.grid['grid_x'] = args[0]
-        self.grid['grid_y'] = args[1]
-        self.grid['grid_z'] = args[2]
+        grid = {'grid_x':args[0], 'grid_y': args[1], 'grid_z':args[2]}
+        if self.grid == {}: 
+            self.grid['grid_x'] = args[0]
+            self.grid['grid_y'] = args[1]
+            self.grid['grid_z'] = args[2]
+        return grid
 
 
 
@@ -128,6 +145,19 @@ class work():
                     for k, v in vf.items():
                         f.write("{:<15}: {}\n".format(k, v))
                 f.write("\n")
+
+
+    def print_inputdata_to_csv(self):
+
+        if self.options['flog'] is not None:
+
+            finp = 'testinpdata.csv'
+            finp = Path('/home/gosia/out.csv')
+            finp.parent.mkdir(parents=True, exist_ok=True)
+            if not self.fulldata.empty:
+                self.fulldata = self.fulldata.astype(np.float64)
+                self.fulldata.to_csv(finp, index=False)
+
 
 
 
