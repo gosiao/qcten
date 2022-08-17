@@ -72,7 +72,7 @@ class helper:
 
     def same_dataframes(self, df1, df2, atol_list=None):
         from pandas.testing import assert_frame_equal
-        if assert_frame_equal(df1, df2) is None:
+        if assert_frame_equal(df1, df2, check_like=True) is None:
             return True
         else:
             return False

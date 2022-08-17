@@ -3,6 +3,7 @@ import numpy as np
 import os
 from pathlib import Path
 import subprocess
+from .t2d3 import *
 
 class work():
 
@@ -106,8 +107,6 @@ class work():
         if self.fulldata.empty:
             self.fulldata = fulldata
 
-        #self.print_inputdata_to_csv()
-
         return fulldata
 
 
@@ -124,6 +123,58 @@ class work():
             self.grid['grid_y'] = args[1]
             self.grid['grid_z'] = args[2]
         return grid
+
+
+    def calculate(self):
+
+        # todo: tu przenies assign vector/assign tensor
+
+        if self.options['form_tensor_2order_3d'] is not None:
+
+            work = t2d3(self.options, self.grid, self.fulldata)
+            work.run()
+
+            result_df = pd.DataFrame(work.t2d3_points)
+            result_df = self.update_df(result_df, new_df_cols=work.t2d3_cols)
+        return result_df
+
+
+        #if self.options['form_vector_3d'] is not None:
+
+        #    work = t1d3.t1d3(self.options, self.grid, self.fulldata)
+        #    work.run()
+
+        #    result_df = pd.DataFrame(work.t1d3_points)
+        #    self.update_df(result_df, new_df_cols=work.t1d3_cols)
+
+
+
+    def update_df(self, new_df, new_df_cols=None):
+
+        '''
+        clean the final dataframe before writing it to output file
+        '''
+
+        if new_df_cols is not None:
+
+            # get unique column names
+            cols = set(new_df_cols)
+
+            # reorder, so that the grid points are always in the beginning:
+            cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
+
+            with open(self.flog, 'a') as f:
+                f.write('----------------- columns written to output file -------------------\n')
+                f.write('{}'.format(cols))
+
+            fulldata = new_df[cols]
+
+        else:
+            fulldata = new_df
+
+        self.fulldata = fulldata
+        return fulldata
+
 
 
 
@@ -147,16 +198,6 @@ class work():
                 f.write("\n")
 
 
-    def print_inputdata_to_csv(self):
-
-        if self.options['flog'] is not None:
-
-            finp = 'testinpdata.csv'
-            finp = Path('/home/gosia/out.csv')
-            finp.parent.mkdir(parents=True, exist_ok=True)
-            if not self.fulldata.empty:
-                self.fulldata = self.fulldata.astype(np.float64)
-                self.fulldata.to_csv(finp, index=False)
 
 
 

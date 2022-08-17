@@ -73,9 +73,15 @@ def test_parse_options():
             if option_value is not None:
                 # easier to compare strings:
                 options[option_key] = str(option_value)
+        print('RESULT TEST for testdir ', testdir)
+        for k, v in options.items():
+            print(k,":",v)
 
         # reference options:
         options_ref = th.get_ref_asdict(Path(os.path.join(this_test, 'options.ref')))
+        print('RESULT REF for testdir ', testdir)
+        for k, v in options_ref.items():
+            print(k,":",v)
 
         diff = th.diff_dicts(options, options_ref)
         assert (diff == {})

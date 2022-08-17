@@ -13,12 +13,10 @@ test subdirectory; this can be redirected to any other folder
 specified in "scratch_space"
 """
 
-def FIXMEtest_prepare_data():
-    """RESTART HERE"""
+def test_t2d3_invariants():
 
     testdirs = [
-        "inptest_calc_t1",
-        #"inptest_calc_t2"
+        "t2d3_invariants",
         ]
     
     th = helper()
@@ -39,17 +37,18 @@ def FIXMEtest_prepare_data():
         calc = qcten.process.work(setup.options)
         grid = calc.prepare_grid()
         finp = calc.parse_finp()
-        result = calc.prepare_data()
-        print('RESULT')
-        with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
-            print(result)
+        data = calc.prepare_data()
+        result = calc.calculate()
+        #print('RESULT')
+        #th.debug_dump_dataframe_to_file(result)
+        #with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
+        #    print(result)
 
         # reference arguments
-        result_ref = th.get_ref_aspddataframe(Path(os.path.join(this_test, 'fulldata.ref')))
-        print('RESULT_REF')
-        with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
-            print(result_ref)
-
+        result_ref = th.get_ref_aspddataframe(Path(os.path.join(this_test, 'result.ref')))
+        #print('RESULT_REF')
+        #with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
+        #    print(result_ref)
 
         same = th.same_dataframes(result, result_ref)
         assert (same == True)

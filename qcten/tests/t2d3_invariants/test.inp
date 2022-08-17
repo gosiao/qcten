@@ -1,8 +1,6 @@
-# 0. this is inptest; do not work, only verify input data
---inptest=True
 # 
-# 1. input data:
-#
+# 1. decide which files with input data should be read in:
+# 
 --finp=../testdata/lih_jbvector_cubegrid10/jbx.csv; [x, y, z, bx_jx, bx_jy, bx_jz]; \s+; 1
 --finp=../testdata/lih_jbvector_cubegrid10/jby.csv; [x, y, z, by_jx, by_jy, by_jz]; \s+; 1
 --finp=../testdata/lih_jbvector_cubegrid10/jbz.csv; [x, y, z, bz_jx, bz_jy, bz_jz]; \s+; 1
@@ -23,7 +21,9 @@
 #
 # 4. decide what you want to calculate for this tensor:
 #
---calc_from_tensor_2order_3d=deviator_anisotropy
+--calc_from_tensor_2order_3d=tensor_inv1
+--calc_from_tensor_2order_3d=tensor_inv2
+--calc_from_tensor_2order_3d=tensor_inv3
 #
 # 5. decide what output you need:
 #
