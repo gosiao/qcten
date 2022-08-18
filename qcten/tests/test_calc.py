@@ -13,12 +13,8 @@ test subdirectory; this can be redirected to any other folder
 specified in "scratch_space"
 """
 
-def test_t2d3_invariants():
+def run_test_generic(testdirs, debug=False):
 
-    testdirs = [
-        "t2d3_invariants",
-        ]
-    
     th = helper()
     if not th.testspace_is_set:
         th.set_testspace()
@@ -39,18 +35,37 @@ def test_t2d3_invariants():
         finp = calc.parse_finp()
         data = calc.prepare_data()
         result = calc.calculate()
-        #print('RESULT')
-        #th.debug_dump_dataframe_to_file(result)
-        #with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
-        #    print(result)
-
-        # reference arguments
         result_ref = th.get_ref_aspddataframe(Path(os.path.join(this_test, 'result.ref')))
-        #print('RESULT_REF')
-        #with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
-        #    print(result_ref)
+
+        if debug:
+            print('RESULT')
+            th.debug_dump_dataframe_to_file(result)
+            with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
+                print(result)
+            
+            print('RESULT_REF')
+            with pd.option_context('display.max_rows', 10, 'display.max_columns', 12):
+                print(result_ref)
 
         same = th.same_dataframes(result, result_ref)
         assert (same == True)
+
+
+def test_t2d3_invariants():
+
+    testdirs = [
+        "t2d3_invariants",
+        ]
+    
+    run_test_generic(testdirs, debug=True)
+
+
+def test_t1d3_rortex_shear():
+
+    testdirs = [
+        "t1d3_rortex_shear",
+        ]
+    
+    run_test_generic(testdirs, debug=True)
 
 

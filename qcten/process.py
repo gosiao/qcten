@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 from .t2d3 import *
+from .t1d3 import *
 
 class work():
 
@@ -129,24 +130,24 @@ class work():
 
         # todo: tu przenies assign vector/assign tensor
 
-        if self.options['form_tensor_2order_3d'] is not None:
+        if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
             work = t2d3(self.options, self.grid, self.fulldata)
             work.run()
 
             result_df = pd.DataFrame(work.t2d3_points)
             result_df = self.update_df(result_df, new_df_cols=work.t2d3_cols)
+
+
+        if 'form_vector_3d' in self.options and self.options['form_vector_3d'] is not None:
+
+            work = t1d3(self.options, self.grid, self.fulldata)
+            work.run()
+
+            result_df = pd.DataFrame(work.t1d3_points)
+            result_df = self.update_df(result_df, new_df_cols=work.t1d3_cols)
+
         return result_df
-
-
-        #if self.options['form_vector_3d'] is not None:
-
-        #    work = t1d3.t1d3(self.options, self.grid, self.fulldata)
-        #    work.run()
-
-        #    result_df = pd.DataFrame(work.t1d3_points)
-        #    self.update_df(result_df, new_df_cols=work.t1d3_cols)
-
 
 
     def update_df(self, new_df, new_df_cols=None):
@@ -174,6 +175,18 @@ class work():
 
         self.fulldata = fulldata
         return fulldata
+
+
+    def prepare_output(self):
+        '''
+        write to output
+        '''
+
+        self.fulldata.to_csv(self.options['fout'],
+                             float_format='%.8e',
+                             na_rep=self.options['rortex_fill_empty'],
+                             index=False)
+
 
 
 

@@ -87,6 +87,8 @@ class helper:
         if not df.empty:
             df = df.astype(np.float64)
             df.to_csv(fout, index=False)
+            #df.dropna(axis=0,how='any',inplace=True)
+            #df.to_csv(fout, index=False)
 
 
 

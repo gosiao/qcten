@@ -47,6 +47,8 @@ def test_read_input():
 
 def test_parse_options():
 
+    debug = False
+
     testdirs = [
         "inptest_calc_t1",
         "inptest_calc_t2"
@@ -73,15 +75,15 @@ def test_parse_options():
             if option_value is not None:
                 # easier to compare strings:
                 options[option_key] = str(option_value)
-        print('RESULT TEST for testdir ', testdir)
-        for k, v in options.items():
-            print(k,":",v)
-
-        # reference options:
         options_ref = th.get_ref_asdict(Path(os.path.join(this_test, 'options.ref')))
-        print('RESULT REF for testdir ', testdir)
-        for k, v in options_ref.items():
-            print(k,":",v)
+
+        if debug:
+            print('RESULT TEST for testdir ', testdir)
+            for k, v in options.items():
+                print(k,":",v)
+            print('RESULT REF for testdir ', testdir)
+            for k, v in options_ref.items():
+                print(k,":",v)
 
         diff = th.diff_dicts(options, options_ref)
         assert (diff == {})
