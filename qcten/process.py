@@ -198,7 +198,8 @@ class work():
             with open(self.options['flog'], 'w') as f:
 
                 f.write("--------------------------- main job options ---------------------------\n")
-                f.write("qcten SHA: {}\n".format(subprocess.check_output(["git", "describe", "--always"], cwd=os.path.dirname(__file__)).strip().decode()))
+                #f.write("qcten SHA: {}\n".format(subprocess.check_output(["git", "describe", "--always"], cwd=os.path.dirname(__file__)).strip().decode()))
+                f.write("qcten SHA: {}\n".format(subprocess.check_output(["git", "describe", "--always"])))
                 f.write("\n")
                 for k, v in self.options.items():
                     f.write("{:<45}: {}\n".format(k, v))
