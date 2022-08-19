@@ -396,7 +396,7 @@ class t2d3():
         self.gradient_from_finite_elements(selected_tensor_element)
 
         #self.t2d3_points[i]['gradient'] = result
-        print('tensor element: ', selected_tensor_element)
+        #print('tensor element: ', selected_tensor_element)
 
 
 
@@ -454,10 +454,11 @@ class t2d3():
 
             eigenvalues = [e.real if (e.imag==0.0) else e for e in eigenvalues]
             #eigenvalues = [e.real if math.isclose(e.imag, 0.0, abs_tol=1e-15) else e for e in eigenvalues]
-            for e in eigenvalues:
-                if np.iscomplex(e) and math.isclose(e.imag, 0.0, abs_tol=1e-15):
-                    with open(self.flog, 'a') as f:
-                        f.write('WARNING: small imaginary part of eigenvalue: {}\n'.format(e))
+            # add verbose
+            #for e in eigenvalues:
+            #    if np.iscomplex(e) and math.isclose(e.imag, 0.0, abs_tol=1e-15):
+            #        with open(self.flog, 'a') as f:
+            #            f.write('WARNING: small imaginary part of eigenvalue: {}\n'.format(e))
 
             self.test_eigen(a, eigenvalues, eigenvectors)
             #number_complex_eigenvalues = 0

@@ -595,8 +595,6 @@ class t1d3():
 
     def tensor_eigendecomposition(self, point_index, fullgradtensor):
 
-        # todo: write unit test for this subroutine
-
         eigenvalues, eigenvectors = la.eig(fullgradtensor)
 
         # eigenvectors are in columns of "eigenvectors"
@@ -619,7 +617,7 @@ class t1d3():
                 if (e.imag==0.0):
                     # TODO: might be better to use the threshold to cut out very small values
                     e_val.append(e.real)
-                    print('WARNING: small imaginary part of eigenvalue: {}'.format(e))
+                    #print('WARNING: small imaginary part of eigenvalue: {}'.format(e))
                 else:
                     e_val.append(e)
                     number_complex_eigenvalues += 1
@@ -762,9 +760,8 @@ class t1d3():
                 self.t1d3_cols.append('omega_rortex')
 
         else:
-            print('HERE number_complex_eigenvalues != 2 in point ', point_index)
-            # TODO: what's the best to do here?
-            # first let's assign these values to NaN (makes it easier?)
+            # TODO: what's best to do here?
+            # first let's assign these values to None
             # in final analysis they will be set to 0
             self.t1d3_points[point_index]['rortex_vector_x'] = None
             self.t1d3_points[point_index]['rortex_vector_y'] = None
@@ -783,7 +780,6 @@ class t1d3():
 
             self.t1d3_points[point_index]['omega_rortex'] = None
             self.t1d3_points[point_index]['omega_rortex2'] = None
-            print('HERE rortex_magnitude = ', self.t1d3_points[point_index]['rortex_magnitude'])
 
             if self.input_options['selected_axis'] is not None:
                 self.t1d3_points[point_index]['rortex_cdot_axis'] = None
@@ -953,6 +949,11 @@ class t1d3():
     def norm(self):
         '''
         calculate the norm of a 3d vector
+
+        For vector v, whose elements are v_i:
+
+         norm = sqrt(sum_{i} (v_{i})**2)
+
         '''
 
         # calculate
@@ -979,6 +980,11 @@ class t1d3():
     def mean(self):
         '''
         calculate the mean of vector elements
+
+        For vector v, whose elements are v_i:
+
+         mean = (sum_{i} v_{i})/3
+
         '''
 
         for i, d in enumerate(self.t1d3_points):
@@ -997,6 +1003,9 @@ class t1d3():
 
         '''
         calculate the curl of the vector:
+        
+        For vector v = (vx, vy, vz):
+
         w = \nabla \times v
 
         wx = d(vz)/dy - d(vy)/dz
