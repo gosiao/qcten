@@ -50,7 +50,10 @@ class work():
             finp   = args[0].strip()
             cols   = [arg.strip().strip('[').strip(']') for arg in args[1].split(',')]
             sep    = args[2].strip()
-            header = int(args[3].strip())
+            if args[3].strip() == 'None':
+                header = None
+            else:
+                header = int(args[3].strip())
 
             d = {}
             d['file_name']     = finp
