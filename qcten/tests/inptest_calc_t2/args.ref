@@ -5,6 +5,7 @@
 --grid=[x, y, z]
 --form_tensor_2order_3d=[bx_jx, by_jx, bz_jx, bx_jy, by_jy, bz_jy, bx_jz, by_jz, bz_jz]
 --calc_from_tensor_2order_3d=deviator_anisotropy
+--data_out=[x, y, z, bz_jz, deviator_anisotropy]
 --fout=result.csv
 --fout_select=selected
 --flog=result.log
