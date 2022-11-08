@@ -3,7 +3,7 @@ include MANIFEST.in
 include CODE_OF_CONDUCT.md
 include versioneer.py
 
-include qcten/tests/testdata/*/*.csv
+recursive include qcten *
 
 graft qcten
 global-exclude *.py[cod] __pycache__ *.so

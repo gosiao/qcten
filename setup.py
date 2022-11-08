@@ -28,5 +28,6 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     license='MIT',
     packages=find_packages(where="qcten"),
+    include_package_data=True,
     setup_requires=[] + pytest_runner,
 )
