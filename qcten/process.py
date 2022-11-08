@@ -165,17 +165,35 @@ class work():
             # get unique column names
             cols = set(new_df_cols)
 
-            # reorder, so that the grid points are always in the beginning:
-            cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
+            if self.options['data_out'] is not None:
+                cols = list(cols)
+                #cols = list(cols.replace('x', 'grid_x').replace('y', 'grid_y').replace('z', 'grid_z'))
+                #cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
+                for i, col in enumerate(cols):
+                    if col == 'x':
+                        cols[i] = col.replace('x', 'grid_x')
+                    if col == 'y':
+                        cols[i] = col.replace('y', 'grid_y')
+                    if col == 'z':
+                        cols[i] = col.replace('z', 'grid_z')
+                cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
+            else:
+                # reorder, so that the grid points are always in the beginning:
+                cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
 
             with open(self.flog, 'a') as f:
                 f.write('----------------- columns written to output file -------------------\n')
                 f.write('{}'.format(cols))
 
-            fulldata = new_df[cols]
+            fulldata = new_df[list(cols)]
 
         else:
             fulldata = new_df
+
+        for col in fulldata.columns:
+            if col in self.options["data_out_newnames"]:
+                newcol = self.options["data_out_newnames"][col]
+                fulldata.rename(columns={col:newcol}, inplace=True)
 
         self.fulldata = fulldata
         return fulldata

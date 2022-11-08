@@ -18,6 +18,7 @@ class t2d3():
         self.t2d3_points   = []
 
         # variables to be saved to the output:
+        self.data_to_export= []
         self.t2d3_cols     = []
 
         self.tensor_2order_3d_is_assigned = False
@@ -27,6 +28,7 @@ class t2d3():
 
         # prepare
         self.assign_tensor_2order_3d()
+        self.assign_output_for_tensor_2order_3d()
         self.get_tensor_2order_3d_data_points()
 
         # work
@@ -70,6 +72,20 @@ class t2d3():
             args = self.input_options['calc_from_tensor_2order_3d_fragments'].split(':')
             if (args[0]  == 'gradient'):
                 self.gradient(args[1])
+
+        # prepare output
+        self.prepare_output()
+
+
+    def prepare_output(self):
+        pass
+
+    def assign_output_for_tensor_2order_3d(self):
+        output=[]
+        if self.input_options['data_out'] is not None:
+            self.data_to_export = [arg.strip().strip('[').strip(']') for arg in self.input_options['data_out'].split(',')]
+            #for data in self.t2d3_cols:
+            #    if data in self.data_to_export:
 
 
     def assign_tensor_2order_3d(self):
@@ -178,35 +194,40 @@ class t2d3():
 
             self.t2d3_points.append(d)
 
-        # decide what data will be written to the output file:
-        self.t2d3_cols.append('grid_x')
-        self.t2d3_cols.append('grid_y')
-        self.t2d3_cols.append('grid_z')
+        # decide what data will be written to the output file, if the user did not specify that:
+        if self.input_options['data_out'] is None:
 
-        if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
+            self.t2d3_cols.append('grid_x')
+            self.t2d3_cols.append('grid_y')
+            self.t2d3_cols.append('grid_z')
+            
+            if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
+            
+                self.t2d3_cols.append('xx')
+                self.t2d3_cols.append('xy')
+                self.t2d3_cols.append('xz')
+                self.t2d3_cols.append('yx')
+                self.t2d3_cols.append('yy')
+                self.t2d3_cols.append('yz')
+                self.t2d3_cols.append('zx')
+                self.t2d3_cols.append('zy')
+                self.t2d3_cols.append('zz')
+            
+            if self.input_options['fout_select'] == 'all':
+            
+                self.t2d3_cols.append('dvx_dx')
+                self.t2d3_cols.append('dvx_dy')
+                self.t2d3_cols.append('dvx_dz')
+                self.t2d3_cols.append('dvy_dx')
+                self.t2d3_cols.append('dvy_dy')
+                self.t2d3_cols.append('dvy_dz')
+                self.t2d3_cols.append('dvz_dx')
+                self.t2d3_cols.append('dvz_dy')
+                self.t2d3_cols.append('dvz_dz')
 
-            self.t2d3_cols.append('xx')
-            self.t2d3_cols.append('xy')
-            self.t2d3_cols.append('xz')
-            self.t2d3_cols.append('yx')
-            self.t2d3_cols.append('yy')
-            self.t2d3_cols.append('yz')
-            self.t2d3_cols.append('zx')
-            self.t2d3_cols.append('zy')
-            self.t2d3_cols.append('zz')
-
-        if self.input_options['fout_select'] == 'all':
-
-            self.t2d3_cols.append('dvx_dx')
-            self.t2d3_cols.append('dvx_dy')
-            self.t2d3_cols.append('dvx_dz')
-            self.t2d3_cols.append('dvy_dx')
-            self.t2d3_cols.append('dvy_dy')
-            self.t2d3_cols.append('dvy_dz')
-            self.t2d3_cols.append('dvz_dx')
-            self.t2d3_cols.append('dvz_dy')
-            self.t2d3_cols.append('dvz_dz')
-
+        else: # if self.input_options['data_out'] is None:
+            for col in self.data_to_export:
+                self.t2d3_cols.append(col)
 
 
     def trace(self):
@@ -500,7 +521,7 @@ class t2d3():
             result = d['eigenvalue1'] + d['eigenvalue2'] + d['eigenvalue3']
             self.t2d3_points[i]['tensor_inv1'] = result
 
-        self.t2d3_cols.append('tensor_inv1')
+        #self.t2d3_cols.append('tensor_inv1')
 
 
     def tensor_inv2(self):
@@ -520,7 +541,7 @@ class t2d3():
             result = d['eigenvalue1']*d['eigenvalue2'] + d['eigenvalue2']*d['eigenvalue3'] + d['eigenvalue1']*d['eigenvalue3']
             self.t2d3_points[i]['tensor_inv2'] = result
 
-        self.t2d3_cols.append('tensor_inv2')
+        #self.t2d3_cols.append('tensor_inv2')
 
 
     def tensor_inv3(self):
@@ -539,7 +560,7 @@ class t2d3():
             result = d['eigenvalue1']*d['eigenvalue2']*d['eigenvalue3']
             self.t2d3_points[i]['tensor_inv3'] = result
 
-        self.t2d3_cols.append('tensor_inv3')
+        #self.t2d3_cols.append('tensor_inv3')
 
 
 

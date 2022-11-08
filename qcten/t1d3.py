@@ -18,6 +18,7 @@ class t1d3():
         self.t1d3_points   = []
 
         # variables to be saved to the output:
+        self.data_to_export= []
         self.t1d3_cols     = []
 
         # grid spacing
@@ -36,6 +37,7 @@ class t1d3():
 
         # prepare
         self.assign_vector_3d()
+        self.assign_output_for_vector_3d()
         self.get_vector_3d_data_points()
 
 
@@ -66,6 +68,12 @@ class t1d3():
         if self.input_options['selected_axis'] is not None:
             self.project_v_on_selected_axis()
 
+
+    def assign_output_for_vector_3d(self):
+        #
+        output=[]
+        if self.input_options['data_out'] is not None:
+            self.data_to_export = [arg.strip().strip('[').strip(']') for arg in self.input_options['data_out'].split(',')]
 
 
     def get_t1d3_gradient(self):
@@ -272,25 +280,31 @@ class t1d3():
         self.dim_cube = self.dim_x * self.dim_y * self.dim_z
 
         # decide what to write to output:
-        self.t1d3_cols.append('grid_x')
-        self.t1d3_cols.append('grid_y')
-        self.t1d3_cols.append('grid_z')
+        if self.input_options['data_out'] is None:
+            self.t1d3_cols.append('grid_x')
+            self.t1d3_cols.append('grid_y')
+            self.t1d3_cols.append('grid_z')
+            
+            if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
+                self.t1d3_cols.append('vx')
+                self.t1d3_cols.append('vy')
+                self.t1d3_cols.append('vz')
+            
+            if self.input_options['fout_select'] == 'all':
+                self.t1d3_cols.append('dvx_dx')
+                self.t1d3_cols.append('dvx_dy')
+                self.t1d3_cols.append('dvx_dz')
+                self.t1d3_cols.append('dvy_dx')
+                self.t1d3_cols.append('dvy_dy')
+                self.t1d3_cols.append('dvy_dz')
+                self.t1d3_cols.append('dvz_dx')
+                self.t1d3_cols.append('dvz_dy')
+                self.t1d3_cols.append('dvz_dz')
 
-        if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
-            self.t1d3_cols.append('vx')
-            self.t1d3_cols.append('vy')
-            self.t1d3_cols.append('vz')
+        else: # if self.input_options['data_out'] is None:
+            for col in self.data_to_export:
+                self.t1d3_cols.append(col)
 
-        if self.input_options['fout_select'] == 'all':
-            self.t1d3_cols.append('dvx_dx')
-            self.t1d3_cols.append('dvx_dy')
-            self.t1d3_cols.append('dvx_dz')
-            self.t1d3_cols.append('dvy_dx')
-            self.t1d3_cols.append('dvy_dy')
-            self.t1d3_cols.append('dvy_dz')
-            self.t1d3_cols.append('dvz_dx')
-            self.t1d3_cols.append('dvz_dy')
-            self.t1d3_cols.append('dvz_dz')
 
 
     def find_spacing_uniform_grid(self):
@@ -942,7 +956,7 @@ class t1d3():
 
             self.t1d3_points[i]['v_cdot_axis'] = v_cdot_axis
 
-        self.t1d3_cols.append('v_cdot_axis')
+        #self.t1d3_cols.append('v_cdot_axis')
 
 
 
@@ -1040,24 +1054,24 @@ class t1d3():
                     self.t1d3_points[i]['curlv_cdot_axis'] = curlv_cdot_axis
 
 
-            self.t1d3_cols.append('curlv_x')
-            self.t1d3_cols.append('curlv_y')
-            self.t1d3_cols.append('curlv_z')
-            self.t1d3_cols.append('curlv_magnitude')
-            if self.input_options['selected_axis'] is not None:
-                self.t1d3_cols.append('curlv_cdot_axis')
+            #self.t1d3_cols.append('curlv_x')
+            #self.t1d3_cols.append('curlv_y')
+            #self.t1d3_cols.append('curlv_z')
+            #self.t1d3_cols.append('curlv_magnitude')
+            #if self.input_options['selected_axis'] is not None:
+            #    self.t1d3_cols.append('curlv_cdot_axis')
 
-            #if (self.input_options['fout_select'] == 'all'):
-            if (self.input_options['fout_select'] == 'selected'):
-                self.t1d3_cols.append('dvx_dx')
-                self.t1d3_cols.append('dvx_dy')
-                self.t1d3_cols.append('dvx_dz')
-                self.t1d3_cols.append('dvy_dx')
-                self.t1d3_cols.append('dvy_dy')
-                self.t1d3_cols.append('dvy_dz')
-                self.t1d3_cols.append('dvz_dx')
-                self.t1d3_cols.append('dvz_dy')
-                self.t1d3_cols.append('dvz_dz')
+            ##if (self.input_options['fout_select'] == 'all'):
+            #if (self.input_options['fout_select'] == 'selected'):
+            #    self.t1d3_cols.append('dvx_dx')
+            #    self.t1d3_cols.append('dvx_dy')
+            #    self.t1d3_cols.append('dvx_dz')
+            #    self.t1d3_cols.append('dvy_dx')
+            #    self.t1d3_cols.append('dvy_dy')
+            #    self.t1d3_cols.append('dvy_dz')
+            #    self.t1d3_cols.append('dvz_dx')
+            #    self.t1d3_cols.append('dvz_dy')
+            #    self.t1d3_cols.append('dvz_dz')
 
 
 
@@ -1098,7 +1112,7 @@ class t1d3():
                 self.t1d3_points[i]['omega'] = omega
 
 
-            self.t1d3_cols.append('omega')
+            #self.t1d3_cols.append('omega')
 
 
 

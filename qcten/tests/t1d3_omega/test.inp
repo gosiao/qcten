@@ -1,0 +1,47 @@
+# 
+# 1. decide which files with input data should be read in:
+#
+--finp=../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; \s+; 1
+--finp=../testdata/lih_jbtensor_cubegrid10/gradjbz.csv; [x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]; \s+; 0
+#
+# 2. decide which columns correspond to grid points (same grid for every --finp is assumed!)
+#
+#    order of grid points coordinates:
+#       x, y, z
+--grid=[x, y, z]
+#
+# 3. decide which data 'makes a vector':
+#     * the names of vector elements must match the names of (selected) columns on input files read in point 1 (with --finp). 
+#     * the order of vector elements matters! see below:
+#
+#                  order of vector elements:
+#                  x       y      z
+--form_vector_3d=[bz_jx, bz_jy, bz_jz]
+#
+#
+# 4. in this test we are using the gradient of a vector read in from a file (--use_grad_from_file)
+#    so here we decide which data 'makes a tensor' corresponding to that gradient:
+#     * the names of tensor elements must match the names of (selected) columns on input files read in point 1 (with --finp). 
+#     * the order of tensor elements matters! see below:
+#
+#  grad(\vec{v}) =    [d(vx)/dx,    d(vx)/dy,    d(vx)/dz,    d(vy)/dx,    d(vy)/dy,    d(vy)/dz,    d(vz)/dx,    d(vz)/dy,    d(vz)/dz]
+--form_grad_vector_3d=[bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
+--use_grad_from_file=True
+#
+# 5. decide what you want to calculate for this vector:
+#
+--calc_from_vector_3d=omega
+--calc_from_vector_3d=vorticity
+#
+# 6. we also select z-direction, this will additionally print out the 'selected_axis cdot vectors'
+#
+--selected_axis=[0,0,1]
+#
+# 7. decide what output you need:
+#
+--data_out=[x, y, z, curlv_cdot_axis, omega]
+--data_out_rename=curlv_cdot_axis:bz_wz
+--data_out_rename=omega:omega_bz
+--fout=result.csv
+--fout_select=result_only
+--flog=result_log.txt

@@ -27,6 +27,8 @@
 #
 # 5. decide what output you need:
 #
+#--data_out=[x, y, z, bz_jz, tensor_inv1]
+--data_out=[x, y, z, zz, tensor_inv1]
 --fout=result.csv
 --fout_select=selected
 --flog=result.log

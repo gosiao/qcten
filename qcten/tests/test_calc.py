@@ -68,4 +68,12 @@ def test_t1d3_rortex_shear():
     
     run_test_generic(testdirs, debug=True)
 
+def test_t1d3_omega():
+
+    testdirs = [
+        "t1d3_omega",
+        ]
+    
+    run_test_generic(testdirs, debug=True)
+
 

@@ -11,6 +11,7 @@ class input_data:
         self.options         = {}
 
         # list of available functions for a selected type of input data:
+        # input t2d3 = second-rank tensor in 3D
         self.all_fun_t2d3 = ['trace',
                              'isotropic',
                              'deviator',
@@ -22,6 +23,7 @@ class input_data:
                              'tensor_inv2',
                              'tensor_inv3']
 
+        # input t1d3 = first-rank tensor (vector) in 3D
         self.all_fun_t1d3 = ['rortex',
                              'omega_rortex',
                              'norm',
@@ -87,9 +89,32 @@ class input_data:
                                         which columns contain grid x, y, z point coordinates
                                         ''')
 
-
+#        required_args.add_argument('--data_out',
+#                                   dest='data_out',
+#                                   action='store',
+#                                   required=True,
+#                                   help='''
+#                                        which data to save on the output file
+#                                        ''')
+#
 
         optional_args = parser.add_argument_group('optional arguments')
+
+
+        optional_args.add_argument('--data_out',
+                                   dest='data_out',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which data to save on the output file
+                                        ''')
+        optional_args.add_argument('--data_out_rename',
+                                   dest='data_out_rename',
+                                   action='append',
+                                   required=False,
+                                   help='''
+                                        which data to save on the output file
+                                        ''')
 
 
         optional_args.add_argument('--inptest',
@@ -199,6 +224,19 @@ class input_data:
 
         # optional arguments
         # ==================
+        if args.data_out is not None:
+            self.options["data_out"] = args.data_out
+
+        if args.data_out_rename is not None:
+            self.options["data_out_newnames"] = {}
+            self.options["data_out_rename"] = args.data_out_rename
+            for d in self.options["data_out_rename"]:
+                if ":" in d:
+                    orig = d.split(':')[0]
+                    new  = d.split(':')[1]
+                    self.options["data_out_newnames"][orig]=new
+
+
         if args.inptest is not None:
             self.options["inptest"] = args.inptest
 
