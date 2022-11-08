@@ -3,7 +3,7 @@ qcten
 Write me
 """
 import sys
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 import versioneer
 
 short_description = "Write me".split("\n")[0]
@@ -27,7 +27,7 @@ setup(
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     license='MIT',
-    packages=find_packages(where="qcten"),
+    packages=find_namespace_packages(where="qcten",exclude=["tests"]),
     include_package_data=True,
     setup_requires=[] + pytest_runner,
 )
