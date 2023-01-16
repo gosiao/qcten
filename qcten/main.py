@@ -1,4 +1,4 @@
-from .prepare_input import *
+from .prepare_workflow import *
 from .process import *
 
 

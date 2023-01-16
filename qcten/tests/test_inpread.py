@@ -16,8 +16,9 @@ specified in "scratch_space"
 def test_read_input():
 
     testdirs = [
-        "inptest_calc_t1",
-        "inptest_calc_t2"
+        "inptest_calc_t0",
+        #"inptest_calc_t1",
+        #"inptest_calc_t2"
         ]
     
     th = helper()
@@ -47,11 +48,13 @@ def test_read_input():
 
 def test_parse_options():
 
-    debug = False
+    #debug = False
+    debug = True
 
     testdirs = [
-        "inptest_calc_t1",
-        "inptest_calc_t2"
+        "inptest_calc_t0",
+        #"inptest_calc_t1",
+        #"inptest_calc_t2"
         ]
 
     th = helper()
@@ -68,7 +71,7 @@ def test_parse_options():
                 test_file = os.path.join(this_test, tf)
         args=qcten.main.read_input(test_file, verbose=True)
 
-        setup = qcten.prepare_input.input_data(args)
+        setup = qcten.prepare_workflow.input_data(args)
         setup.parse_options()
         options = setup.options
         for option_key, option_value in options.items():
@@ -92,8 +95,9 @@ def test_parse_options():
 def test_prepare_grid():
 
     testdirs = [
-        "inptest_calc_t1",
-        "inptest_calc_t2"
+        "inptest_calc_t0",
+        #"inptest_calc_t1",
+        #"inptest_calc_t2"
         ]
     
     th = helper()
@@ -108,8 +112,8 @@ def test_prepare_grid():
         for tf in os.listdir(this_test):
             if tf.endswith('.inp'):
                 test_file = os.path.join(this_test, tf)
-        args = qcten.prepare_input.read_input(finp=test_file, verbose=True)
-        setup = qcten.prepare_input.input_data(args)
+        args = qcten.prepare_workflow.read_input(finp=test_file, verbose=True)
+        setup = qcten.prepare_workflow.input_data(args)
         setup.parse_options()
         calc = qcten.process.work(setup.options)
         result = calc.prepare_grid()
@@ -120,7 +124,7 @@ def test_prepare_grid():
         diff = th.diff_dicts(result, result_ref)
         assert (diff == {})
 
-def FIXMEtest_parse_finp():
+def FIXMEtest_prepare_input():
     """write_me"""
 
     testdirs = [
@@ -141,12 +145,12 @@ def FIXMEtest_parse_finp():
         for tf in os.listdir(this_test):
             if tf.endswith('.inp'):
                 test_file = os.path.join(this_test, tf)
-        args = qcten.prepare_input.read_input(finp=test_file, verbose=True)
-        setup = qcten.prepare_input.input_data(args)
+        args = qcten.prepare_workflow.read_input(finp=test_file, verbose=True)
+        setup = qcten.prepare_workflow.input_data(args)
         setup.parse_options()
         calc = qcten.process.work(setup.options)
         grid = calc.prepare_grid()
-        result = calc.parse_finp()
+        result = calc.prepare_input()
         # --- DEBUG ---
         #for k, v in result.items():
         #    if isinstance(v, dict):
@@ -175,8 +179,9 @@ def FIXMEtest_parse_finp():
 def test_prepare_data():
 
     testdirs = [
-        "inptest_calc_t1",
-        "inptest_calc_t2"
+        "inptest_calc_t0",
+        #"inptest_calc_t1",
+        #"inptest_calc_t2"
         ]
     
     th = helper()
@@ -191,12 +196,12 @@ def test_prepare_data():
         for tf in os.listdir(this_test):
             if tf.endswith('.inp'):
                 test_file = os.path.join(this_test, tf)
-        args = qcten.prepare_input.read_input(finp=test_file, verbose=True)
-        setup = qcten.prepare_input.input_data(args)
+        args = qcten.prepare_workflow.read_input(finp=test_file, verbose=True)
+        setup = qcten.prepare_workflow.input_data(args)
         setup.parse_options()
         calc = qcten.process.work(setup.options)
         grid = calc.prepare_grid()
-        finp = calc.parse_finp()
+        finp = calc.prepare_input()
         result = calc.prepare_data()
         # --- DEBUG ---
         #th.debug_dump_dataframe_to_file(result)

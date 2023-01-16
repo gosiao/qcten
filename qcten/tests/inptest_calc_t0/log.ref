@@ -1,0 +1,18 @@
+--------------------------- main job options ---------------------------
+qcten SHA: b'7c2ce79\n'
+
+finp                                         : ['txt; ../testdata/lih_rho_cubegrid10/rho.txt; [x, y, z, rho]']
+fout                                         : ['csv; rho.csv; [x, y, z, rho]']
+fout_select                                  : all
+flog                                         : result_log.txt
+grid                                         : [x, y, z]
+grid_function                                : [rho]
+inptest                                      : True
+rortex_fill_empty                            : NULL
+
+------------------ set of options for input files ------------------
+file_type      : txt
+file_path      : ../testdata/lih_rho_cubegrid10/rho.txt
+file_column_names: ['x', 'y', 'z', 'rho']
+file_header    : None
+

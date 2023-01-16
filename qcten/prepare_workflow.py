@@ -42,20 +42,19 @@ class input_data:
         required_args.add_argument('--finp',
                                    dest='finp',
                                    action='append',
-                                   metavar='file name (csv); column names; column separator; number of header lines to skip',
+                                   metavar='file type (one of: txt, csv, hdf5, vti); file name; optional: column names ([col1, col2, ...]); optional: number of header lines to skip',
                                    required=True,
                                    help='''
-                                        input with data from quantum chem calculations;
-                                        one file per one "--finp"
+                                        information on the input file with real-space data
                                         ''')
 
         required_args.add_argument('--fout',
                                    dest='fout',
-                                   action='store',
-                                   metavar='file name (csv)',
+                                   action='append',
+                                   metavar='file type (one of: txt, csv, hdf5, vti); file name; optional: column names ([col1, col2, ...]); optional: number of header lines to skip',
                                    required=True,
                                    help='''
-                                        output file to write to
+                                        information on the output file with data
                                         ''')
 
         required_args.add_argument('--fout_select',
@@ -89,13 +88,15 @@ class input_data:
                                         which columns contain grid x, y, z point coordinates
                                         ''')
 
-#        required_args.add_argument('--data_out',
-#                                   dest='data_out',
-#                                   action='store',
-#                                   required=True,
-#                                   help='''
-#                                        which data to save on the output file
-#                                        ''')
+        required_args.add_argument('--grid_function',
+                                   dest='grid_function',
+                                   action='store',
+                                   metavar='[column with data 1, column with data 2, ...]',
+                                   required=True,
+                                   help='''
+                                        which columns contain data
+                                        ''')
+
 #
 
         optional_args = parser.add_argument_group('optional arguments')
@@ -125,12 +126,28 @@ class input_data:
                                         test input and quit
                                         ''')
 
+        optional_args.add_argument('--form_tensor_0order_3d',
+                                   dest='form_tensor_0order_3d',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which columns should be used to form the tensor field of order 0 (= scalar field)
+                                        ''')
+
+        optional_args.add_argument('--form_tensor_1order_3d',
+                                   dest='form_tensor_1order_3d',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which columns should be used to form the tensor field of order 1 (= vector field)
+                                        ''')
+
         optional_args.add_argument('--form_tensor_2order_3d',
                                    dest='form_tensor_2order_3d',
                                    action='store',
                                    required=False,
                                    help='''
-                                        form_tensor_2order_3d
+                                        which columns should be used to form the tensor field of order 2
                                         ''')
 
         optional_args.add_argument('--calc_from_tensor_2order_3d',
@@ -150,6 +167,7 @@ class input_data:
                                         what to calculate from tensor_2order_3d; functions that apply to the fragment of the tensor
                                         ''')
 
+#rm this
         optional_args.add_argument('--form_vector_3d',
                                    dest='form_vector_3d',
                                    action='store',
@@ -221,6 +239,7 @@ class input_data:
         self.options["fout_select"] = args.fout_select
         self.options["flog"] = args.flog
         self.options["grid"] = args.grid
+        self.options["grid_function"] = args.grid_function
 
         # optional arguments
         # ==================

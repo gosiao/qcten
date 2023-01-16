@@ -1,0 +1,8 @@
+--inptest=True
+--finp=txt; ../testdata/lih_rho_cubegrid10/rho.txt; [x, y, z, rho]
+--grid=[x, y, z]
+--grid_function=[rho]
+--form_tensor_0order_3d=[rho]
+--fout=csv; rho.csv; [x, y, z, rho]
+--fout_select=all
+--flog=result_log.txt

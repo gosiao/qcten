@@ -11,28 +11,35 @@ class work():
 
     def __init__(self, options):
 
-        # all options read from an input run file
+        # all options read from an input script
         self.options  = options
 
-        # grid
-        self.grid     = {}
-
-        self.data     = {}
-        self.fulldata = pd.DataFrame()
+        # options for data input and output files
         self.allfinp  = {}
+        self.allfout  = {}
         self.flog     = self.options['flog']
 
+        # grid and data
+        self.grid = {}
+        self.grid_function = {}
+        self.data = {}
+        self.fulldata = pd.DataFrame()
 
-    def parse_finp(self):
+
+    def prepare_input(self):
 
         """
         here we decode the input to '--finp'
         
-        there are 4 arguments to --finp:
-        1. file name
-        2. column names
-        3. column separator
-        4. number of header lines to skip
+        there are at least 2 and at most 4 arguments to --finp:
+
+        obligatory:
+        1. file type
+        2. file name
+
+        optional
+        3. column names (only if the input is a TXT file)
+        4. number of header lines (only if the input is a TXT file)
 
         there can be many --finp blocks (self.options["finp"] is a list)
         """
@@ -44,39 +51,86 @@ class work():
         for f_arg in self.options["finp"]:
 
             args = f_arg.split(';')
-            if len(args) < 4:
-                msg = 'ERROR: not enough arguments to finp'
+            if len(args) < 2 or len(args) > 4:
+                msg = 'ERROR: wrong number of arguments to --finp'
                 sys.exit(msg)
 
-            finp   = args[0].strip()
-            cols   = [arg.strip().strip('[').strip(']') for arg in args[1].split(',')]
-            sep    = args[2].strip()
-            if args[3].strip() == 'None':
-                header = None
-            else:
-                header = int(args[3].strip())
+            f_name, f_info = self.prepare_io(args)
 
-            d = {}
-            d['file_name']     = finp
-            d['column_names']  = cols
-            d['sep']           = sep
-            d['header']        = header
-
-            allfinp[finp] = d
-            self.allfinp[finp] = d
-
-            #if self.allfinp[finp] is None:
-            #    self.allfinp[finp] = d
+            allfinp[f_name] = f_info
+            self.allfinp[f_name] = f_info
 
             self.print_options_to_log()
 
         return allfinp
 
 
+    def prepare_output(self):
+
+        """
+        here we decode the input to '--fout'
+        
+        there are at least 2 and at most 4 arguments to --fout:
+
+        obligatory:
+        1. file type
+        2. file name
+
+        optional
+        3. column names
+        4. number of header lines
+
+        there can be many --fout blocks (self.options["fout"] is a list)
+        """
+
+        if self.allfout is not None:
+            print('WARNING: --fout arguments are already assigned; will be overwritten')
+
+        allfout = {}
+        for f_arg in self.options["fout"]:
+
+            args = f_arg.split(';')
+            if len(args) < 2 or len(args) > 4:
+                msg = 'ERROR: wrong number of arguments to --fout'
+                sys.exit(msg)
+
+            f_name, f_info = self.prepare_io(args)
+
+            allfout[f_name] = f_info
+            self.allfout[f_name] = f_info
+
+        return allfout
+
+
+    def prepare_io(self, args):
+
+        f_type   = args[0].strip()
+        f_path   = args[1].strip()
+        f_name   = os.path.basename(f_path)
+
+        f_cols   = None
+        if len(args) > 2:
+            if args[2].strip() != 'None':
+                f_cols   = [arg.strip().strip('[').strip(']') for arg in args[2].split(',')]
+
+        f_header = None
+        if len(args) > 3:
+            if args[3].strip() != 'None':
+                header = int(args[3].strip())
+
+        d = {}
+        d['file_type'] = f_type
+        d['file_path'] = f_path
+        d['file_column_names'] = f_cols
+        d['file_header'] = f_header
+
+        return f_name, d
+
+
     def prepare_data(self):
 
         """
-        read the input data into pandas dataframes
+        read the input data (in TXT) into pandas dataframes
 
         TODO: 
         * find what is better to assure floats (dtype = np.float or pd.to_numeric)
@@ -88,15 +142,18 @@ class work():
         dfs = []
         for k, v in self.allfinp.items():
 
-            df = pd.read_csv(v['file_name'],
-                             sep    = v['sep'],
-                             header = v['header'],
-                             names  = v['column_names'],
-                             dtype = np.float64)
+            if v['file_type'].lower() == 'txt':
+                df = pd.read_fwf(v['file_path'], colspecs='infer', header=v['file_header'])
+
+            #df = pd.read_csv(v['file_name'],
+            #                 sep    = v['sep'],
+            #                 header = v['header'],
+            #                 names  = v['column_names'],
+            #                 dtype = np.float64)
 
             df.apply(pd.to_numeric, errors='coerce')
 
-            self.data[v['file_name']] = df
+            self.data[k] = df
             dfs.append(df)
 
         # 2. combine a list of dataframes into one dataframe
@@ -197,19 +254,6 @@ class work():
 
         self.fulldata = fulldata
         return fulldata
-
-
-    def prepare_output(self):
-        '''
-        write to output
-        '''
-
-        self.fulldata.to_csv(self.options['fout'],
-                             float_format='%.8e',
-                             na_rep=self.options['rortex_fill_empty'],
-                             index=False)
-
-
 
 
 

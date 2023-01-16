@@ -62,7 +62,8 @@ class helper:
         return result
 
     def get_ref_aspddataframe(self, finp):
-        result = pd.read_csv(finp, header=0, dtype = np.float64)
+        result = pd.read_fwf(finp, colspecs='infer', header=None)
+        #result = pd.read_csv(finp, header=0, dtype = np.float64)
         result.apply(pd.to_numeric, errors='coerce')
         return result
 
