@@ -2,7 +2,7 @@
 
 # Add imports here
 from .main import *
-from .prepare_workflow import *
+from .cli import *
 from .process import *
 
 # Handle versioneer

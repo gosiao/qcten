@@ -5,13 +5,14 @@ import math
 
 class t1d3():
 
-    def __init__(self, input_options, grid, input_data):
+    def __init__(self, cli_options, output_options, grid, input_data):
 
         # general setup
-        self.input_options = input_options
+        self.input_options = cli_options #you should not need this here!
+        self.calc_options  = output_options
         self.grid    =grid
         self.input_data    = input_data
-        self.flog          = input_options['flog']
+        self.flog          = self.input_options['flog']
 
         # global data structures
         self.t1d3          = {}
@@ -41,11 +42,11 @@ class t1d3():
         self.get_vector_3d_data_points()
 
 
-        if self.input_options['calc_from_vector_3d'] is not None:
+        if self.input_options['calc_from_tensor_1order_3d'] is not None:
 
             # TODO: here starts a loop over points, can be expensive!
 
-            for arg in self.input_options['calc_from_vector_3d']:
+            for arg in self.input_options['calc_from_tensor_1order_3d']:
 
                 if (arg == 'rortex' or arg == 'omega_rortex'):
                     #self.get_t1d3_gradient()
@@ -65,15 +66,16 @@ class t1d3():
                 if (arg == 'mean'):
                     self.mean()
 
-        if self.input_options['selected_axis'] is not None:
-            self.project_v_on_selected_axis()
+        if self.input_options['projection_axis'] is not None:
+            self.project_v_on_projection_axis()
 
 
     def assign_output_for_vector_3d(self):
         #
-        output=[]
-        if self.input_options['data_out'] is not None:
-            self.data_to_export = [arg.strip().strip('[').strip(']') for arg in self.input_options['data_out'].split(',')]
+        if self.calc_options is not None:
+            for k, v in self.calc_options.items():
+                print('output from assign_output_for_vector_3d: ', k, v)
+            #self.data_to_export = [arg.strip().strip('[').strip(']') for arg in self.calc_options['data_out'].split(',')]
 
 
     def get_t1d3_gradient(self):
@@ -174,14 +176,14 @@ class t1d3():
 
         pass
 
-    def assign_vector_3d(self):
+    def assign_vector_3d(self, verbose=True):
 
         '''
 
         1. vector field
         ---------------
         vector components are read in the following order from the input data file:
-        (this is the order of elements read with the --form_vector_3d keyword)
+        (this is the order of elements read with the --form_tensor_1order_3d keyword)
 
             [grid_x, grid_y, grid_z], vx, vy, vz
 
@@ -199,15 +201,18 @@ class t1d3():
 
         '''
 
-        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_vector_3d'].split(',')]
+        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_tensor_1order_3d'].split(',')]
 
         self.t1d3['vx'] = args[0]
         self.t1d3['vy'] = args[1]
         self.t1d3['vz'] = args[2]
 
-        if (self.input_options['form_grad_vector_3d'] is not None) and (self.input_options['use_grad_from_file']):
+        if verbose:
+            print('vector columns are assigned: vx={}, vy={}, vz={}'.format(self.t1d3['vx'],self.t1d3['vy'],self.t1d3['vz']))
 
-            args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_vector_3d'].split(',')]
+        if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+
+            args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_tensor_1order_3d'].split(',')]
 
             # note the order of tensor elements!
             # now adapted to the order in which 'get_gj' tensor elements are exported from DIRAC in visual
@@ -257,7 +262,7 @@ class t1d3():
             d['vy']      = r[self.t1d3['vy']]
             d['vz']      = r[self.t1d3['vz']]
 
-            if (self.input_options['form_grad_vector_3d'] is not None) and (self.input_options['use_grad_from_file']):
+            if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
                 d['dvx_dx']  = r[self.t1d3['dvx_dx']]
                 d['dvx_dy']  = r[self.t1d3['dvx_dy']]
                 d['dvx_dz']  = r[self.t1d3['dvx_dz']]
@@ -571,12 +576,12 @@ class t1d3():
         f is a selected element of a vector
         '''
 
-        if self.input_options['calc_from_vector_3d_calc_grad'] == 'numpy':
+        if self.input_options['calc_from_tensor_1order_3d_calc_grad'] == 'numpy':
             grad = self.test_grad_numpy(f)
-        elif self.input_options['calc_from_vector_3d_calc_grad'] == 'finite_elements':
+        elif self.input_options['calc_from_tensor_1order_3d_calc_grad'] == 'finite_elements':
             grad = self.gradient_from_finite_elements(f)
         else:
-            print('warning: wrong choice of calc_from_vector_3d_calc_grad')
+            print('warning: wrong choice of calc_from_tensor_1order_3d_calc_grad')
             grad=None
 
         return grad
@@ -734,12 +739,12 @@ class t1d3():
             self.t1d3_points[point_index]['rortex_vector_y'] = factor * rortex_magnitude * eigvec_real_normalized[1]
             self.t1d3_points[point_index]['rortex_vector_z'] = factor * rortex_magnitude * eigvec_real_normalized[2]
 
-            if self.input_options['selected_axis'] is not None:
+            if self.input_options['projection_axis'] is not None:
                 # project rortex vector on a selected axis
                 # it is useful for plots (coloring)
-                rortex_cdot_axis = self.t1d3_points[point_index]['rortex_vector_x']*self.input_options['selected_axis'][0] \
-                                 + self.t1d3_points[point_index]['rortex_vector_y']*self.input_options['selected_axis'][1] \
-                                 + self.t1d3_points[point_index]['rortex_vector_z']*self.input_options['selected_axis'][2]
+                rortex_cdot_axis = self.t1d3_points[point_index]['rortex_vector_x']*self.input_options['projection_axis'][0] \
+                                 + self.t1d3_points[point_index]['rortex_vector_y']*self.input_options['projection_axis'][1] \
+                                 + self.t1d3_points[point_index]['rortex_vector_z']*self.input_options['projection_axis'][2]
                 self.t1d3_points[point_index]['rortex_cdot_axis'] = rortex_cdot_axis
 
 
@@ -755,7 +760,7 @@ class t1d3():
             self.t1d3_points[point_index]['rortex_tensor_zy'] =  0.0
             self.t1d3_points[point_index]['rortex_tensor_zz'] =  0.0
 
-            if ('omega_rortex' in self.input_options['calc_from_vector_3d']):
+            if ('omega_rortex' in self.input_options['calc_from_tensor_1order_3d']):
                 # we use Eq. 36 from Xu et al. Phys Fluids 31, 095102 (2019)
 
                 omega_rortex = omega_cdot_r**2 / (2*(omega_cdot_r**2 - 2*(lambda_ci**2) + 2*(lambda_cr**2) + lambda_r**2))
@@ -795,7 +800,7 @@ class t1d3():
             self.t1d3_points[point_index]['omega_rortex'] = None
             self.t1d3_points[point_index]['omega_rortex2'] = None
 
-            if self.input_options['selected_axis'] is not None:
+            if self.input_options['projection_axis'] is not None:
                 self.t1d3_points[point_index]['rortex_cdot_axis'] = None
 
 
@@ -804,7 +809,7 @@ class t1d3():
         self.t1d3_cols.append('rortex_vector_y')
         self.t1d3_cols.append('rortex_vector_z')
         self.t1d3_cols.append('rortex_magnitude')
-        if self.input_options['selected_axis'] is not None:
+        if self.input_options['projection_axis'] is not None:
             self.t1d3_cols.append('rortex_cdot_axis')
 
 
@@ -947,12 +952,12 @@ class t1d3():
         return v1_cdot_v2
 
 
-    def project_v_on_selected_axis(self):
+    def project_v_on_projection_axis(self):
 
         for i, d in enumerate(self.t1d3_points):
-            v_cdot_axis = self.t1d3_points[i]['vx']*self.input_options['selected_axis'][0] \
-                        + self.t1d3_points[i]['vy']*self.input_options['selected_axis'][1] \
-                        + self.t1d3_points[i]['vz']*self.input_options['selected_axis'][2]
+            v_cdot_axis = self.t1d3_points[i]['vx']*self.input_options['projection_axis'][0] \
+                        + self.t1d3_points[i]['vy']*self.input_options['projection_axis'][1] \
+                        + self.t1d3_points[i]['vz']*self.input_options['projection_axis'][2]
 
             self.t1d3_points[i]['v_cdot_axis'] = v_cdot_axis
 
@@ -1046,10 +1051,10 @@ class t1d3():
                 self.t1d3_points[i]['curlv_z'] = curlv_z
                 self.t1d3_points[i]['curlv_magnitude'] = curlv_magnitude
 
-                if self.input_options['selected_axis'] is not None:
-                    curlv_cdot_axis = self.t1d3_points[i]['curlv_x']*self.input_options['selected_axis'][0] \
-                                    + self.t1d3_points[i]['curlv_y']*self.input_options['selected_axis'][1] \
-                                    + self.t1d3_points[i]['curlv_z']*self.input_options['selected_axis'][2]
+                if self.input_options['projection_axis'] is not None:
+                    curlv_cdot_axis = self.t1d3_points[i]['curlv_x']*self.input_options['projection_axis'][0] \
+                                    + self.t1d3_points[i]['curlv_y']*self.input_options['projection_axis'][1] \
+                                    + self.t1d3_points[i]['curlv_z']*self.input_options['projection_axis'][2]
 
                     self.t1d3_points[i]['curlv_cdot_axis'] = curlv_cdot_axis
 
@@ -1058,7 +1063,7 @@ class t1d3():
             #self.t1d3_cols.append('curlv_y')
             #self.t1d3_cols.append('curlv_z')
             #self.t1d3_cols.append('curlv_magnitude')
-            #if self.input_options['selected_axis'] is not None:
+            #if self.input_options['projection_axis'] is not None:
             #    self.t1d3_cols.append('curlv_cdot_axis')
 
             ##if (self.input_options['fout_select'] == 'all'):

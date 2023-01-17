@@ -46,6 +46,8 @@ class work():
 
         if self.allfinp is not None:
             print('WARNING: --finp arguments are already assigned; will be overwritten')
+            for k, v in self.allfinp.items():
+                print('k, v : ', k, v)
 
         allfinp = {}
         for f_arg in self.options["finp"]:
@@ -61,6 +63,9 @@ class work():
             self.allfinp[f_name] = f_info
 
             self.print_options_to_log()
+
+        for k, v in self.allfinp.items():
+            print('assigned self.allfinp.items = k, v : ', k, v)
 
         return allfinp
 
@@ -99,6 +104,9 @@ class work():
             allfout[f_name] = f_info
             self.allfout[f_name] = f_info
 
+        for k, v in self.allfout.items():
+            print('assigned self.allfout.items = k, v : ', k, v)
+
         return allfout
 
 
@@ -112,6 +120,12 @@ class work():
         if len(args) > 2:
             if args[2].strip() != 'None':
                 f_cols   = [arg.strip().strip('[').strip(']') for arg in args[2].split(',')]
+                for i, f_col in enumerate(f_cols):
+                    print('column test: ', f_col)
+                    if ':' in f_col:
+                        f_col_inital=f_col.split(':')[0].strip()
+                        f_col_renamed=f_col.split(':')[1].strip()
+                        f_cols[i] = f_col_renamed
 
         f_header = None
         if len(args) > 3:
@@ -138,12 +152,15 @@ class work():
         * check whether the data has been collected on the same grids
         """
 
+        print('test grid columns in prepare_data')
+        print('grid columns are assigned: grid_x={}, grid_y={}, grid_z={}'.format(self.grid['grid_x'],self.grid['grid_y'],self.grid['grid_z']))
+
         # 1. read all input data into a list of dataframes
         dfs = []
         for k, v in self.allfinp.items():
 
             if v['file_type'].lower() == 'txt':
-                df = pd.read_fwf(v['file_path'], colspecs='infer', header=v['file_header'])
+                df = pd.read_fwf(v['file_path'], colspecs='infer', header=v['file_header'], names=v['file_column_names'])
 
             #df = pd.read_csv(v['file_name'],
             #                 sep    = v['sep'],
@@ -155,13 +172,10 @@ class work():
 
             self.data[k] = df
             dfs.append(df)
+            print('df for k: ', df.head(3))
 
-        # 2. combine a list of dataframes into one dataframe
-
-        # this removes all duplicates:
-        # self.fulldata = pd.concat([df for df in self.data.values()], axis=1, sort=False).T.drop_duplicates().T
-        # but since it might be problematic if we have two columns with the same exact values (e.g. from calculations
-        # with symmetry), it's better just to prune the excess 'grid' columns, so we do instead:
+        # 2. combine a list of dataframes into one dataframe;
+        #    first, remove the excess 'grid' columns (now -assuming the same grids):
         for df in dfs[1:]:
             df.drop(columns=[self.grid['grid_x'], self.grid['grid_y'], self.grid['grid_z']], inplace=True)
 
@@ -172,7 +186,7 @@ class work():
         return fulldata
 
 
-    def prepare_grid(self):
+    def prepare_grid(self, verbose=True):
         """
         find which column names correspond to grid data (in csv)
         TODO: make sure the same grid is on all finp files
@@ -184,15 +198,28 @@ class work():
             self.grid['grid_x'] = args[0]
             self.grid['grid_y'] = args[1]
             self.grid['grid_z'] = args[2]
+        if verbose:
+            print('grid columns are assigned: grid_x={}, grid_y={}, grid_z={}'.format(self.grid['grid_x'],self.grid['grid_y'],self.grid['grid_z']))
+            
         return grid
 
 
     def calculate(self):
 
-        # todo: tu przenies assign vector/assign tensor
+        result_df = pd.DataFrame()
+
+        if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
+
+            print('work on t0d3')
+            work = t0d3(self.options, self.grid, self.fulldata)
+            work.run()
+
+            result_df = pd.DataFrame(work.t0d3_points)
+            result_df = self.update_df(result_df, new_df_cols=work.t0d3_cols)
 
         if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
+            print('work on t2d3')
             work = t2d3(self.options, self.grid, self.fulldata)
             work.run()
 
@@ -200,9 +227,10 @@ class work():
             result_df = self.update_df(result_df, new_df_cols=work.t2d3_cols)
 
 
-        if 'form_vector_3d' in self.options and self.options['form_vector_3d'] is not None:
+        if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
-            work = t1d3(self.options, self.grid, self.fulldata)
+            print('work on t1d3')
+            work = t1d3(self.options, self.allfout, self.grid, self.fulldata)
             work.run()
 
             result_df = pd.DataFrame(work.t1d3_points)

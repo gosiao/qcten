@@ -11,7 +11,7 @@ class input_data:
         self.options         = {}
 
         # list of available functions for a selected type of input data:
-        # input t2d3 = second-rank tensor in 3D
+        # input is t2d3 (second-rank tensor in 3D)
         self.all_fun_t2d3 = ['trace',
                              'isotropic',
                              'deviator',
@@ -23,7 +23,7 @@ class input_data:
                              'tensor_inv2',
                              'tensor_inv3']
 
-        # input t1d3 = first-rank tensor (vector) in 3D
+        # input is t1d3 = (first-rank tensor (= vector) in 3D)
         self.all_fun_t1d3 = ['rortex',
                              'omega_rortex',
                              'norm',
@@ -51,7 +51,7 @@ class input_data:
         required_args.add_argument('--fout',
                                    dest='fout',
                                    action='append',
-                                   metavar='file type (one of: txt, csv, hdf5, vti); file name; optional: column names ([col1, col2, ...]); optional: number of header lines to skip',
+                                   metavar='file type (one of: txt, csv, hdf5, vti); file name; optional: column names ([col1, col2:renamed_col2, ...]); optional: number of header lines to skip',
                                    required=True,
                                    help='''
                                         information on the output file with data
@@ -88,33 +88,27 @@ class input_data:
                                         which columns contain grid x, y, z point coordinates
                                         ''')
 
-        required_args.add_argument('--grid_function',
-                                   dest='grid_function',
-                                   action='store',
-                                   metavar='[column with data 1, column with data 2, ...]',
-                                   required=True,
-                                   help='''
-                                        which columns contain data
-                                        ''')
+        #required_args.add_argument('--grid_function',
+        #                           dest='grid_function',
+        #                           action='store',
+        #                           metavar='[column with data 1, column with data 2, ...]',
+        #                           required=True,
+        #                           help='''
+        #                                which columns contain data
+        #                                ''')
 
 #
 
         optional_args = parser.add_argument_group('optional arguments')
 
-
-        optional_args.add_argument('--data_out',
-                                   dest='data_out',
+        # rethink this:
+        optional_args.add_argument('--grid_function',
+                                   dest='grid_function',
                                    action='store',
+                                   metavar='[column with data 1, column with data 2, ...]',
                                    required=False,
                                    help='''
-                                        which data to save on the output file
-                                        ''')
-        optional_args.add_argument('--data_out_rename',
-                                   dest='data_out_rename',
-                                   action='append',
-                                   required=False,
-                                   help='''
-                                        which data to save on the output file
+                                        which columns contain data
                                         ''')
 
 
@@ -159,6 +153,7 @@ class input_data:
                                         what to calculate from tensor_2order_3d
                                         ''')
 
+        # verify this:
         optional_args.add_argument('--calc_from_tensor_2order_3d_fragments',
                                    dest='calc_from_tensor_2order_3d_fragments',
                                    action='store',
@@ -167,21 +162,12 @@ class input_data:
                                         what to calculate from tensor_2order_3d; functions that apply to the fragment of the tensor
                                         ''')
 
-#rm this
-        optional_args.add_argument('--form_vector_3d',
-                                   dest='form_vector_3d',
+        optional_args.add_argument('--form_grad_tensor_1order_3d',
+                                   dest='form_grad_tensor_1order_3d',
                                    action='store',
                                    required=False,
                                    help='''
-                                        form_vector_3d
-                                        ''')
-
-        optional_args.add_argument('--form_grad_vector_3d',
-                                   dest='form_grad_vector_3d',
-                                   action='store',
-                                   required=False,
-                                   help='''
-                                        form_grad_vector_3d
+                                        which columns should be used to form the gradient of the tensorfield of order 1
                                         ''')
 
         optional_args.add_argument('--use_grad_from_file',
@@ -189,11 +175,11 @@ class input_data:
                                    action='store',
                                    required=False,
                                    help='''
-                                        use_grad_from_file
+                                        are the elements of the gradient of the tensor field available on file?
                                         ''')
 
-        optional_args.add_argument('--calc_from_vector_3d',
-                                   dest='calc_from_vector_3d',
+        optional_args.add_argument('--calc_from_tensor_1order_3d',
+                                   dest='calc_from_tensor_1order_3d',
                                    action='append',
                                    choices=self.all_fun_t1d3,
                                    required=False,
@@ -201,17 +187,18 @@ class input_data:
                                         what to calculate from vector_3d
                                         ''')
 
-        optional_args.add_argument('--calc_from_vector_3d_calc_grad',
-                                   dest='calc_from_vector_3d_calc_grad',
+        # verify this:
+        optional_args.add_argument('--calc_from_tensor_1order_3d_calc_grad',
+                                   dest='calc_from_tensor_1order_3d_calc_grad',
                                    action='store',
                                    choices=['numpy', 'finite_elements'],
                                    required=False,
                                    help='''
-                                        calc_from_vector_3d_calc_grad
+                                        calc_from_tensor_1order_3d_calc_grad
                                         ''')
 
-        optional_args.add_argument('--selected_axis',
-                                   dest='selected_axis',
+        optional_args.add_argument('--projection_axis',
+                                   dest='projection_axis',
                                    action='store',
                                    required=False,
                                    help='''
@@ -219,78 +206,49 @@ class input_data:
                                         ''')
 
 
-        optional_args.add_argument('--rortex_fill_empty',
-                                   dest='rortex_fill_empty',
+        optional_args.add_argument('--fill_empty',
+                                   dest='fill_empty',
                                    action='store',
                                    required=False,
                                    default='NULL',
                                    help='''
-                                        how to fill empty fields in rortex;
+                                        how to fill empty data fields;
                                         ''')
 
+        # options specific to TTK:
+        optional_args.add_argument('--ttk_task',
+                                   dest='ttk_task',
+                                   action='store',
+                                   required=False,
+                                   choices=['start', 'calculate', 'ms', 'scatterplot', 'bottleneck', 'jacobi'],
+                                   help='''
+                                        which TTK task will be performed
+                                        ''')
+
+        optional_args.add_argument('--resampled_dim',
+                                   dest='resampled_dim',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        number of points in x,y,z directions for the "ResampleToImage" filter in TTK;
+                                        default: 256x256x256
+                                        ''')
+
+        optional_args.add_argument('--calc_fun',
+                                   dest='calc_fun',
+                                   action='append',
+                                   required=False,
+                                   help='function to apply in the Calculator filter')
+
+        optional_args.add_argument('--calc_gradient',
+                                   dest='calc_gradient',
+                                   action='append',
+                                   required=False,
+                                   help='apply the gradientOfUnstructuredDataSet filter')
 
 
         args = parser.parse_args(self.args_list)
-
-        # required arguments
-        # ==================
-        self.options["finp"] = args.finp
-        self.options["fout"] = args.fout
-        self.options["fout_select"] = args.fout_select
-        self.options["flog"] = args.flog
-        self.options["grid"] = args.grid
-        self.options["grid_function"] = args.grid_function
-
-        # optional arguments
-        # ==================
-        if args.data_out is not None:
-            self.options["data_out"] = args.data_out
-
-        if args.data_out_rename is not None:
-            self.options["data_out_newnames"] = {}
-            self.options["data_out_rename"] = args.data_out_rename
-            for d in self.options["data_out_rename"]:
-                if ":" in d:
-                    orig = d.split(':')[0]
-                    new  = d.split(':')[1]
-                    self.options["data_out_newnames"][orig]=new
-
-
-        if args.inptest is not None:
-            self.options["inptest"] = args.inptest
-
-        # tensors: 2nd order
-        if args.form_tensor_2order_3d is not None:
-            self.options["form_tensor_2order_3d"] = args.form_tensor_2order_3d
-
-        if args.calc_from_tensor_2order_3d is not None:
-            self.options["calc_from_tensor_2order_3d"] = args.calc_from_tensor_2order_3d
-
-        if args.calc_from_tensor_2order_3d_fragments is not None:
-            self.options["calc_from_tensor_2order_3d_fragments"] = args.calc_from_tensor_2order_3d_fragments
-
-        # vectors
-        if args.form_vector_3d is not None:
-            self.options["form_vector_3d"] = args.form_vector_3d
-
-        if args.form_grad_vector_3d is not None:
-            self.options["form_grad_vector_3d"] = args.form_grad_vector_3d
-
-        if args.use_grad_from_file is not None:
-            self.options["use_grad_from_file"] = args.use_grad_from_file
-
-        if args.calc_from_vector_3d is not None:
-            self.options["calc_from_vector_3d"] = args.calc_from_vector_3d
-
-        if args.calc_from_vector_3d_calc_grad is not None:
-            self.options["calc_from_vector_3d_calc_grad"] = args.calc_from_vector_3d_calc_grad
-
-        if args.selected_axis is not None:
-            self.options["selected_axis"] = [float(v.strip().strip('[').strip(']')) for v in args.selected_axis.split(',')]
-
-        if args.rortex_fill_empty is not None:
-            self.options["rortex_fill_empty"] = args.rortex_fill_empty
-
+        self.options = vars(args)
 
 
     def print_options(self):
@@ -304,6 +262,10 @@ class input_data:
 
 
 def read_input(finp=None, verbose=False):
+
+    """
+    read input options, either from a command line or from a file
+    """
 
     args = []
 
@@ -331,7 +293,7 @@ def read_input(finp=None, verbose=False):
 if __name__ == '__main__':
     args = read_input()
     data = input_data(args)
-    data.parse_options()
+    parsed_args=data.parse_options()
     data.print_options()
 
 

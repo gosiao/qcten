@@ -137,10 +137,10 @@ class t2d3():
             self.tensor_2order_3d_is_assigned = True
 
 
-        #if (self.input_options['form_grad_vector_3d'] is not None) and (self.input_options['use_grad_from_file']):
-        if ('form_grad_vector_3d' in self.input_options) and (self.input_options['form_grad_vector_3d'] is not None) and (self.input_options['use_grad_from_file']):
+        #if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+        if ('form_grad_tensor_1order_3d' in self.input_options) and (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
 
-            args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_vector_3d'].split(',')]
+            args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_tensor_1order_3d'].split(',')]
 
             self.t1d3['dvx_dx'] = args[0]
             self.t1d3['dvx_dy'] = args[1]
@@ -178,7 +178,7 @@ class t2d3():
             d['zy'] = r[self.t2d3['zy']]
             d['zz'] = r[self.t2d3['zz']]
 
-            if ('form_grad_vector_3d' in self.input_options) and (self.input_options['form_grad_vector_3d'] is not None) and (self.input_options['use_grad_from_file']):
+            if ('form_grad_tensor_1order_3d' in self.input_options) and (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
 
                 d['dvx_dx']  = r[self.t1d3['dvx_dx']]
                 d['dvx_dy']  = r[self.t1d3['dvx_dy']]
