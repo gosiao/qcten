@@ -26,7 +26,7 @@ class work():
         self.fulldata = pd.DataFrame()
 
 
-    def prepare_input(self):
+    def prepare_input(self, verbose=False):
 
         """
         here we decode the input to '--finp'
@@ -64,13 +64,14 @@ class work():
 
             self.print_options_to_log()
 
-        for k, v in self.allfinp.items():
-            print('assigned self.allfinp.items = k, v : ', k, v)
+        if verbose:
+            for k, v in self.allfinp.items():
+                print('assigned self.allfinp.items = k, v : ', k, v)
 
         return allfinp
 
 
-    def prepare_output(self):
+    def prepare_output(self, verbose=False):
 
         """
         here we decode the input to '--fout'
@@ -104,8 +105,9 @@ class work():
             allfout[f_name] = f_info
             self.allfout[f_name] = f_info
 
-        for k, v in self.allfout.items():
-            print('assigned self.allfout.items = k, v : ', k, v)
+        if verbose:
+            for k, v in self.allfout.items():
+                print('assigned self.allfout.items = k, v : ', k, v)
 
         return allfout
 
@@ -117,15 +119,19 @@ class work():
         f_name   = os.path.basename(f_path)
 
         f_cols   = None
+        f_old_cols = []
+        f_new_cols = []
         if len(args) > 2:
             if args[2].strip() != 'None':
                 f_cols   = [arg.strip().strip('[').strip(']') for arg in args[2].split(',')]
+                f_old_cols = [None for x in range(len(f_cols))]
+                f_new_cols = [None for x in range(len(f_cols))]
                 for i, f_col in enumerate(f_cols):
-                    print('column test: ', f_col)
                     if ':' in f_col:
-                        f_col_inital=f_col.split(':')[0].strip()
+                        f_col_initial=f_col.split(':')[0].strip()
                         f_col_renamed=f_col.split(':')[1].strip()
-                        f_cols[i] = f_col_renamed
+                        f_old_cols[i] = f_col_initial
+                        f_new_cols[i] = f_col_renamed
 
         f_header = None
         if len(args) > 3:
@@ -136,6 +142,8 @@ class work():
         d['file_type'] = f_type
         d['file_path'] = f_path
         d['file_column_names'] = f_cols
+        d['file_column_old_names'] = f_old_cols
+        d['file_column_new_names'] = f_new_cols
         d['file_header'] = f_header
 
         return f_name, d
@@ -147,13 +155,9 @@ class work():
         read the input data (in TXT) into pandas dataframes
 
         TODO: 
-        * find what is better to assure floats (dtype = np.float or pd.to_numeric)
         * deal with empty or non-float fields
         * check whether the data has been collected on the same grids
         """
-
-        print('test grid columns in prepare_data')
-        print('grid columns are assigned: grid_x={}, grid_y={}, grid_z={}'.format(self.grid['grid_x'],self.grid['grid_y'],self.grid['grid_z']))
 
         # 1. read all input data into a list of dataframes
         dfs = []
@@ -172,7 +176,6 @@ class work():
 
             self.data[k] = df
             dfs.append(df)
-            print('df for k: ', df.head(3))
 
         # 2. combine a list of dataframes into one dataframe;
         #    first, remove the excess 'grid' columns (now -assuming the same grids):
@@ -186,7 +189,7 @@ class work():
         return fulldata
 
 
-    def prepare_grid(self, verbose=True):
+    def prepare_grid(self, verbose=False):
         """
         find which column names correspond to grid data (in csv)
         TODO: make sure the same grid is on all finp files
@@ -210,7 +213,6 @@ class work():
 
         if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
 
-            print('work on t0d3')
             work = t0d3(self.options, self.grid, self.fulldata)
             work.run()
 
@@ -219,7 +221,6 @@ class work():
 
         if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
-            print('work on t2d3')
             work = t2d3(self.options, self.grid, self.fulldata)
             work.run()
 
@@ -229,7 +230,6 @@ class work():
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
-            print('work on t1d3')
             work = t1d3(self.options, self.allfout, self.grid, self.fulldata)
             work.run()
 
@@ -250,37 +250,34 @@ class work():
             # get unique column names
             cols = set(new_df_cols)
 
-            if self.options['data_out'] is not None:
+            if self.allfout is not None:
                 cols = list(cols)
-                #cols = list(cols.replace('x', 'grid_x').replace('y', 'grid_y').replace('z', 'grid_z'))
-                #cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
-                for i, col in enumerate(cols):
-                    if col == 'x':
-                        cols[i] = col.replace('x', 'grid_x')
-                    if col == 'y':
-                        cols[i] = col.replace('y', 'grid_y')
-                    if col == 'z':
-                        cols[i] = col.replace('z', 'grid_z')
-                cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
-            else:
-                # reorder, so that the grid points are always in the beginning:
-                cols = ['grid_x', 'grid_y', 'grid_z'] + [ c for c in cols if c not in ['grid_x', 'grid_y', 'grid_z']]
 
-            with open(self.flog, 'a') as f:
-                f.write('----------------- columns written to output file -------------------\n')
-                f.write('{}'.format(cols))
+                # we might want to export different data on each output file
+                for k, v in self.allfout.items():
+                    fulldata = new_df[cols]
+                    new_cols = []
+                    for old_col in cols:
+                        if old_col in v['file_column_old_names']:
+                            col_ind = v['file_column_old_names'].index(old_col)
+                            new_col = v['file_column_new_names'][col_ind]
+                        else:
+                            new_col = old_col
+                        new_cols.append(new_col)
+                    fulldata.columns = new_cols
 
-            fulldata = new_df[list(cols)]
+                    # todo: remove duplicates
+
+                    fulldata = fulldata.reindex(columns = (['grid_x', 'grid_y', 'grid_z'] + [ c for c in fulldata.columns if c not in ['grid_x', 'grid_y', 'grid_z']]))
+                    self.fulldata = fulldata
+
+                with open(self.flog, 'a') as f:
+                    f.write('----------------- columns written to output file -------------------\n')
+                    f.write('{}'.format(cols))
 
         else:
             fulldata = new_df
 
-        for col in fulldata.columns:
-            if col in self.options["data_out_newnames"]:
-                newcol = self.options["data_out_newnames"][col]
-                fulldata.rename(columns={col:newcol}, inplace=True)
-
-        self.fulldata = fulldata
         return fulldata
 
 

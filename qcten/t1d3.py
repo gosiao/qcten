@@ -19,7 +19,7 @@ class t1d3():
         self.t1d3_points   = []
 
         # variables to be saved to the output:
-        self.data_to_export= []
+        self.data_to_export= {}
         self.t1d3_cols     = []
 
         # grid spacing
@@ -33,12 +33,19 @@ class t1d3():
         self.dim_z = 0
         self.dim_cube = 0
 
+        self.projection_axis = {}
 
     def run(self):
 
-        # prepare
+        # prepare:
+        # - assign data columns to a vector (and to its gradient, if required) 
+        # - this sets self.t1d3['vx'], self.t1d3['vy'], self.t1d3['vz']
         self.assign_vector_3d()
-        self.assign_output_for_vector_3d()
+        # - set the names of data columns for what will be calculated for this vector
+        # - this sets self.t1d3_cols and self.data_to_export
+        # self.assign_output_for_vector_3d()
+        # - start to fill the data
+        # - this sets self.t1d3_cols
         self.get_vector_3d_data_points()
 
 
@@ -75,7 +82,7 @@ class t1d3():
         if self.calc_options is not None:
             for k, v in self.calc_options.items():
                 print('output from assign_output_for_vector_3d: ', k, v)
-            #self.data_to_export = [arg.strip().strip('[').strip(']') for arg in self.calc_options['data_out'].split(',')]
+                #self.data_to_export[k] = [arg.strip().strip('[').strip(']') for arg in v['file_column_new_names'].split(',')]
 
 
     def get_t1d3_gradient(self):
@@ -176,7 +183,7 @@ class t1d3():
 
         pass
 
-    def assign_vector_3d(self, verbose=True):
+    def assign_vector_3d(self, verbose=False):
 
         '''
 
@@ -285,16 +292,19 @@ class t1d3():
         self.dim_cube = self.dim_x * self.dim_y * self.dim_z
 
         # decide what to write to output:
-        if self.input_options['data_out'] is None:
+        if self.calc_options is not None:
+            # always output the grid
             self.t1d3_cols.append('grid_x')
             self.t1d3_cols.append('grid_y')
             self.t1d3_cols.append('grid_z')
             
+            # in most detailed cases, also output the (original) vector field...
             if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
                 self.t1d3_cols.append('vx')
                 self.t1d3_cols.append('vy')
                 self.t1d3_cols.append('vz')
             
+            # ...and its gradient
             if self.input_options['fout_select'] == 'all':
                 self.t1d3_cols.append('dvx_dx')
                 self.t1d3_cols.append('dvx_dy')
@@ -306,9 +316,9 @@ class t1d3():
                 self.t1d3_cols.append('dvz_dy')
                 self.t1d3_cols.append('dvz_dz')
 
-        else: # if self.input_options['data_out'] is None:
-            for col in self.data_to_export:
-                self.t1d3_cols.append(col)
+        #else: # if self.input_options['data_out'] is None:
+        #    for col in self.data_to_export:
+        #        self.t1d3_cols.append(col)
 
 
 
@@ -954,10 +964,16 @@ class t1d3():
 
     def project_v_on_projection_axis(self):
 
+        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['projection_axis'].split(',')]
+        self.projection_axis['x'] = int(args[0])
+        self.projection_axis['y'] = int(args[1])
+        self.projection_axis['z'] = int(args[2])
+
+
         for i, d in enumerate(self.t1d3_points):
-            v_cdot_axis = self.t1d3_points[i]['vx']*self.input_options['projection_axis'][0] \
-                        + self.t1d3_points[i]['vy']*self.input_options['projection_axis'][1] \
-                        + self.t1d3_points[i]['vz']*self.input_options['projection_axis'][2]
+            v_cdot_axis = self.t1d3_points[i]['vx']*self.projection_axis['x'] \
+                        + self.t1d3_points[i]['vy']*self.projection_axis['y'] \
+                        + self.t1d3_points[i]['vz']*self.projection_axis['z']
 
             self.t1d3_points[i]['v_cdot_axis'] = v_cdot_axis
 
@@ -1052,9 +1068,14 @@ class t1d3():
                 self.t1d3_points[i]['curlv_magnitude'] = curlv_magnitude
 
                 if self.input_options['projection_axis'] is not None:
-                    curlv_cdot_axis = self.t1d3_points[i]['curlv_x']*self.input_options['projection_axis'][0] \
-                                    + self.t1d3_points[i]['curlv_y']*self.input_options['projection_axis'][1] \
-                                    + self.t1d3_points[i]['curlv_z']*self.input_options['projection_axis'][2]
+                    args = [arg.strip().strip('[').strip(']') for arg in self.input_options['projection_axis'].split(',')]
+                    self.projection_axis['x'] = int(args[0])
+                    self.projection_axis['y'] = int(args[1])
+                    self.projection_axis['z'] = int(args[2])
+
+                    curlv_cdot_axis = self.t1d3_points[i]['curlv_x']*self.projection_axis['x'] \
+                                    + self.t1d3_points[i]['curlv_y']*self.projection_axis['y'] \
+                                    + self.t1d3_points[i]['curlv_z']*self.projection_axis['z']
 
                     self.t1d3_points[i]['curlv_cdot_axis'] = curlv_cdot_axis
 
@@ -1117,7 +1138,7 @@ class t1d3():
                 self.t1d3_points[i]['omega'] = omega
 
 
-            #self.t1d3_cols.append('omega')
+            self.t1d3_cols.append('omega')
 
 
 
