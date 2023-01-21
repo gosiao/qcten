@@ -9,10 +9,11 @@ from .t1d3 import *
 
 class work():
 
-    def __init__(self, options):
+    def __init__(self, rundir, options):
 
         # all options read from an input script
         self.options  = options
+        self.rundir = rundir
 
         # options for data input and output files
         self.allfinp  = {}
@@ -58,6 +59,8 @@ class work():
                 sys.exit(msg)
 
             f_name, f_info = self.prepare_io(args)
+            if not Path(f_info['file_path']).exists():
+                sys.exit()
 
             allfinp[f_name] = f_info
             self.allfinp[f_name] = f_info
@@ -140,7 +143,7 @@ class work():
 
         d = {}
         d['file_type'] = f_type
-        d['file_path'] = f_path
+        d['file_path'] = Path(self.rundir, f_path).resolve()
         d['file_column_names'] = f_cols
         d['file_column_old_names'] = f_old_cols
         d['file_column_new_names'] = f_new_cols

@@ -8,7 +8,7 @@ from .helper import *
 
 """
 Note:
-tests are run in scratch directories created in each
+now the tests are run in the `scratch` directory created in each
 test subdirectory; this can be redirected to any other folder
 specified in "scratch_space"
 """
@@ -16,30 +16,42 @@ specified in "scratch_space"
 def run_test_generic(testdirs, debug=False):
 
     th = helper()
-    if not th.testspace_is_set:
-        th.set_testspace()
-    os.chdir(th.scratch_dir)
+
+    # set paths:
+    # to the root of test directory = th.test_space
+    # to the directory of test data = th.testdata_dir
+    if not th.test_space_is_set:
+        th.set_test_space()
+
+    print('gosia bu1: ', th.test_space)
+    print('gosia bu2: ', th.testdata_dir)
 
     for testdir in testdirs:
 
-        this_test = os.path.join(th.testinp_dir, testdir)
+        testdir_path = Path(testdir).absolute()
+        print('gosia bu3: ', testdir_path)
 
-        for tf in os.listdir(this_test):
+        # set scratch space for test
+        if not th.scratch_space_is_set:
+            th.set_scratch_space(testdir)
+        os.chdir(th.scratch_dir)
+
+        for tf in os.listdir(testdir_path):
             if tf.endswith('.inp'):
-                test_file = os.path.join(this_test, tf)
+                test_file = Path(testdir_path, tf)
         args = qcten.cli.read_input(finp=test_file, verbose=True)
         setup = qcten.cli.input_data(args)
         parsed_args=setup.parse_options()
         setup.print_options()
-        calc = qcten.process.work(setup.options)
+        calc = qcten.process.work(setup.runinp_dir, setup.options)
         grid = calc.prepare_grid()
         finp = calc.prepare_input()
         fout = calc.prepare_output()
         data = calc.prepare_data()
         result = calc.calculate()
-        sys.exit()
+        result_ref = th.get_ref_aspddataframe(Path(testdir_path, 'result.ref'))
+        #sys.exit()
         #
-        result_ref = th.get_ref_aspddataframe(Path(os.path.join(this_test, 'result.ref')))
 
         if debug:
             print('RESULT')

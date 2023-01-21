@@ -7,7 +7,12 @@ class input_data:
 
     def __init__(self, args_list):
 
-        self.args_list       = args_list
+        self.args_list = args_list[1:]
+        if args_list[0]:
+            self.runinp_dir = Path(args_list[0]).resolve().parent 
+        else:
+            self.runinp_dir = os.getcwd()
+
         self.options         = {}
 
         # list of available functions for a selected type of input data:
@@ -276,17 +281,21 @@ def read_input(finp=None, verbose=False):
             sys.exit(1)
         if verbose:
             msg1 = 'Arguments for qcten are read from command line'
-            msg2 = '\n'.join(x for x in args)
+            msg2 = '\n'.join(x for x in args[1:])
             print(msg1+'\n'+msg2)
     else:
-        with open(finp, 'r') as f:
+        finp_path = Path(finp)
+        with open(finp_path, 'r') as f:
             args = [line.strip() for line in f if line[0] != '#' and line != '\n']
         if verbose:
-            msg1 = 'Arguments for qcten are read from file {}'.format(Path(finp))
-            msg2 = '\n'.join(x for x in args)
+            msg1 = 'Arguments for qcten are read from file {}'.format(finp_path)
+            msg2 = '\n'.join(x for x in args[1:])
             print(msg1+'\n'+msg2)
+
+    args = [finp_path] + args
             
     return args
+
 
 
 

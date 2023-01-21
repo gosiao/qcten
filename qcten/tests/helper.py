@@ -7,30 +7,44 @@ from deepdiff import DeepDiff
 class helper:
 
     def __init__(self):
-        self.test_space = None
-        self.testdata_dirname = None
-        self.testinp_dir = None
-        self.scratch_dirname = None
-        self.scratch_dir = None
-        self.testspace_is_set = False
+        self.test_space = None               # the root of 'tests' directory
+        self.testdata_dir = None             # the directory with data used for tests
+        self.testinp_dir = None              # the directory with one testcase
+        self.scratch_dirname = "scratch"     # name of 'scratch' directory
+        self.scratch_dir = None              # path to 'scratch' directory
+        self.test_space_is_set = False
+        self.scratch_space_is_set = False
 
-    def set_testspace(self):
-    
-        test_space = Path(__file__).resolve().parent
-        testdata_dirname = "testdata"
-        testinp_dir = test_space
-        scratch_dirname = "scratch"
-        scratch_dir = os.path.join(test_space, scratch_dirname)
-        os.makedirs(scratch_dir, exist_ok=True)
 
-        if not self.testspace_is_set:
-            self.test_space = test_space
-            self.testdata_dirname = testdata_dirname
-            self.testinp_dir = testinp_dir
-            self.scratch_dirname = scratch_dirname
-            self.scratch_dir = scratch_dir
-            self.testspace_is_set = True
+    def set_test_space(self, verbose=True):
     
+        if not self.test_space_is_set:
+            self.test_space = Path(__file__).resolve().parent
+            self.testdata_dir = Path(self.test_space, "testdata")
+            self.test_space_is_set = True
+
+        if verbose:
+            print('test space: ')
+            print('  - the root of tests directory:                    ', self.test_space)
+            print('  - the directory with data used for tests:         ', self.testdata_dir)
+    
+
+
+    def set_scratch_space(self, test_dir_name, verbose=True):
+    
+        if not self.scratch_space_is_set:
+            self.scratch_dir = Path(self.test_space, self.scratch_dirname, test_dir_name)
+
+            os.makedirs(self.scratch_dir, exist_ok=True)
+            self.scratch_space_is_set = True
+
+        if verbose:
+            print('scratch space: ')
+            print('  - the name of scratch directory: ', self.scratch_dirname)
+            print('  - the path to scratch directory: ', self.scratch_dir)
+    
+ 
+
     def get_ref_aslist(self, finp):
         with open(finp, 'r') as f:
             result = f.read().splitlines()
@@ -82,7 +96,7 @@ class helper:
     def debug_dump_dataframe_to_file(self, df, fout=None):
         if fout is None:
             if self.scratch_dir is None:
-                self.set_testspace()
+                self.set_test_space()
             fout = Path(os.path.join(self.scratch_dir, 'temp.csv'))
             fout.parent.mkdir(parents=True, exist_ok=True)
         if not df.empty:
