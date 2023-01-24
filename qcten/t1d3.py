@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.linalg as la
 import math
+import pandas as pd
 
 
 class t1d3():
@@ -76,13 +77,52 @@ class t1d3():
         if self.input_options['projection_axis'] is not None:
             self.project_v_on_projection_axis()
 
+        # prepare output
+        self.assign_output_for_vector_3d()
+
 
     def assign_output_for_vector_3d(self):
         #
         if self.calc_options is not None:
             for k, v in self.calc_options.items():
-                print('output from assign_output_for_vector_3d: ', k, v)
-                #self.data_to_export[k] = [arg.strip().strip('[').strip(']') for arg in v['file_column_new_names'].split(',')]
+                #print('output from assign_output_for_vector_3d: ', k, v)
+                #omega_vorticity_z.csv {'file_type': 'csv', 'file_path': PosixPath('/home/gosia/devel/qcten.NEW/qcten/tests/t1d3_omega/omega_vorticity_z.csv'), 'file_column_names': ['x', 'y', 'z', 'omega:omega_bz', 'curlv_cdot_axis:bz_wz'], 'file_column_old_names': [None, None, None, 'omega', 'curlv_cdot_axis'], 'file_column_new_names': [None, None, None, 'omega_bz', 'bz_wz'], 'file_column_separator': ',', 'file_skiprow': None}
+                #output from assign_output_for_vector_3d:  omega_vorticity_z.vti {'file_type': 'vti', 'file_path': PosixPath('/home/gosia/devel/qcten.NEW/qcten/tests/t1d3_omega/omega_vorticity_z.vti'), 'file_column_names': ['x', 'y', 'z', 'omega:omega_bz', 'curlv_cdot_axis:bz_wz'], 'file_column_old_names': [None, None, None, 'omega', 'curlv_cdot_axis'], 'file_column_new_names': [None, None, None, 'omega_bz', 'bz_wz'], 'file_column_separator': ',', 'file_skiprow': None}
+            #    self.data_to_export[k] = [arg.strip().strip('[').strip(']') for arg in v['file_column_new_names'].split(',')]
+                if v['file_path'] is not None:
+                    fout = v['file_path']
+                    fout.parent.mkdir(parents=True, exist_ok=True)
+                    df = pd.DataFrame()
+                    requested_cols = []
+                    data_cols = []
+                    for icol, col in enumerate(v['file_column_names']):
+                        if ':' in col:
+                            old_col = col.strip().split(':')[0]
+                            new_col = col.strip().split(':')[1]
+                            data_cols.append(old_col.strip())
+                            requested_cols.append(new_col.strip())
+                        else:
+                            data_cols.append(col.strip())
+                            requested_cols.append(col.strip())
+
+                    print('MATCHCOL: ', data_cols)
+                    print('MATCHCOL: ', requested_cols)
+
+                    self.t1d3_cols = [col.replace('grid_x', 'x').replace('grid_y', 'y').replace('grid_z', 'z') for col in self.t1d3_cols]
+
+                    if all(col in self.t1d3_cols for col in data_cols):
+                        print('ALLIN')
+                    else:
+                        for col in self.t1d3_cols:
+                            if not col in data_cols:
+                                print('MISSING: ', col)
+                                sys.exit()
+
+                    self.t1d3_cols = [col.replace('grid_x', 'x').replace('grid_y', 'y').replace('grid_z', 'z') for col in data_cols]
+#                            
+                    #if not df.empty:
+                    #    df = df.astype(np.float64)
+                    #    df.to_csv(fout, index=False)
 
 
     def get_t1d3_gradient(self):
@@ -1080,24 +1120,24 @@ class t1d3():
                     self.t1d3_points[i]['curlv_cdot_axis'] = curlv_cdot_axis
 
 
-            #self.t1d3_cols.append('curlv_x')
-            #self.t1d3_cols.append('curlv_y')
-            #self.t1d3_cols.append('curlv_z')
-            #self.t1d3_cols.append('curlv_magnitude')
-            #if self.input_options['projection_axis'] is not None:
-            #    self.t1d3_cols.append('curlv_cdot_axis')
+            self.t1d3_cols.append('curlv_x')
+            self.t1d3_cols.append('curlv_y')
+            self.t1d3_cols.append('curlv_z')
+            self.t1d3_cols.append('curlv_magnitude')
+            if self.input_options['projection_axis'] is not None:
+                self.t1d3_cols.append('curlv_cdot_axis')
 
-            ##if (self.input_options['fout_select'] == 'all'):
+            if (self.input_options['fout_select'] == 'all'):
             #if (self.input_options['fout_select'] == 'selected'):
-            #    self.t1d3_cols.append('dvx_dx')
-            #    self.t1d3_cols.append('dvx_dy')
-            #    self.t1d3_cols.append('dvx_dz')
-            #    self.t1d3_cols.append('dvy_dx')
-            #    self.t1d3_cols.append('dvy_dy')
-            #    self.t1d3_cols.append('dvy_dz')
-            #    self.t1d3_cols.append('dvz_dx')
-            #    self.t1d3_cols.append('dvz_dy')
-            #    self.t1d3_cols.append('dvz_dz')
+                self.t1d3_cols.append('dvx_dx')
+                self.t1d3_cols.append('dvx_dy')
+                self.t1d3_cols.append('dvx_dz')
+                self.t1d3_cols.append('dvy_dx')
+                self.t1d3_cols.append('dvy_dy')
+                self.t1d3_cols.append('dvy_dz')
+                self.t1d3_cols.append('dvz_dx')
+                self.t1d3_cols.append('dvz_dy')
+                self.t1d3_cols.append('dvz_dz')
 
 
 
