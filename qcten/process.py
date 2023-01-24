@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+import re
 from pathlib import Path
 import subprocess
 from .t2d3 import *
@@ -54,7 +55,7 @@ class work():
         for f_arg in self.options["finp"]:
 
             args = f_arg.split(';')
-            if len(args) < 2 or len(args) > 4:
+            if len(args) < 2 or len(args) > 5:
                 msg = 'ERROR: wrong number of arguments to --finp'
                 sys.exit(msg)
 
@@ -117,29 +118,47 @@ class work():
 
     def prepare_io(self, args):
 
+        """
+        --finp/--fout format; path; [columns]; [sep]; [skip] 
+        """
+
         f_type   = args[0].strip()
         f_path   = args[1].strip()
         f_name   = os.path.basename(f_path)
 
+        # names of data fields (columns on input/output files if txt/csv)
         f_cols   = None
         f_old_cols = []
         f_new_cols = []
         if len(args) > 2:
-            if args[2].strip() != 'None':
-                f_cols   = [arg.strip().strip('[').strip(']') for arg in args[2].split(',')]
-                f_old_cols = [None for x in range(len(f_cols))]
-                f_new_cols = [None for x in range(len(f_cols))]
-                for i, f_col in enumerate(f_cols):
-                    if ':' in f_col:
-                        f_col_initial=f_col.split(':')[0].strip()
-                        f_col_renamed=f_col.split(':')[1].strip()
-                        f_old_cols[i] = f_col_initial
-                        f_new_cols[i] = f_col_renamed
+            arg = args[2].strip()
+            if arg != 'None':
+                if arg[0:5] == 'cols=':
+                    f_cols   = [a.strip().strip('[').strip(']') for a in arg[5:].split(',')]
+                    f_old_cols = [None for x in range(len(f_cols))]
+                    f_new_cols = [None for x in range(len(f_cols))]
+                    for i, f_col in enumerate(f_cols):
+                        if ':' in f_col:
+                            f_col_initial=f_col.split(':')[0].strip()
+                            f_col_renamed=f_col.split(':')[1].strip()
+                            f_old_cols[i] = f_col_initial
+                            f_new_cols[i] = f_col_renamed
 
-        f_header = None
+        # column separator; defaults to a coma
+        f_sep = ','
         if len(args) > 3:
-            if args[3].strip() != 'None':
-                header = int(args[3].strip())
+            arg = args[3].lstrip()
+            if arg != 'None':
+                if arg[0:4] == 'sep=':
+                    f_sep = arg[4:]
+
+        # index of a row line to skip (e.g. with file description)
+        f_skiprow = None
+        if len(args) > 4:
+            arg = args[4].strip()
+            if arg != 'None':
+                if arg[0:5] == 'skip=':
+                    f_skiprow = int(arg[5:].strip())
 
         d = {}
         d['file_type'] = f_type
@@ -147,7 +166,8 @@ class work():
         d['file_column_names'] = f_cols
         d['file_column_old_names'] = f_old_cols
         d['file_column_new_names'] = f_new_cols
-        d['file_header'] = f_header
+        d['file_column_separator'] = f_sep
+        d['file_skiprow'] = f_skiprow
 
         return f_name, d
 
@@ -167,13 +187,31 @@ class work():
         for k, v in self.allfinp.items():
 
             if v['file_type'].lower() == 'txt':
-                df = pd.read_fwf(v['file_path'], colspecs='infer', header=v['file_header'], names=v['file_column_names'])
+                #df = pd.read_fwf(v['file_path'], colspecs='infer', header=v['file_skiprow'], names=v['file_column_names'])
+                df = pd.read_fwf(v['file_path'], 
+                                 colspecs='infer', 
+                                 skiprows = v['file_skiprow'], 
+                                 names=v['file_column_names'])
 
-            #df = pd.read_csv(v['file_name'],
-            #                 sep    = v['sep'],
-            #                 header = v['header'],
-            #                 names  = v['column_names'],
-            #                 dtype = np.float64)
+            elif v['file_type'].lower() == 'csv':
+                if v['file_column_separator'] is None or v['file_column_separator'].isspace():
+                    df = pd.read_csv(v['file_path'],
+                                     header = 0,
+                                     names  = v['file_column_names'],
+                                     delim_whitespace = True,
+                                     skiprows = v['file_skiprow'],
+                                     dtype = np.float64)
+                else:
+                    df = pd.read_csv(v['file_path'],
+                                     header = 0,
+                                     names  = v['file_column_names'],
+                                     sep = v['file_column_separator'],
+                                     skiprows = v['file_skiprow'],
+                                     dtype = np.float64)
+
+            elif v['file_type'].lower() == 'hdf5':
+                pass
+
 
             df.apply(pd.to_numeric, errors='coerce')
 
@@ -188,6 +226,7 @@ class work():
         fulldata = pd.concat([df for df in dfs], axis=1, sort=False)
         if self.fulldata.empty:
             self.fulldata = fulldata
+
 
         return fulldata
 

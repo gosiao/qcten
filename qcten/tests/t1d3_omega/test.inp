@@ -1,10 +1,10 @@
 # 
 # 1. decide which files with input data should be read in:
 #
-#--finp=txt; ../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]
-#--finp=txt; ../testdata/lih_jbtensor_cubegrid10/gradjbz.csv; [x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
---finp=txt; ../testdata/lih_jbvector_cubegrid10/jbz.txt; [x, y, z, bz_jx, bz_jy, bz_jz]
---finp=txt; ../testdata/lih_jbvector_cubegrid10/gradjbz.txt; [x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/gradjbz.csv; cols=[x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]; sep= ; skip=1
+#--finp=txt; ../testdata/lih_jbvector_cubegrid10/jbz.txt; [x, y, z, bz_jx, bz_jy, bz_jz]
+#--finp=txt; ../testdata/lih_jbvector_cubegrid10/gradjbz.txt; [x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
 #
 # 2. decide which columns correspond to grid points and which - to data
 #
@@ -44,7 +44,7 @@
 #
 # 6. decide what output you need:
 #
---fout=csv; omega_vorticity_z.csv; [x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
---fout=vti; omega_vorticity_z.vti; [x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
+--fout=csv; omega_vorticity_z.csv; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
+--fout=vti; omega_vorticity_z.vti; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
 --fout_select=all
 --flog=result_log.txt
