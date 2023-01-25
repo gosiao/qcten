@@ -221,7 +221,7 @@ class work():
         # 2. combine a list of dataframes into one dataframe;
         #    first, remove the excess 'grid' columns (now -assuming the same grids):
         for df in dfs[1:]:
-            df.drop(columns=[self.grid['grid_x'], self.grid['grid_y'], self.grid['grid_z']], inplace=True)
+            df.drop(columns=[self.grid['x'], self.grid['y'], self.grid['z']], inplace=True)
 
         fulldata = pd.concat([df for df in dfs], axis=1, sort=False)
         if self.fulldata.empty:
@@ -238,13 +238,13 @@ class work():
         """
 
         args = [arg.strip().strip('[').strip(']') for arg in self.options['grid'].split(',')]
-        grid = {'grid_x':args[0], 'grid_y': args[1], 'grid_z':args[2]}
+        grid = {'x':args[0], 'y': args[1], 'z':args[2]}
         if self.grid == {}: 
-            self.grid['grid_x'] = args[0]
-            self.grid['grid_y'] = args[1]
-            self.grid['grid_z'] = args[2]
+            self.grid['x'] = args[0]
+            self.grid['y'] = args[1]
+            self.grid['z'] = args[2]
         if verbose:
-            print('grid columns are assigned: grid_x={}, grid_y={}, grid_z={}'.format(self.grid['grid_x'],self.grid['grid_y'],self.grid['grid_z']))
+            print('grid columns are assigned: x={}, y={}, z={}'.format(self.grid['x'],self.grid['y'],self.grid['z']))
             
         return grid
 
@@ -272,7 +272,7 @@ class work():
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
-            work = t1d3(self.options, self.allfout, self.grid, self.fulldata)
+            work = t1d3(self.options, self.allfout, self.fulldata)
             work.run()
 
             result_df = pd.DataFrame(work.t1d3_points)
@@ -310,7 +310,7 @@ class work():
 
                     # todo: remove duplicates
 
-                    fulldata = fulldata.reindex(columns = (['grid_x', 'grid_y', 'grid_z'] + [ c for c in fulldata.columns if c not in ['grid_x', 'grid_y', 'grid_z']]))
+                    fulldata = fulldata.reindex(columns = (['x', 'y', 'z'] + [ c for c in fulldata.columns if c not in ['x', 'y', 'z']]))
                     self.fulldata = fulldata
 
                 with open(self.flog, 'a') as f:

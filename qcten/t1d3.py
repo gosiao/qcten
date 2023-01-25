@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import scipy.linalg as la
 import math
@@ -6,18 +7,18 @@ import pandas as pd
 
 class t1d3():
 
-    def __init__(self, cli_options, output_options, grid, input_data):
+    def __init__(self, cli_options, output_options, input_data):
 
         # general setup
         self.input_options = cli_options #you should not need this here!
         self.calc_options  = output_options
-        self.grid    =grid
         self.input_data    = input_data
         self.flog          = self.input_options['flog']
 
         # global data structures
         self.t1d3          = {}
         self.t1d3_points   = []
+        self.work_data = pd.DataFrame()
 
         # variables to be saved to the output:
         self.data_to_export= {}
@@ -38,16 +39,27 @@ class t1d3():
 
     def run(self):
 
-        # prepare:
-        # - assign data columns to a vector (and to its gradient, if required) 
-        # - this sets self.t1d3['vx'], self.t1d3['vy'], self.t1d3['vz']
-        self.assign_vector_3d()
-        # - set the names of data columns for what will be calculated for this vector
-        # - this sets self.t1d3_cols and self.data_to_export
+        # 1. assign the names of data columns corresponding to t1d3 (a vector),
+        #    and to its gradient (if available);
+        #
+        #    this sets:
+        #        self.t1d3['vx'], self.t1d3['vy'], self.t1d3['vz']
+        #        and, if available: 
+        #        self.t1d3['dvx_dx'], ..., self.t1d3['dvz_dz']
+        #
+        self.assign_t1d3_input_names()
+
+        # 2. get the input data (pointwise) the names of data columns for what will be calculated for this vector
+        #    this sets:
+        #        self.t1d3_cols and self.data_to_export
         # self.assign_output_for_vector_3d()
         # - start to fill the data
         # - this sets self.t1d3_cols
-        self.get_vector_3d_data_points()
+        self.get_t1d3_data_points()
+
+        # prepare output
+        self.assign_output_for_vector_3d()
+
 
 
         if self.input_options['calc_from_tensor_1order_3d'] is not None:
@@ -77,10 +89,6 @@ class t1d3():
         if self.input_options['projection_axis'] is not None:
             self.project_v_on_projection_axis()
 
-        # prepare output
-        self.assign_output_for_vector_3d()
-
-
     def assign_output_for_vector_3d(self):
         #
         if self.calc_options is not None:
@@ -108,7 +116,7 @@ class t1d3():
                     print('MATCHCOL: ', data_cols)
                     print('MATCHCOL: ', requested_cols)
 
-                    self.t1d3_cols = [col.replace('grid_x', 'x').replace('grid_y', 'y').replace('grid_z', 'z') for col in self.t1d3_cols]
+                    self.t1d3_cols = [col.replace('x', 'x').replace('y', 'y').replace('z', 'z') for col in self.t1d3_cols]
 
                     if all(col in self.t1d3_cols for col in data_cols):
                         print('ALLIN')
@@ -118,7 +126,7 @@ class t1d3():
                                 print('MISSING: ', col)
                                 sys.exit()
 
-                    self.t1d3_cols = [col.replace('grid_x', 'x').replace('grid_y', 'y').replace('grid_z', 'z') for col in data_cols]
+                    self.t1d3_cols = [col.replace('x', 'x').replace('y', 'y').replace('z', 'z') for col in data_cols]
 #                            
                     #if not df.empty:
                     #    df = df.astype(np.float64)
@@ -223,31 +231,48 @@ class t1d3():
 
         pass
 
-    def assign_vector_3d(self, verbose=False):
+    def assign_t1d3_input_names(self, verbose=False):
 
         '''
 
-        1. vector field
+        1. grid
+        -------
+        grid points are read in the following order from the input data file:
+
+            x, y, z
+
+        here we assign the user-chosen names of grid coordinates to 'x', 'y' and 'z'
+
+
+        2. vector field
         ---------------
         vector components are read in the following order from the input data file:
         (this is the order of elements read with the --form_tensor_1order_3d keyword)
 
-            [grid_x, grid_y, grid_z], vx, vy, vz
+            [x, y, z], vx, vy, vz
 
             where vx, vy, vz are vector elements
 
         here we assign the user-chosen names of vector elements to 'vx', 'vy' and 'vz'
 
 
-        2. the gradient of the vector field components
+        3. the gradient of the vector field components
         ----------------------------------------------
         if the gradient data is available, then assign the user-chosen names to:
 
-            [grid_x, grid_y, grid_z],  dvx_dx, dvx_dy, dvx_dz, dvy_dx, dvy_dy, dvy_dz, dvz_dx, dvz_dy, dvz_dz
+            [x, y, z],  dvx_dx, dvx_dy, dvx_dz, dvy_dx, dvy_dy, dvy_dz, dvz_dx, dvz_dy, dvz_dz
 
 
         '''
 
+
+        # columns with grid data
+        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['grid'].split(',')]
+        self.t1d3['x'] = args[0]
+        self.t1d3['y'] = args[1]
+        self.t1d3['z'] = args[2]
+
+        # columns with t1d3 data
         args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_tensor_1order_3d'].split(',')]
 
         self.t1d3['vx'] = args[0]
@@ -257,6 +282,7 @@ class t1d3():
         if verbose:
             print('vector columns are assigned: vx={}, vy={}, vz={}'.format(self.t1d3['vx'],self.t1d3['vy'],self.t1d3['vz']))
 
+        # columns with grad(t1d3) data
         if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
 
             args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_tensor_1order_3d'].split(',')]
@@ -280,7 +306,7 @@ class t1d3():
 
 
 
-    def get_vector_3d_data_points(self):
+    def get_t1d3_data_points(self):
 
         '''
 
@@ -292,73 +318,109 @@ class t1d3():
 
             * the entries of the dictionary (storing data in each grid point) assigned here:
 
-                - grid points: grid_x, grid_y, grid_z
+                - grid points: x, y, z
                 - vector elements: vx, vy, vz
                 - gradient of vector elements (if available on input):
                     dvx_dx, dvx_dy, dvx_dz, dvy_dx, dvy_dy, dvy_dz, dvz_dx, dvz_dy, dvz_dz
 
         '''
 
-        for i, r in self.input_data.iterrows():
+        if self.t1d3_points:
+            print('WARNING: t1d3_points are already assigned; will be overwritten')
+            self.t1d3_points   = []
 
-            d = {}
-            d['grid_x']  = r[self.grid['grid_x']]
-            d['grid_y']  = r[self.grid['grid_y']]
-            d['grid_z']  = r[self.grid['grid_z']]
-            d['vx']      = r[self.t1d3['vx']]
-            d['vy']      = r[self.t1d3['vy']]
-            d['vz']      = r[self.t1d3['vz']]
+        print('checkin: type(input_data) ', type(self.input_data))
+        print('checkin: cols of input_data ', self.input_data.columns)
 
-            if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
-                d['dvx_dx']  = r[self.t1d3['dvx_dx']]
-                d['dvx_dy']  = r[self.t1d3['dvx_dy']]
-                d['dvx_dz']  = r[self.t1d3['dvx_dz']]
 
-                d['dvy_dx']  = r[self.t1d3['dvy_dx']]
-                d['dvy_dy']  = r[self.t1d3['dvy_dy']]
-                d['dvy_dz']  = r[self.t1d3['dvy_dz']]
+        if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+            select = {self.t1d3['x']:'x',
+                      self.t1d3['y']:'y',
+                      self.t1d3['z']:'z',
+                      self.t1d3['vx']:'vx',
+                      self.t1d3['vy']:'vy',
+                      self.t1d3['vz']:'vz',
+                      self.t1d3['dvx_dx']:'dvx_dx',
+                      self.t1d3['dvx_dy']:'dvx_dy',
+                      self.t1d3['dvx_dz']:'dvx_dz', 
+                      self.t1d3['dvy_dx']:'dvy_dx', 
+                      self.t1d3['dvy_dy']:'dvy_dy', 
+                      self.t1d3['dvy_dz']:'dvy_dz', 
+                      self.t1d3['dvz_dx']:'dvz_dx', 
+                      self.t1d3['dvz_dy']:'dvz_dy', 
+                      self.t1d3['dvz_dz']:'dvz_dz'} 
+        else:
+            select = {self.t1d3['x']:'x',
+                      self.t1d3['y']:'y',
+                      self.t1d3['z']:'z',
+                      self.t1d3['vx']:'vx',
+                      self.t1d3['vy']:'vy',
+                      self.t1d3['vz']:'vz'}
 
-                d['dvz_dx']  = r[self.t1d3['dvz_dx']]
-                d['dvz_dy']  = r[self.t1d3['dvz_dy']]
-                d['dvz_dz']  = r[self.t1d3['dvz_dz']]
+        self.work_data = self.input_data.rename(columns=select)[select.values()]
+        print('checkin again: cols of input_data ', self.work_data.columns)
 
-            self.t1d3_points.append(d)
+
+        #for i, r in self.input_data.iterrows():
+
+        #    d = {}
+        #    d['x']  = r[self.grid['x']]
+        #    d['y']  = r[self.grid['y']]
+        #    d['z']  = r[self.grid['z']]
+        #    d['vx']      = r[self.t1d3['vx']]
+        #    d['vy']      = r[self.t1d3['vy']]
+        #    d['vz']      = r[self.t1d3['vz']]
+
+        #    if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+        #        d['dvx_dx']  = r[self.t1d3['dvx_dx']]
+        #        d['dvx_dy']  = r[self.t1d3['dvx_dy']]
+        #        d['dvx_dz']  = r[self.t1d3['dvx_dz']]
+
+        #        d['dvy_dx']  = r[self.t1d3['dvy_dx']]
+        #        d['dvy_dy']  = r[self.t1d3['dvy_dy']]
+        #        d['dvy_dz']  = r[self.t1d3['dvy_dz']]
+
+        #        d['dvz_dx']  = r[self.t1d3['dvz_dx']]
+        #        d['dvz_dy']  = r[self.t1d3['dvz_dy']]
+        #        d['dvz_dz']  = r[self.t1d3['dvz_dz']]
+
+        #    self.t1d3_points.append(d)
 
         # it might be useful to get more grid info
         # TODO: add a flag for it
-        self.dim_x = len(np.unique([p['grid_x'] for p in self.t1d3_points]))
-        self.dim_y = len(np.unique([p['grid_y'] for p in self.t1d3_points]))
-        self.dim_z = len(np.unique([p['grid_z'] for p in self.t1d3_points]))
+        self.dim_x = len(np.unique([p['x'] for p in self.t1d3_points]))
+        self.dim_y = len(np.unique([p['y'] for p in self.t1d3_points]))
+        self.dim_z = len(np.unique([p['z'] for p in self.t1d3_points]))
         self.dim_cube = self.dim_x * self.dim_y * self.dim_z
 
-        # decide what to write to output:
-        if self.calc_options is not None:
-            # always output the grid
-            self.t1d3_cols.append('grid_x')
-            self.t1d3_cols.append('grid_y')
-            self.t1d3_cols.append('grid_z')
-            
-            # in most detailed cases, also output the (original) vector field...
-            if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
-                self.t1d3_cols.append('vx')
-                self.t1d3_cols.append('vy')
-                self.t1d3_cols.append('vz')
-            
-            # ...and its gradient
-            if self.input_options['fout_select'] == 'all':
-                self.t1d3_cols.append('dvx_dx')
-                self.t1d3_cols.append('dvx_dy')
-                self.t1d3_cols.append('dvx_dz')
-                self.t1d3_cols.append('dvy_dx')
-                self.t1d3_cols.append('dvy_dy')
-                self.t1d3_cols.append('dvy_dz')
-                self.t1d3_cols.append('dvz_dx')
-                self.t1d3_cols.append('dvz_dy')
-                self.t1d3_cols.append('dvz_dz')
+        ## decide what to write to output:
+        #if self.calc_options is not None:
+        #    # always output the grid
+        #    self.t1d3_cols.append('x')
+        #    self.t1d3_cols.append('y')
+        #    self.t1d3_cols.append('z')
+        #    
+        #    # in most detailed cases, also output the (original) vector field...
+        #    if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
+        #        self.t1d3_cols.append('vx')
+        #        self.t1d3_cols.append('vy')
+        #        self.t1d3_cols.append('vz')
+        #    
+        #    # ...and its gradient
+        #    if self.input_options['fout_select'] == 'all':
+        #        self.t1d3_cols.append('dvx_dx')
+        #        self.t1d3_cols.append('dvx_dy')
+        #        self.t1d3_cols.append('dvx_dz')
+        #        self.t1d3_cols.append('dvy_dx')
+        #        self.t1d3_cols.append('dvy_dy')
+        #        self.t1d3_cols.append('dvy_dz')
+        #        self.t1d3_cols.append('dvz_dx')
+        #        self.t1d3_cols.append('dvz_dy')
+        #        self.t1d3_cols.append('dvz_dz')
 
-        #else: # if self.input_options['data_out'] is None:
-        #    for col in self.data_to_export:
-        #        self.t1d3_cols.append(col)
+        ##else: # if self.input_options['data_out'] is None:
+        ##    for col in self.data_to_export:
+        ##        self.t1d3_cols.append(col)
 
 
 
@@ -369,18 +431,18 @@ class t1d3():
         we assume a regular grid
         '''
 
-        x0 = self.t1d3_points[0]['grid_x']
-        y0 = self.t1d3_points[0]['grid_y']
-        z0 = self.t1d3_points[0]['grid_z']
+        x0 = self.t1d3_points[0]['x']
+        y0 = self.t1d3_points[0]['y']
+        z0 = self.t1d3_points[0]['z']
 
         dx = abs(x0)
         dy = abs(y0)
         dz = abs(z0)
 
         for p in self.t1d3_points[1:]:
-            x = p['grid_x']
-            y = p['grid_y']
-            z = p['grid_z']
+            x = p['x']
+            y = p['y']
+            z = p['z']
             if (abs(x - x0) < dx) and (abs(x - x0) > 0):
                 dx = abs(x - x0)
             if (abs(y - y0) < dy) and (abs(y - y0) > 0):
@@ -400,17 +462,17 @@ class t1d3():
 
         result = {}
 
-        x0 = d['grid_x']
-        y0 = d['grid_y']
-        z0 = d['grid_z']
+        x0 = d['x']
+        y0 = d['y']
+        z0 = d['z']
 
         reltol=1e-09
         abstol=1e-07
 
         for p in self.t1d3_points:
-            x = p['grid_x']
-            y = p['grid_y']
-            z = p['grid_z']
+            x = p['x']
+            y = p['y']
+            z = p['z']
 
             # +- dx/dy/dz 
             if math.isclose(x, x0 + self.dx, rel_tol=reltol, abs_tol=abstol) and \
@@ -451,18 +513,18 @@ class t1d3():
 
         result = {}
 
-        x0 = d['grid_x']
-        y0 = d['grid_y']
-        z0 = d['grid_z']
+        x0 = d['x']
+        y0 = d['y']
+        z0 = d['z']
 
         reltol=1e-09
         abstol=1e-07
 
 
         for p in self.t1d3_points:
-            x = p['grid_x']
-            y = p['grid_y']
-            z = p['grid_z']
+            x = p['x']
+            y = p['y']
+            z = p['z']
 
             # +- dx/dy/dz 
             if not which_border[1] and \
@@ -508,7 +570,7 @@ class t1d3():
     def gradient_from_finite_elements_value_in_point(self, d, f):
 
         '''
-        we calculate the gradient of d[f] in point d['grid_x'], d['grid_y'], d['grid_z']
+        we calculate the gradient of d[f] in point d['x'], d['y'], d['z']
 
         if this grid point is 'inside' the cube, then we use the central differences formula:
 
@@ -516,22 +578,22 @@ class t1d3():
 
         '''
 
-        x = d['grid_x']
-        y = d['grid_y']
-        z = d['grid_z']
+        x = d['x']
+        y = d['y']
+        z = d['z']
         s = d[f]
 
-        if (x == min(p['grid_x'] for p in self.t1d3_points)) or (x == max(p['grid_x'] for p in self.t1d3_points)) or \
-           (y == min(p['grid_y'] for p in self.t1d3_points)) or (y == max(p['grid_y'] for p in self.t1d3_points)) or \
-           (z == min(p['grid_z'] for p in self.t1d3_points)) or (z == max(p['grid_z'] for p in self.t1d3_points)):
+        if (x == min(p['x'] for p in self.t1d3_points)) or (x == max(p['x'] for p in self.t1d3_points)) or \
+           (y == min(p['y'] for p in self.t1d3_points)) or (y == max(p['y'] for p in self.t1d3_points)) or \
+           (z == min(p['z'] for p in self.t1d3_points)) or (z == max(p['z'] for p in self.t1d3_points)):
             #print('point on the border')
 
-            which_border = [x == min(p['grid_x'] for p in self.t1d3_points),
-                            x == max(p['grid_x'] for p in self.t1d3_points),
-                            y == min(p['grid_y'] for p in self.t1d3_points),
-                            y == max(p['grid_y'] for p in self.t1d3_points),
-                            z == min(p['grid_z'] for p in self.t1d3_points),
-                            z == max(p['grid_z'] for p in self.t1d3_points)]
+            which_border = [x == min(p['x'] for p in self.t1d3_points),
+                            x == max(p['x'] for p in self.t1d3_points),
+                            y == min(p['y'] for p in self.t1d3_points),
+                            y == max(p['y'] for p in self.t1d3_points),
+                            z == min(p['z'] for p in self.t1d3_points),
+                            z == max(p['z'] for p in self.t1d3_points)]
 
             data = self.find_data_on_border(d, f, which_border)
             if which_border[0]:
