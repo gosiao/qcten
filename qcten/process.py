@@ -272,11 +272,25 @@ class work():
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
+            print('CHECKUP options: ', type(self.options))
+            for k, v in self.options.items():
+                print('     k, v: ', k, v)
+            print('CHECKUP allfinp: ', type(self.allfinp))
+            for k, v in self.allfinp.items():
+                print('     k, v: ', k, v)
+            print('CHECKUP allfout: ', type(self.allfout))
+            for k, v in self.allfout.items():
+                print('     k, v: ', k, v)
+            print('CHECKUP fulldata: ', type(self.fulldata))
+            sys.exit()
+
             work = t1d3(self.options, self.allfout, self.fulldata)
             work.run()
 
-            result_df = pd.DataFrame(work.t1d3_points)
-            result_df = self.update_df(result_df, new_df_cols=work.t1d3_cols)
+#           FIXME
+            #result_df = pd.DataFrame(work.t1d3_points)
+            #result_df = self.update_df(result_df, new_df_cols=work.t1d3_cols)
+            result_df = work.update_df(result_df, new_df_cols=work.t1d3_cols)
 
         return result_df
 

@@ -18,7 +18,15 @@ class t1d3():
         # global data structures
         self.t1d3          = {}
         self.t1d3_points   = []
+
+        # NEW:
+        # data required to do the work
         self.work_data = pd.DataFrame()
+
+        # data columns that will be written to output(s)
+        self.data_cols_to_export = {}
+
+        # data columns that will be written to output(s)
 
         # variables to be saved to the output:
         self.data_to_export= {}
@@ -37,31 +45,25 @@ class t1d3():
 
         self.projection_axis = {}
 
+
     def run(self):
 
-        # 1. assign the names of data columns corresponding to t1d3 (a vector),
-        #    and to its gradient (if available);
-        #
-        #    this sets:
-        #        self.t1d3['vx'], self.t1d3['vy'], self.t1d3['vz']
-        #        and, if available: 
-        #        self.t1d3['dvx_dx'], ..., self.t1d3['dvz_dz']
-        #
+        """
+        main routine
+        """
+
+        # 1. assign the data specified by a user to names used in qcten
         self.assign_t1d3_input_names()
 
-        # 2. get the input data (pointwise) the names of data columns for what will be calculated for this vector
-        #    this sets:
-        #        self.t1d3_cols and self.data_to_export
-        # self.assign_output_for_vector_3d()
-        # - start to fill the data
-        # - this sets self.t1d3_cols
+        # 2. get the data (into pandas dataframe)
         self.get_t1d3_data_points()
 
-        # prepare output
-        self.assign_output_for_vector_3d()
+        # 3. get grid information
 
+        # 4. prepare the data for output
+        self.assign_t1d3_output_names()
 
-
+        # do the calculations
         if self.input_options['calc_from_tensor_1order_3d'] is not None:
 
             # TODO: here starts a loop over points, can be expensive!
@@ -89,13 +91,32 @@ class t1d3():
         if self.input_options['projection_axis'] is not None:
             self.project_v_on_projection_axis()
 
-    def assign_output_for_vector_3d(self):
-        #
+
+    def get_grid_info(self):
+
+        """
+        if the grid is regular, then calculate grid spacing
+        """
+
+        # TODO: add a flag for it
+        self.dim_x = len(np.unique([p['x'] for p in self.t1d3_points]))
+        self.dim_y = len(np.unique([p['y'] for p in self.t1d3_points]))
+        self.dim_z = len(np.unique([p['z'] for p in self.t1d3_points]))
+        self.dim_cube = self.dim_x * self.dim_y * self.dim_z
+
+
+    def assign_t1d3_output_names(self):
+
+        """
+        prepare the data for output(s)
+        """
+
         if self.calc_options is not None:
             for k, v in self.calc_options.items():
-                #print('output from assign_output_for_vector_3d: ', k, v)
+                # a loop over output files (it is possible to ask for more than one output)
+                #print('output from assign_t1d3_output_names: ', k, v)
                 #omega_vorticity_z.csv {'file_type': 'csv', 'file_path': PosixPath('/home/gosia/devel/qcten.NEW/qcten/tests/t1d3_omega/omega_vorticity_z.csv'), 'file_column_names': ['x', 'y', 'z', 'omega:omega_bz', 'curlv_cdot_axis:bz_wz'], 'file_column_old_names': [None, None, None, 'omega', 'curlv_cdot_axis'], 'file_column_new_names': [None, None, None, 'omega_bz', 'bz_wz'], 'file_column_separator': ',', 'file_skiprow': None}
-                #output from assign_output_for_vector_3d:  omega_vorticity_z.vti {'file_type': 'vti', 'file_path': PosixPath('/home/gosia/devel/qcten.NEW/qcten/tests/t1d3_omega/omega_vorticity_z.vti'), 'file_column_names': ['x', 'y', 'z', 'omega:omega_bz', 'curlv_cdot_axis:bz_wz'], 'file_column_old_names': [None, None, None, 'omega', 'curlv_cdot_axis'], 'file_column_new_names': [None, None, None, 'omega_bz', 'bz_wz'], 'file_column_separator': ',', 'file_skiprow': None}
+                #output from assign_t1d3_output_names:  omega_vorticity_z.vti {'file_type': 'vti', 'file_path': PosixPath('/home/gosia/devel/qcten.NEW/qcten/tests/t1d3_omega/omega_vorticity_z.vti'), 'file_column_names': ['x', 'y', 'z', 'omega:omega_bz', 'curlv_cdot_axis:bz_wz'], 'file_column_old_names': [None, None, None, 'omega', 'curlv_cdot_axis'], 'file_column_new_names': [None, None, None, 'omega_bz', 'bz_wz'], 'file_column_separator': ',', 'file_skiprow': None}
             #    self.data_to_export[k] = [arg.strip().strip('[').strip(']') for arg in v['file_column_new_names'].split(',')]
                 if v['file_path'] is not None:
                     fout = v['file_path']
@@ -113,10 +134,12 @@ class t1d3():
                             data_cols.append(col.strip())
                             requested_cols.append(col.strip())
 
+                    # todo: check if all cols are in the set of predefined cols 
+                    # these should match the names of available functions
+                    # set them all somehwere up
+
                     print('MATCHCOL: ', data_cols)
                     print('MATCHCOL: ', requested_cols)
-
-                    self.t1d3_cols = [col.replace('x', 'x').replace('y', 'y').replace('z', 'z') for col in self.t1d3_cols]
 
                     if all(col in self.t1d3_cols for col in data_cols):
                         print('ALLIN')
@@ -233,64 +256,65 @@ class t1d3():
 
     def assign_t1d3_input_names(self, verbose=False):
 
-        '''
+        """
+
+        assign user-specified data names to names used in qcten:
+
 
         1. grid
         -------
-        grid points are read in the following order from the input data file:
+        assign user-specified names for grid coordinates 
+        (with "--grid=["coorx, coory, coorz]")
+        to names of grid coordinates used in qcten: "x", "y", "z";
+
+        NOTE: grid points are read in the following order from the input data file:
 
             x, y, z
-
-        here we assign the user-chosen names of grid coordinates to 'x', 'y' and 'z'
 
 
         2. vector field
         ---------------
-        vector components are read in the following order from the input data file:
-        (this is the order of elements read with the --form_tensor_1order_3d keyword)
+        assign user-specified names for vector components 
+        (with "--form_tensor_1order_3d=["vec_x, vec_y, vec_z]")
+        to names of vector components used in qcten: "vx", "vy", "vz";
 
-            [x, y, z], vx, vy, vz
+        NOTE: vector components are read in the following order from the input data file:
 
-            where vx, vy, vz are vector elements
-
-        here we assign the user-chosen names of vector elements to 'vx', 'vy' and 'vz'
+            vx, vy, vz
 
 
         3. the gradient of the vector field components
         ----------------------------------------------
-        if the gradient data is available, then assign the user-chosen names to:
+        assign user-specified names for components of the gradient of the vector
+        (with "--form_grad_tensor_1order_3d=["vec_x/dx, vec_x/dy, vec_x/dz, vec_y/dx, ...]")
+        to names of components of the gradient of the vector used in qcten:
+        "dvx_dx", "dvx_dy", "dvx_dz", "dvy_dx", "dvy_dy", "dvy_dz", "dvz_dx", "dvz_dy", "dvz_dz"
 
-            [x, y, z],  dvx_dx, dvx_dy, dvx_dz, dvy_dx, dvy_dy, dvy_dz, dvz_dx, dvz_dy, dvz_dz
+        NOTE: components of the gradient of the vector are read in the following order from the input data file:
+
+            dvx_dx, dvx_dy, dvx_dz, dvy_dx, dvy_dy, dvy_dz, dvz_dx, dvz_dy, dvz_dz
 
 
-        '''
+        """
 
 
-        # columns with grid data
+        # grid
         args = [arg.strip().strip('[').strip(']') for arg in self.input_options['grid'].split(',')]
         self.t1d3['x'] = args[0]
         self.t1d3['y'] = args[1]
         self.t1d3['z'] = args[2]
 
-        # columns with t1d3 data
+        # t1d3
         args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_tensor_1order_3d'].split(',')]
 
         self.t1d3['vx'] = args[0]
         self.t1d3['vy'] = args[1]
         self.t1d3['vz'] = args[2]
 
-        if verbose:
-            print('vector columns are assigned: vx={}, vy={}, vz={}'.format(self.t1d3['vx'],self.t1d3['vy'],self.t1d3['vz']))
-
-        # columns with grad(t1d3) data
+        # grad(t1d3)
         if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
 
             args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_tensor_1order_3d'].split(',')]
-
-            # note the order of tensor elements!
-            # now adapted to the order in which 'get_gj' tensor elements are exported from DIRAC in visual
-            # FIXME: change the input so that you can write explicitly in the input which element is which
-            # for instance --txx=... --txy=... etc.
 
             self.t1d3['dvx_dx'] = args[0]
             self.t1d3['dvx_dy'] = args[1]
@@ -304,30 +328,23 @@ class t1d3():
             self.t1d3['dvz_dy'] = args[7]
             self.t1d3['dvz_dz'] = args[8]
 
+        if verbose:
+            print('vector columns are assigned: vx={}, vy={}, vz={}'.format(self.t1d3['vx'],self.t1d3['vy'],self.t1d3['vz']))
+
 
 
     def get_t1d3_data_points(self):
 
-        '''
+        """
 
-        fill self.t1d3_points with the input data
+        read input data into a "self.work_data" dataframe;
+        to proceed, we read only these columns which are needed for the computation, i.e.:
 
-        self.t1d3_points - is a list of dictionaries:
+        * columns corresponding to grid: self.t1d3['x'], ... 
+        * columns corresponding to t1d3: self.t1d3['vx'], ... 
+        * (if needed) columns corresponding to grad(t1d3): self.t1d3['dvx_dx'], ... 
 
-            * the length of the list = number of grid points
-
-            * the entries of the dictionary (storing data in each grid point) assigned here:
-
-                - grid points: x, y, z
-                - vector elements: vx, vy, vz
-                - gradient of vector elements (if available on input):
-                    dvx_dx, dvx_dy, dvx_dz, dvy_dx, dvy_dy, dvy_dz, dvz_dx, dvz_dy, dvz_dz
-
-        '''
-
-        if self.t1d3_points:
-            print('WARNING: t1d3_points are already assigned; will be overwritten')
-            self.t1d3_points   = []
+        """
 
         print('checkin: type(input_data) ', type(self.input_data))
         print('checkin: cols of input_data ', self.input_data.columns)
@@ -360,38 +377,6 @@ class t1d3():
         self.work_data = self.input_data.rename(columns=select)[select.values()]
         print('checkin again: cols of input_data ', self.work_data.columns)
 
-
-        #for i, r in self.input_data.iterrows():
-
-        #    d = {}
-        #    d['x']  = r[self.grid['x']]
-        #    d['y']  = r[self.grid['y']]
-        #    d['z']  = r[self.grid['z']]
-        #    d['vx']      = r[self.t1d3['vx']]
-        #    d['vy']      = r[self.t1d3['vy']]
-        #    d['vz']      = r[self.t1d3['vz']]
-
-        #    if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
-        #        d['dvx_dx']  = r[self.t1d3['dvx_dx']]
-        #        d['dvx_dy']  = r[self.t1d3['dvx_dy']]
-        #        d['dvx_dz']  = r[self.t1d3['dvx_dz']]
-
-        #        d['dvy_dx']  = r[self.t1d3['dvy_dx']]
-        #        d['dvy_dy']  = r[self.t1d3['dvy_dy']]
-        #        d['dvy_dz']  = r[self.t1d3['dvy_dz']]
-
-        #        d['dvz_dx']  = r[self.t1d3['dvz_dx']]
-        #        d['dvz_dy']  = r[self.t1d3['dvz_dy']]
-        #        d['dvz_dz']  = r[self.t1d3['dvz_dz']]
-
-        #    self.t1d3_points.append(d)
-
-        # it might be useful to get more grid info
-        # TODO: add a flag for it
-        self.dim_x = len(np.unique([p['x'] for p in self.t1d3_points]))
-        self.dim_y = len(np.unique([p['y'] for p in self.t1d3_points]))
-        self.dim_z = len(np.unique([p['z'] for p in self.t1d3_points]))
-        self.dim_cube = self.dim_x * self.dim_y * self.dim_z
 
         ## decide what to write to output:
         #if self.calc_options is not None:
