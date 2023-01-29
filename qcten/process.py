@@ -3,6 +3,8 @@ import numpy as np
 import os
 import sys
 import re
+import collections
+from pprint import pprint
 from pathlib import Path
 import subprocess
 from .t2d3 import *
@@ -16,16 +18,34 @@ class work():
         self.options  = options
         self.rundir = rundir
 
-        # options for data input and output files
-        self.allfinp  = {}
-        self.allfout  = {}
-        self.flog     = self.options['flog']
+        # io data
+        self.allfinps  = ()
+        self.allfouts  = ()
+        self.flog      = self.options['flog']
 
+
+
+        # OLD
         # grid and data
         self.grid = {}
         self.grid_function = {}
         self.data = {}
         self.fulldata = pd.DataFrame()
+
+
+    def run(self, verbose=True):
+        # 1. parse --finp; write info to self.allfinp
+        self.prepare_input(verbose=verbose)
+        # 2. parse --fout; write info to self.allfout
+        self.prepare_output(verbose=verbose)
+        # 3. calculate
+        self.calculate(verbose=verbose)
+        # 4. write to files
+        self.write_and_close(verbose_verbose)
+
+
+    def write_and_close(self, verbose=False):
+        pass
 
 
     def prepare_input(self, verbose=False):
@@ -43,15 +63,12 @@ class work():
         3. column names (only if the input is a TXT file)
         4. number of header lines (only if the input is a TXT file)
 
-        there can be many --finp blocks (self.options["finp"] is a list)
         """
 
-        if self.allfinp is not None:
+        if self.allfinps is not None:
             print('WARNING: --finp arguments are already assigned; will be overwritten')
-            for k, v in self.allfinp.items():
-                print('k, v : ', k, v)
 
-        allfinp = {}
+        temp = []
         for f_arg in self.options["finp"]:
 
             args = f_arg.split(';')
@@ -59,20 +76,23 @@ class work():
                 msg = 'ERROR: wrong number of arguments to --finp'
                 sys.exit(msg)
 
-            f_name, f_info = self.prepare_io(args)
-            if not Path(f_info['file_path']).exists():
-                sys.exit()
+            f_info = self.prepare_io(args)
 
-            allfinp[f_name] = f_info
-            self.allfinp[f_name] = f_info
+            if not Path(f_info.file_path).exists():
+                msg = 'ERROR: input file does not exist; check --finp)'
+                sys.exit(msg)
 
-            self.print_options_to_log()
+            temp.append(f_info)
+
+            #self.print_options_to_log()
+
+        self.allfinps = tuple(temp)
 
         if verbose:
-            for k, v in self.allfinp.items():
-                print('assigned self.allfinp.items = k, v : ', k, v)
+            print('files with input data:')
+            pprint(self.allfinps)
 
-        return allfinp
+        return self.allfinps
 
 
     def prepare_output(self, verbose=False):
@@ -90,13 +110,12 @@ class work():
         3. column names
         4. number of header lines
 
-        there can be many --fout blocks (self.options["fout"] is a list)
         """
 
-        if self.allfout is not None:
+        if self.allfouts is not None:
             print('WARNING: --fout arguments are already assigned; will be overwritten')
 
-        allfout = {}
+        temp = [] 
         for f_arg in self.options["fout"]:
 
             args = f_arg.split(';')
@@ -104,45 +123,37 @@ class work():
                 msg = 'ERROR: wrong number of arguments to --fout'
                 sys.exit(msg)
 
-            f_name, f_info = self.prepare_io(args)
+            f_info = self.prepare_io(args)
 
-            allfout[f_name] = f_info
-            self.allfout[f_name] = f_info
+            temp.append(f_info)
+
+        self.allfouts = tuple(temp)
 
         if verbose:
-            for k, v in self.allfout.items():
-                print('assigned self.allfout.items = k, v : ', k, v)
+            print('files for output data:')
+            pprint(self.allfouts)
 
-        return allfout
+        return self.allfouts
 
 
     def prepare_io(self, args):
 
         """
+        parse lines: 
         --finp/--fout format; path; [columns]; [sep]; [skip] 
         """
 
+        # format, path and name of a file
         f_type   = args[0].strip()
         f_path   = args[1].strip()
-        f_name   = os.path.basename(f_path)
 
         # names of data fields (columns on input/output files if txt/csv)
         f_cols   = None
-        f_old_cols = []
-        f_new_cols = []
         if len(args) > 2:
             arg = args[2].strip()
             if arg != 'None':
                 if arg[0:5] == 'cols=':
                     f_cols   = [a.strip().strip('[').strip(']') for a in arg[5:].split(',')]
-                    f_old_cols = [None for x in range(len(f_cols))]
-                    f_new_cols = [None for x in range(len(f_cols))]
-                    for i, f_col in enumerate(f_cols):
-                        if ':' in f_col:
-                            f_col_initial=f_col.split(':')[0].strip()
-                            f_col_renamed=f_col.split(':')[1].strip()
-                            f_old_cols[i] = f_col_initial
-                            f_new_cols[i] = f_col_renamed
 
         # column separator; defaults to a coma
         f_sep = ','
@@ -152,7 +163,7 @@ class work():
                 if arg[0:4] == 'sep=':
                     f_sep = arg[4:]
 
-        # index of a row line to skip (e.g. with file description)
+        # index of a row line to skip
         f_skiprow = None
         if len(args) > 4:
             arg = args[4].strip()
@@ -164,12 +175,17 @@ class work():
         d['file_type'] = f_type
         d['file_path'] = Path(self.rundir, f_path).resolve()
         d['file_column_names'] = f_cols
-        d['file_column_old_names'] = f_old_cols
-        d['file_column_new_names'] = f_new_cols
         d['file_column_separator'] = f_sep
         d['file_skiprow'] = f_skiprow
 
-        return f_name, d
+        io_info = collections.namedtuple('io_info', ['file_type',
+                                                     'file_path',
+                                                     'file_column_names',
+                                                     'file_column_separator',
+                                                     'file_skiprow'])
+
+        f = io_info(**d)
+        return f
 
 
     def prepare_data(self):
