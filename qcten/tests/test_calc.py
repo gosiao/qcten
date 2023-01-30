@@ -49,6 +49,7 @@ def run_test_generic(testdirs, debug=False):
         fout = calc.prepare_output(verbose=True)
         data = calc.prepare_data(verbose=True)
         result = calc.calculate(verbose=True)
+        calc.write_and_close(verbose=True)
         result_ref = th.get_ref_aspddataframe(Path(testdir_path, 'result.ref'))
         #sys.exit()
         #

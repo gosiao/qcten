@@ -44,11 +44,49 @@ class work():
         self.prepare_data(verbose=verbose)
         self.calculate(verbose=verbose)
         # 4. write to files
-        self.write_and_close(verbose_verbose)
+        self.write_and_close(verbose=verbose)
 
 
     def write_and_close(self, verbose=False):
-        pass
+
+        if not self.fulldata.empty:
+            self.fulldata = self.fulldata.astype(np.float64)
+
+            for fout in self.allfouts:
+
+                requested_cols = []
+                data_cols = []
+                for col in fout.file_column_names:
+                    if ':' in col:
+                        old_col = col.strip().split(':')[0].strip()
+                        new_col = col.strip().split(':')[1].strip()
+                    else:
+                        old_col = col.strip()
+                        new_col = col.strip()
+
+                    if old_col in self.fulldata.columns:
+                        data_cols.append(old_col)
+                        requested_cols.append(new_col)
+                    else:
+                        msg = 'ERROR: column {} not available for output'.format(col)
+
+                df = self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,requested_cols)})
+
+                f = fout.file_path
+                f.parent.mkdir(parents=True, exist_ok=True)
+                if (fout.file_type == 'txt' or fout.file_type == 'csv'):
+                    df.to_csv(f, index=False)
+                elif fout.file_type == 'hdf5':
+                    pass
+                elif fout.file_type == 'vti':
+                    pass
+                else:
+                    msg = 'ERROR: unsupported file format for output; check --fout'
+                    sys.exit(msg)
+
+                if verbose:
+                    print('dataframe for file ', f)
+                    pprint(df)
 
 
     def prepare_input(self, verbose=False):
@@ -81,6 +119,9 @@ class work():
 
             f_info = self.prepare_io(args)
 
+            if f_info.file_type is None:
+                msg = 'ERROR: specify format of the input file; check --finp)'
+                sys.exit(msg)
             if not Path(f_info.file_path).exists():
                 msg = 'ERROR: input file does not exist; check --finp)'
                 sys.exit(msg)
@@ -127,6 +168,13 @@ class work():
                 sys.exit(msg)
 
             f_info = self.prepare_io(args)
+
+            if f_info.file_type is None:
+                msg = 'ERROR: specify format of the output file; check --fout)'
+                sys.exit(msg)
+            if f_info.file_path is None:
+                msg = 'ERROR: specify output file (name or full path); check --fout)'
+                sys.exit(msg)
 
             temp.append(f_info)
 
@@ -302,11 +350,15 @@ class work():
 
             work = t1d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=True)
+            result_df = work.work_data
+
+        self.fulldata = pd.concat((self.fulldata, result_df), axis=1)
+        self.fulldata = self.fulldata.loc[:,~self.fulldata.columns.duplicated()]
 
 #           FIXME
             #result_df = pd.DataFrame(work.t1d3_points)
             #result_df = self.update_df(result_df, new_df_cols=work.t1d3_cols)
-            result_df = work.update_df(result_df, new_df_cols=work.t1d3_cols)
+            #???result_df = work.update_df(result_df, new_df_cols=work.t1d3_cols)
 
         return result_df
 

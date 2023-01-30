@@ -104,8 +104,7 @@ class t1d3():
                     self.vorticity()
 
                 if (arg == 'omega'):
-                    #self.get_t1d3_gradient()
-                    self.omega()
+                    self.omega(verbose=verbose)
 
                 if (arg == 'mean'):
                     self.mean()
@@ -171,43 +170,26 @@ class t1d3():
         """
 
         cols_available_for_outputs = self.all_fun_t1d3 + self.colnames_inp 
-        print('available: ',cols_available_for_outputs)
 
         for v in self.calc_options:
             if v.file_path is not None:
-                fout = v.file_path
-                fout.parent.mkdir(parents=True, exist_ok=True)
-                df = pd.DataFrame()
-                requested_cols = []
                 data_cols = []
                 for icol, col in enumerate(v.file_column_names):
                     if ':' in col:
                         old_col = col.strip().split(':')[0]
-                        new_col = col.strip().split(':')[1]
                     else:
                         old_col = col
-                        new_col = col
 
                     if old_col in cols_available_for_outputs:
                         data_cols.append(old_col.strip())
-                        requested_cols.append(new_col.strip())
                     else:
                         msg = 'ERROR: column {} not available for output, ' \
                             + 'check --fout'.format(col)
 
-                    # todo: check if all cols are in the set of predefined cols 
-                    # these should match the names of available functions
-                    # set them all somehwere up
                 self.colnames_out=data_cols
 
-                print('Output to file ', v.file_path.name)
-                print('Columns: ', data_cols)
-                print('will be written as: ', requested_cols)
 
 
-                    #if not df.empty:
-                    #    df = df.astype(np.float64)
-                    #    df.to_csv(fout, index=False)
 
 
     def get_t1d3_gradient(self):
@@ -1217,17 +1199,19 @@ class t1d3():
 
 
 
-    def omega(self):
+    def omega(self, verbose=False):
 
         """
-        calculate Omega as in "Omega vortex identification method"
+        calculate omega ("Omega vortex identification method")
 
-        e.g. Eq. 12 in Liu et. al, Journal of Hydrodynamics, 31, 205, 2019
+        based on Eq. 12 in Liu et. al, Journal of Hydrodynamics, 31, 205, 2019 (DOI: )
 
-        1. we need: gradient of a vector field: \nabla v
-        2. the symmetric (S) and antisymmetric (A) parts of \nabla v
-        3. the Frobenius norms of these parts, squared, |S|^2 and |A|^2, respectively
-        4. Omega = |A|^2 / (|A|^2 + |S|^2)
+        calculations need the gradient of a vector field: nabla(v)
+
+        then:
+        1. calculate the symmetric (S) and antisymmetric (A) parts of nabla(v)
+        2. calculate the Frobenius norms of these parts, squared, |S|^2 and |A|^2, respectively
+        3. calculate omega = |A|^2 / (|A|^2 + |S|^2)
 
         """
 
@@ -1238,8 +1222,6 @@ class t1d3():
                                            'dvy_dx':'t21', 'dvy_dy':'t22', 'dvy_dz':'t23',
                                            'dvz_dx':'t31', 'dvz_dy':'t32', 'dvz_dz':'t33'})
 
-        print('IN OMEGA: gradtensor: ', full_grad_tensor)
-
         sym_part = get_sym_part_of_t2d3(full_grad_tensor)
         antisym_part  = get_antisym_part_of_t2d3(full_grad_tensor)
 
@@ -1249,9 +1231,9 @@ class t1d3():
 
         self.work_data = pd.concat((self.work_data, omega.rename('omega')), axis=1)
 
-        print('IN OMEGA: sym_norm = ', sym_norm, type(sym_norm))
-        print('IN OMEGA: omega = ', omega, type(omega))
-        print('IN OMEGA: work_data = ', self.work_data, type(self.work_data))
+        if verbose:
+            print('Output from omega:')
+            pprint(self.work_data)
 
 
 
