@@ -42,7 +42,12 @@
 #
 --projection_axis=[0,0,1]
 #
-# 6. decide what output you need:
+# 7. since we plan to write to vti by calling ttk,
+#    add a few simple options to test
+#
+--resampled_dim=10,10,10
+#
+# 8. decide what output you need:
 #
 --fout=csv; omega_vorticity_z.csv; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
 --fout=vti; omega_vorticity_z.vti; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]

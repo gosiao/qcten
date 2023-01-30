@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 from .t2d3 import *
 from .t1d3 import *
+from .common_ttk import *
 
 class work():
 
@@ -79,7 +80,10 @@ class work():
                 elif fout.file_type == 'hdf5':
                     pass
                 elif fout.file_type == 'vti':
-                    pass
+                    fcsv = 'temp.csv'
+                    df.to_csv(fcsv, index=False)
+                    ttk_support = ttk_basics(self.options, fcsv, f)
+                    ttk_support.write_data_to_vti()
                 else:
                     msg = 'ERROR: unsupported file format for output; check --fout'
                     sys.exit(msg)
