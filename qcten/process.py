@@ -80,6 +80,7 @@ class work():
                 elif fout.file_type == 'hdf5':
                     pass
                 elif fout.file_type == 'vti':
+                    # check if csv file exsists; 
                     ttk_support = ttk_basics(self.options, df, f)
                     ttk_support.write_data_to_vti()
                 else:

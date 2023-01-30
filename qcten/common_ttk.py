@@ -9,11 +9,12 @@ from paraview.simple import *
 
 class ttk_basics():
 
-    def __init__(self, options, data, fout_vti):
+    def __init__(self, options, data, fout_vti, finp_csv=None):
         """
         """
         self.options = options
         self.data = data 
+        self.finp_csv = finp_csv # vti file to write to
         self.fout_vti = fout_vti # vti file to write to
         #self.inpgrid_dim = [int(x) for x in self.options['resampled_dim'].split(',')]
         self.resampled_dim = [int(x) for x in self.options['resampled_dim'].split(',') if self.options['resampled_dim']]
@@ -21,8 +22,12 @@ class ttk_basics():
 
     def write_data_to_vti(self):
 
-        fcsv = 'temp.csv'
-        self.data.to_csv(fcsv, index=False)
+        if self.finp_csv is None:
+            # temporary solution...
+            fcsv = 'temp.csv'
+            self.data.to_csv(fcsv, index=False)
+        else:
+            fcsv = self.finp_csv
 
         denscsv = CSVReader(FileName=fcsv)
         print('In write_data_to_vti: ', type(denscsv))
@@ -65,17 +70,43 @@ class ttk_basics():
 
 
 
+    def apply_gradientOfUnstructuredDataSet(self, source, source_type, source_name, result_name):
+        """
+        source      = input TTK object
+        source_type = 'POINTS' or 'CELLS'
+        source_name = string, depends on the "source"
+        result_name = name of the calculated gradient
+        """
+    
+        gradient = GradientOfUnstructuredDataSet(Input=source)
+        gradient.ScalarArray = [source_type, source_name]
+        gradient.ResultArrayName = result_name
+    
+        return gradient
+    
+    
+    def calculator(self, name, function, source_file=None, source_other=None):
+    
+        if source_file is not None:
+            inpdata = XMLImageDataReader(FileName=source_file)
+        elif source_other is not None:
+            inpdata = source_other
+    
+        calculator = Calculator(Input=inpdata)
+    
+        calculator.ResultArrayName = name
+        calculator.Function = function
+    
+        debug = False
+        if debug:
+            print('output from ttk_helper.calculator: source_file=  ', source_file)
+            print('output from ttk_helper.calculator: source_other= ', source_other)
+            print('output from ttk_helper.calculator: name=         ', name)
+            print('output from ttk_helper.calculator: function=     ', function)
+    
+        return calculator
 
 
-def resample(data, resampled_dim=[256,256,256]):
-
-    print('resampleToImage filter applied; sampling dimensions: ', resampled_dim)
-
-    resampleToImage = ResampleToImage(Input=data)
-
-    resampleToImage.SamplingDimensions = [resampled_dim[0],
-                                          resampled_dim[1],
-                                          resampled_dim[2]]
 
 
 
