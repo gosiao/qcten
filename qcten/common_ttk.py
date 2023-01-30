@@ -9,47 +9,59 @@ from paraview.simple import *
 
 class ttk_basics():
 
-    def __init__(self, options, finp_csv, fout_vti):
+    def __init__(self, options, data, fout_vti):
         """
         """
         self.options = options
-        #self.data = data 
-        self.finp_csv = finp_csv # csv file with data
+        self.data = data 
         self.fout_vti = fout_vti # vti file to write to
         #self.inpgrid_dim = [int(x) for x in self.options['resampled_dim'].split(',')]
-        self.resampled_dim = [int(x) for x in self.options['resampled_dim'].split(',')]
+        self.resampled_dim = [int(x) for x in self.options['resampled_dim'].split(',') if self.options['resampled_dim']]
 
 
     def write_data_to_vti(self):
 
-        denscsv = CSVReader(FileName=self.finp_csv)
+        fcsv = 'temp.csv'
+        self.data.to_csv(fcsv, index=False)
+
+        denscsv = CSVReader(FileName=fcsv)
         print('In write_data_to_vti: ', type(denscsv))
         pprint(denscsv)
-        #npoints = self.common_options['npoints'].split(',')
-        #end_x = int(npoints[0]) - 1
-        #end_y = int(npoints[1]) - 1
-        #end_z = int(npoints[2]) - 1
+        if self.options['grid_type'] == 'uniform':
+            npoints = len(self.data.index)  
+            n1dim = np.cbrt(npoints)
+            if n1dim.is_integer():
+                nx = int(n1dim)-1
+                ny = int(n1dim)-1
+                nz = int(n1dim)-1
+            else:
+                msg='ERROR: non-integer number of grid points (write_data_to_vti)', n1dim
+                sys.exit(msg)
 
-        end_x = 9
-        end_y = 9
-        end_z = 9
+            tableToStructuredGrid = TableToStructuredGrid(Input=denscsv)
+            tableToStructuredGrid.WholeExtent = [0, nx, 0, ny, 0, nz]
+            tableToStructuredGrid.XColumn = 'x'
+            tableToStructuredGrid.YColumn = 'y'
+            tableToStructuredGrid.ZColumn = 'z'
 
-        tableToStructuredGrid = TableToStructuredGrid(Input=denscsv)
-        tableToStructuredGrid.WholeExtent = [0, end_x, 0, end_y, 0, end_z]
-        tableToStructuredGrid.XColumn = 'x'
-        tableToStructuredGrid.YColumn = 'y'
-        tableToStructuredGrid.ZColumn = 'z'
+            final_data = tableToStructuredGrid
+            #final_data = AppendAttributes(Input=data)
+    
+            finalResampleToImage = ResampleToImage(Input=final_data)
 
-        final_data = tableToStructuredGrid
+            if self.resampled_dim is not None:
+                # else - resampled dimensions are the same as original ones
+                nx = self.resampled_dim[0]
+                ny = self.resampled_dim[1]
+                nz = self.resampled_dim[2]
 
-        ##final_data = AppendAttributes(Input=data)
+            finalResampleToImage.SamplingDimensions = [nx, ny, nz]
+    
+            SaveData(self.fout_vti.as_posix(), proxy=finalResampleToImage)
 
-        finalResampleToImage = ResampleToImage(Input=final_data)
-        finalResampleToImage.SamplingDimensions = [self.resampled_dim[0],
-                                                   self.resampled_dim[1],
-                                                   self.resampled_dim[2]]
-
-        SaveData(self.fout_vti.as_posix(), proxy=finalResampleToImage)
+        else:
+            msg='ERROR: grids other than uniform are not supported'
+            sys.exit(msg)
 
 
 

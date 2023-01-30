@@ -102,6 +102,16 @@ class input_data:
                                         which columns contain data
                                         ''')
 
+        optional_args.add_argument('--grid_type',
+                                   dest='grid_type',
+                                   action='store',
+                                   choices=['uniform', 'rectilinear'],
+                                   default='uniform',
+                                   required=False,
+                                   help='''
+                                        mesh type (default: uniform rectilinear)
+                                        ''')
+
 
         optional_args.add_argument('--inptest',
                                    dest='inptest',
@@ -216,13 +226,13 @@ class input_data:
                                         which TTK task will be performed
                                         ''')
 
+
         optional_args.add_argument('--resampled_dim',
                                    dest='resampled_dim',
                                    action='store',
                                    required=False,
                                    help='''
                                         number of points in x,y,z directions for the "ResampleToImage" filter in TTK;
-                                        default: 256x256x256
                                         ''')
 
         optional_args.add_argument('--calc_fun',
