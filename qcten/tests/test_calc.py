@@ -47,9 +47,8 @@ def run_test_generic(testdirs, debug=False):
         grid = calc.prepare_grid()
         finp = calc.prepare_input(verbose=True)
         fout = calc.prepare_output(verbose=True)
-        sys.exit()
-        data = calc.prepare_data()
-        result = calc.calculate()
+        data = calc.prepare_data(verbose=True)
+        result = calc.calculate(verbose=True)
         result_ref = th.get_ref_aspddataframe(Path(testdir_path, 'result.ref'))
         #sys.exit()
         #

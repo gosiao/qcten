@@ -24,6 +24,8 @@ class work():
         self.flog      = self.options['flog']
 
 
+        # print control (debug)
+        #self.verbose = verbose
 
         # OLD
         # grid and data
@@ -39,6 +41,7 @@ class work():
         # 2. parse --fout; write info to self.allfout
         self.prepare_output(verbose=verbose)
         # 3. calculate
+        self.prepare_data(verbose=verbose)
         self.calculate(verbose=verbose)
         # 4. write to files
         self.write_and_close(verbose_verbose)
@@ -188,7 +191,7 @@ class work():
         return f
 
 
-    def prepare_data(self):
+    def prepare_data(self, verbose=False):
 
         """
         read the input data (in TXT) into pandas dataframes
@@ -200,38 +203,35 @@ class work():
 
         # 1. read all input data into a list of dataframes
         dfs = []
-        for k, v in self.allfinp.items():
+        for v in self.allfinps:
 
-            if v['file_type'].lower() == 'txt':
+            if v.file_type.lower() == 'txt':
                 #df = pd.read_fwf(v['file_path'], colspecs='infer', header=v['file_skiprow'], names=v['file_column_names'])
-                df = pd.read_fwf(v['file_path'], 
+                df = pd.read_fwf(v.file_path, 
                                  colspecs='infer', 
-                                 skiprows = v['file_skiprow'], 
-                                 names=v['file_column_names'])
+                                 skiprows = v.file_skiprow, 
+                                 names=v.file_column_names)
 
-            elif v['file_type'].lower() == 'csv':
-                if v['file_column_separator'] is None or v['file_column_separator'].isspace():
-                    df = pd.read_csv(v['file_path'],
+            elif v.file_type.lower() == 'csv':
+                if v.file_column_separator is None or v.file_column_separator.isspace():
+                    df = pd.read_csv(v.file_path,
                                      header = 0,
-                                     names  = v['file_column_names'],
+                                     names  = v.file_column_names,
                                      delim_whitespace = True,
-                                     skiprows = v['file_skiprow'],
+                                     skiprows = v.file_skiprow,
                                      dtype = np.float64)
                 else:
-                    df = pd.read_csv(v['file_path'],
+                    df = pd.read_csv(v.file_path,
                                      header = 0,
-                                     names  = v['file_column_names'],
-                                     sep = v['file_column_separator'],
-                                     skiprows = v['file_skiprow'],
+                                     names  = v.file_column_names,
+                                     sep = v.file_column_separator,
+                                     skiprows = v.file_skiprow,
                                      dtype = np.float64)
 
-            elif v['file_type'].lower() == 'hdf5':
+            elif v.file_type.lower() == 'hdf5':
                 pass
 
-
             df.apply(pd.to_numeric, errors='coerce')
-
-            self.data[k] = df
             dfs.append(df)
 
         # 2. combine a list of dataframes into one dataframe;
@@ -243,6 +243,10 @@ class work():
         if self.fulldata.empty:
             self.fulldata = fulldata
 
+        if verbose:
+            print('Data (from prepare_data): ')
+            pprint(fulldata.columns)
+            pprint(fulldata)
 
         return fulldata
 
@@ -265,7 +269,7 @@ class work():
         return grid
 
 
-    def calculate(self):
+    def calculate(self, verbose=False):
 
         result_df = pd.DataFrame()
 
@@ -291,17 +295,13 @@ class work():
             print('CHECKUP options: ', type(self.options))
             for k, v in self.options.items():
                 print('     k, v: ', k, v)
-            print('CHECKUP allfinp: ', type(self.allfinp))
-            for k, v in self.allfinp.items():
-                print('     k, v: ', k, v)
-            print('CHECKUP allfout: ', type(self.allfout))
-            for k, v in self.allfout.items():
-                print('     k, v: ', k, v)
+            print('CHECKUP allfout: ', type(self.allfouts))
+            for v in self.allfouts:
+                print('     v: ', v)
             print('CHECKUP fulldata: ', type(self.fulldata))
-            sys.exit()
 
-            work = t1d3(self.options, self.allfout, self.fulldata)
-            work.run()
+            work = t1d3(self.options, self.allfouts, self.fulldata)
+            work.run(verbose=True)
 
 #           FIXME
             #result_df = pd.DataFrame(work.t1d3_points)

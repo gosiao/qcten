@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 from pathlib import Path
+from .global_data import *
 
 class input_data:
 
@@ -17,25 +18,10 @@ class input_data:
 
         # list of available functions for a selected type of input data:
         # input is t2d3 (second-rank tensor in 3D)
-        self.all_fun_t2d3 = ['trace',
-                             'isotropic',
-                             'deviator',
-                             'antisymmetric',
-                             'deviator_anisotropy',
-                             'rortex_tensor_combined',
-                             'omega_rortex_tensor_combined',
-                             'tensor_inv1',
-                             'tensor_inv2',
-                             'tensor_inv3']
+        self.all_fun_t2d3 = global_data.all_fun_t2d3
 
         # input is t1d3 = (first-rank tensor (= vector) in 3D)
-        self.all_fun_t1d3 = ['rortex',
-                             'omega_rortex',
-                             'norm',
-                             'mean',
-                             'vorticity',
-                             'omega']
-
+        self.all_fun_t1d3 = global_data.all_fun_t1d3
 
     def parse_options(self):
 

@@ -3,6 +3,9 @@ import numpy as np
 import scipy.linalg as la
 import math
 import pandas as pd
+from .global_data import *
+from .common import *
+from pprint import pprint
 
 
 class t1d3():
@@ -18,6 +21,22 @@ class t1d3():
         # global data structures
         self.t1d3          = {}
         self.t1d3_points   = []
+
+
+        # TUTAJ
+        # column names defined by the user:
+        self.colnames_inp = []
+        self.colnames_out = []
+        # column names used in this class:
+        self.colnames_qcten = {}
+
+        self.all_fun_t1d3 = global_data.all_fun_t1d3
+        self.fun_t1d3_req_grad = global_data.fun_t1d3_req_grad
+
+
+
+
+
 
         # NEW:
         # data required to do the work
@@ -46,17 +65,20 @@ class t1d3():
         self.projection_axis = {}
 
 
-    def run(self):
+    def run(self, verbose=False):
 
         """
         main routine
         """
 
+        # 1. verify input data
+        self.verify_data_for_calcs(verbose=verbose)
+
         # 1. assign the data specified by a user to names used in qcten
-        self.assign_t1d3_input_names()
+        self.assign_t1d3_input_names(verbose=verbose)
 
         # 2. get the data (into pandas dataframe)
-        self.get_t1d3_data_points()
+        self.get_t1d3_data_points(verbose=verbose)
 
         # 3. get grid information
 
@@ -92,6 +114,43 @@ class t1d3():
             self.project_v_on_projection_axis()
 
 
+    def verify_data_for_calcs(self, verbose=False):
+        """
+        verify whether all data needed for the type of calculations exists;
+        take care of missing data, exceptions, etc.
+        """
+
+        if self.input_options['grid'] is None:
+            msg = 'ERROR: check --grid in your input'
+            sys.exit(msg)
+        else:
+            pass
+            # here get grid data?
+
+        if self.input_options['calc_from_tensor_1order_3d'] is None:
+
+            msg = 'WARNING: Nothing to calculate from the vector field. ' \
+                + 'Check --calc_from_tensor_1order_3d in your input'
+            sys.exit(msg)
+
+            for arg in self.input_options['calc_from_tensor_1order_3d']:
+                if arg not in self.all_fun_t1d3:
+                    msg = 'ERROR: requested function not in the list of available functions ' \
+                        + 'Check --calc_from_tensor_1order_3d in your input. ' \
+                        + 'Available functions: ', self.all_fun_t1d3
+                    sys.exit(msg)
+
+        else:
+            for arg in self.input_options['calc_from_tensor_1order_3d']:
+                if (arg in self.fun_t1d3_req_grad):
+                    if self.input_options['use_grad_from_file']:
+                        print('Gradient of t1d3 is read from file')
+                    else:
+                        print('Gradient of t1d3 is calculated')
+                        # TODO: calc gradient here!
+
+
+
     def get_grid_info(self):
 
         """
@@ -105,52 +164,47 @@ class t1d3():
         self.dim_cube = self.dim_x * self.dim_y * self.dim_z
 
 
-    def assign_t1d3_output_names(self):
+    def assign_t1d3_output_names(self, verbose=False):
 
         """
         prepare the data for output(s)
         """
 
-        if self.calc_options is not None:
-            for k, v in self.calc_options.items():
-                # a loop over output files (it is possible to ask for more than one output)
-                #print('output from assign_t1d3_output_names: ', k, v)
-                #omega_vorticity_z.csv {'file_type': 'csv', 'file_path': PosixPath('/home/gosia/devel/qcten.NEW/qcten/tests/t1d3_omega/omega_vorticity_z.csv'), 'file_column_names': ['x', 'y', 'z', 'omega:omega_bz', 'curlv_cdot_axis:bz_wz'], 'file_column_old_names': [None, None, None, 'omega', 'curlv_cdot_axis'], 'file_column_new_names': [None, None, None, 'omega_bz', 'bz_wz'], 'file_column_separator': ',', 'file_skiprow': None}
-                #output from assign_t1d3_output_names:  omega_vorticity_z.vti {'file_type': 'vti', 'file_path': PosixPath('/home/gosia/devel/qcten.NEW/qcten/tests/t1d3_omega/omega_vorticity_z.vti'), 'file_column_names': ['x', 'y', 'z', 'omega:omega_bz', 'curlv_cdot_axis:bz_wz'], 'file_column_old_names': [None, None, None, 'omega', 'curlv_cdot_axis'], 'file_column_new_names': [None, None, None, 'omega_bz', 'bz_wz'], 'file_column_separator': ',', 'file_skiprow': None}
-            #    self.data_to_export[k] = [arg.strip().strip('[').strip(']') for arg in v['file_column_new_names'].split(',')]
-                if v['file_path'] is not None:
-                    fout = v['file_path']
-                    fout.parent.mkdir(parents=True, exist_ok=True)
-                    df = pd.DataFrame()
-                    requested_cols = []
-                    data_cols = []
-                    for icol, col in enumerate(v['file_column_names']):
-                        if ':' in col:
-                            old_col = col.strip().split(':')[0]
-                            new_col = col.strip().split(':')[1]
-                            data_cols.append(old_col.strip())
-                            requested_cols.append(new_col.strip())
-                        else:
-                            data_cols.append(col.strip())
-                            requested_cols.append(col.strip())
+        cols_available_for_outputs = self.all_fun_t1d3 + self.colnames_inp 
+        print('available: ',cols_available_for_outputs)
+
+        for v in self.calc_options:
+            if v.file_path is not None:
+                fout = v.file_path
+                fout.parent.mkdir(parents=True, exist_ok=True)
+                df = pd.DataFrame()
+                requested_cols = []
+                data_cols = []
+                for icol, col in enumerate(v.file_column_names):
+                    if ':' in col:
+                        old_col = col.strip().split(':')[0]
+                        new_col = col.strip().split(':')[1]
+                    else:
+                        old_col = col
+                        new_col = col
+
+                    if old_col in cols_available_for_outputs:
+                        data_cols.append(old_col.strip())
+                        requested_cols.append(new_col.strip())
+                    else:
+                        msg = 'ERROR: column {} not available for output, ' \
+                            + 'check --fout'.format(col)
 
                     # todo: check if all cols are in the set of predefined cols 
                     # these should match the names of available functions
                     # set them all somehwere up
+                self.colnames_out=data_cols
 
-                    print('MATCHCOL: ', data_cols)
-                    print('MATCHCOL: ', requested_cols)
+                print('Output to file ', v.file_path.name)
+                print('Columns: ', data_cols)
+                print('will be written as: ', requested_cols)
 
-                    if all(col in self.t1d3_cols for col in data_cols):
-                        print('ALLIN')
-                    else:
-                        for col in self.t1d3_cols:
-                            if not col in data_cols:
-                                print('MISSING: ', col)
-                                sys.exit()
 
-                    self.t1d3_cols = [col.replace('x', 'x').replace('y', 'y').replace('z', 'z') for col in data_cols]
-#                            
                     #if not df.empty:
                     #    df = df.astype(np.float64)
                     #    df.to_csv(fout, index=False)
@@ -300,40 +354,69 @@ class t1d3():
 
         # grid
         args = [arg.strip().strip('[').strip(']') for arg in self.input_options['grid'].split(',')]
-        self.t1d3['x'] = args[0]
-        self.t1d3['y'] = args[1]
-        self.t1d3['z'] = args[2]
+        self.colnames_qcten['x'] = args[0]
+        self.colnames_qcten['y'] = args[1]
+        self.colnames_qcten['z'] = args[2]
+        self.colnames_inp = args
+
+        if verbose:
+            msg = 'grid columns are assigned: ' \
+                + 'x={}, y={}, z={}, '.format(self.colnames_qcten['x'],
+                                              self.colnames_qcten['y'],
+                                              self.colnames_qcten['z'])
+            print(msg)
+
 
         # t1d3
         args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_tensor_1order_3d'].split(',')]
 
-        self.t1d3['vx'] = args[0]
-        self.t1d3['vy'] = args[1]
-        self.t1d3['vz'] = args[2]
+        self.colnames_qcten['vx'] = args[0]
+        self.colnames_qcten['vy'] = args[1]
+        self.colnames_qcten['vz'] = args[2]
+        self.colnames_inp.extend(args)
+
+        if verbose:
+            msg = 'vector columns are assigned: ' \
+                + 'vx={}, vy={}, vz={}, '.format(self.colnames_qcten['vx'],
+                                                 self.colnames_qcten['vy'],
+                                                 self.colnames_qcten['vz'])
+            print(msg)
 
         # grad(t1d3)
         if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
 
             args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_tensor_1order_3d'].split(',')]
 
-            self.t1d3['dvx_dx'] = args[0]
-            self.t1d3['dvx_dy'] = args[1]
-            self.t1d3['dvx_dz'] = args[2]
+            self.colnames_qcten['dvx_dx'] = args[0]
+            self.colnames_qcten['dvx_dy'] = args[1]
+            self.colnames_qcten['dvx_dz'] = args[2]
 
-            self.t1d3['dvy_dx'] = args[3]
-            self.t1d3['dvy_dy'] = args[4]
-            self.t1d3['dvy_dz'] = args[5]
+            self.colnames_qcten['dvy_dx'] = args[3]
+            self.colnames_qcten['dvy_dy'] = args[4]
+            self.colnames_qcten['dvy_dz'] = args[5]
 
-            self.t1d3['dvz_dx'] = args[6]
-            self.t1d3['dvz_dy'] = args[7]
-            self.t1d3['dvz_dz'] = args[8]
+            self.colnames_qcten['dvz_dx'] = args[6]
+            self.colnames_qcten['dvz_dy'] = args[7]
+            self.colnames_qcten['dvz_dz'] = args[8]
+        
+            self.colnames_inp.extend(args)
 
-        if verbose:
-            print('vector columns are assigned: vx={}, vy={}, vz={}'.format(self.t1d3['vx'],self.t1d3['vy'],self.t1d3['vz']))
+            if verbose:
+                msg = 'grad(vector) columns are assigned: ' \
+                    + ' dvx_dx='+self.colnames_qcten['dvx_dx'] \
+                    + ' dvx_dy='+self.colnames_qcten['dvx_dy'] \
+                    + ' dvx_dz='+self.colnames_qcten['dvx_dz'] \
+                    + ' dvy_dx='+self.colnames_qcten['dvy_dx'] \
+                    + ' dvy_dy='+self.colnames_qcten['dvy_dy'] \
+                    + ' dvy_dz='+self.colnames_qcten['dvy_dz'] \
+                    + ' dvz_dx='+self.colnames_qcten['dvz_dx'] \
+                    + ' dvz_dy='+self.colnames_qcten['dvz_dy'] \
+                    + ' dvz_dz='+self.colnames_qcten['dvz_dz']
+                print(msg)
 
 
 
-    def get_t1d3_data_points(self):
+    def get_t1d3_data_points(self, verbose=False):
 
         """
 
@@ -346,67 +429,13 @@ class t1d3():
 
         """
 
-        print('checkin: type(input_data) ', type(self.input_data))
-        print('checkin: cols of input_data ', self.input_data.columns)
+        cols = {v: k for k, v in self.colnames_qcten.items() if v is not None}
+        self.work_data = self.input_data.rename(columns=cols)
+        self.work_data = self.work_data[cols.values()]
 
-
-        if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
-            select = {self.t1d3['x']:'x',
-                      self.t1d3['y']:'y',
-                      self.t1d3['z']:'z',
-                      self.t1d3['vx']:'vx',
-                      self.t1d3['vy']:'vy',
-                      self.t1d3['vz']:'vz',
-                      self.t1d3['dvx_dx']:'dvx_dx',
-                      self.t1d3['dvx_dy']:'dvx_dy',
-                      self.t1d3['dvx_dz']:'dvx_dz', 
-                      self.t1d3['dvy_dx']:'dvy_dx', 
-                      self.t1d3['dvy_dy']:'dvy_dy', 
-                      self.t1d3['dvy_dz']:'dvy_dz', 
-                      self.t1d3['dvz_dx']:'dvz_dx', 
-                      self.t1d3['dvz_dy']:'dvz_dy', 
-                      self.t1d3['dvz_dz']:'dvz_dz'} 
-        else:
-            select = {self.t1d3['x']:'x',
-                      self.t1d3['y']:'y',
-                      self.t1d3['z']:'z',
-                      self.t1d3['vx']:'vx',
-                      self.t1d3['vy']:'vy',
-                      self.t1d3['vz']:'vz'}
-
-        self.work_data = self.input_data.rename(columns=select)[select.values()]
-        print('checkin again: cols of input_data ', self.work_data.columns)
-
-
-        ## decide what to write to output:
-        #if self.calc_options is not None:
-        #    # always output the grid
-        #    self.t1d3_cols.append('x')
-        #    self.t1d3_cols.append('y')
-        #    self.t1d3_cols.append('z')
-        #    
-        #    # in most detailed cases, also output the (original) vector field...
-        #    if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
-        #        self.t1d3_cols.append('vx')
-        #        self.t1d3_cols.append('vy')
-        #        self.t1d3_cols.append('vz')
-        #    
-        #    # ...and its gradient
-        #    if self.input_options['fout_select'] == 'all':
-        #        self.t1d3_cols.append('dvx_dx')
-        #        self.t1d3_cols.append('dvx_dy')
-        #        self.t1d3_cols.append('dvx_dz')
-        #        self.t1d3_cols.append('dvy_dx')
-        #        self.t1d3_cols.append('dvy_dy')
-        #        self.t1d3_cols.append('dvy_dz')
-        #        self.t1d3_cols.append('dvz_dx')
-        #        self.t1d3_cols.append('dvz_dy')
-        #        self.t1d3_cols.append('dvz_dz')
-
-        ##else: # if self.input_options['data_out'] is None:
-        ##    for col in self.data_to_export:
-        ##        self.t1d3_cols.append(col)
-
+        if verbose:
+            print('working input data in t1d3: ')
+            pprint(self.work_data)
 
 
     def find_spacing_uniform_grid(self):
@@ -1190,7 +1219,7 @@ class t1d3():
 
     def omega(self):
 
-        '''
+        """
         calculate Omega as in "Omega vortex identification method"
 
         e.g. Eq. 12 in Liu et. al, Journal of Hydrodynamics, 31, 205, 2019
@@ -1200,59 +1229,30 @@ class t1d3():
         3. the Frobenius norms of these parts, squared, |S|^2 and |A|^2, respectively
         4. Omega = |A|^2 / (|A|^2 + |S|^2)
 
-        '''
+        """
 
-        #todo: call need_gradient + refactor
+        full_grad_tensor = self.work_data[['dvx_dx', 'dvx_dy', 'dvx_dz',
+                                           'dvy_dx', 'dvy_dy', 'dvy_dz',
+                                           'dvz_dx', 'dvz_dy', 'dvz_dz']].rename(columns={
+                                           'dvx_dx':'t11', 'dvx_dy':'t12', 'dvx_dz':'t13',
+                                           'dvy_dx':'t21', 'dvy_dy':'t22', 'dvy_dz':'t23',
+                                           'dvz_dx':'t31', 'dvz_dy':'t32', 'dvz_dz':'t33'})
 
-        if not self.input_options['use_grad_from_file']:
-            print('error! todo: gradient data not available on input')
-        else:
+        print('IN OMEGA: gradtensor: ', full_grad_tensor)
 
-            for i, d in enumerate(self.t1d3_points):
+        sym_part = get_sym_part_of_t2d3(full_grad_tensor)
+        antisym_part  = get_antisym_part_of_t2d3(full_grad_tensor)
 
-                full_grad_tensor = np.array([[d['dvx_dx'], d['dvx_dy'], d['dvx_dz']],
-                                             [d['dvy_dx'], d['dvy_dy'], d['dvy_dz']],
-                                             [d['dvz_dx'], d['dvz_dy'], d['dvz_dz']]],
-                                             dtype=np.float64)
+        sym_norm     = frobenius_norm_squared_t2d3(sym_part)
+        antisym_norm = frobenius_norm_squared_t2d3(antisym_part)
+        omega = antisym_norm/(antisym_norm + sym_norm)
 
-                sym_part      = self.get_sym_part_of_t2d3(full_grad_tensor)
-                antisym_part  = self.get_antisym_part_of_t2d3(full_grad_tensor)
+        self.work_data = pd.concat((self.work_data, omega.rename('omega')), axis=1)
 
-                sym_norm     = self.frobenius_norm_squared(sym_part)
-                antisym_norm = self.frobenius_norm_squared(antisym_part)
-
-                omega = antisym_norm/(antisym_norm + sym_norm)
-                self.t1d3_points[i]['omega'] = omega
-
-
-            self.t1d3_cols.append('omega')
+        print('IN OMEGA: sym_norm = ', sym_norm, type(sym_norm))
+        print('IN OMEGA: omega = ', omega, type(omega))
+        print('IN OMEGA: work_data = ', self.work_data, type(self.work_data))
 
 
-
-
-    def get_sym_part_of_t2d3(self, m):
-        '''
-        m is np.array(3,3)
-        '''
-        s = (m + m.T)/2.0
-        return s
-
-
-    def get_antisym_part_of_t2d3(self, m):
-        '''
-        m is np.array(3,3)
-        '''
-        a = (m - m.T)/2.0
-        return a
-
-
-    def frobenius_norm_squared(self, m):
-
-        n = 0
-        for i in range(3):
-            for j in range(3):
-                n += m[i,j]**2
-
-        return n
 
 
