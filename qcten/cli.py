@@ -298,7 +298,7 @@ def read_input(finp=None, verbose=False):
 if __name__ == '__main__':
     args = read_input()
     data = input_data(args)
-    parsed_args=data.parse_options()
+    data.parse_options()
     data.print_options()
 
 

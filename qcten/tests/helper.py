@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from deepdiff import DeepDiff
+import filecmp
 from .. import process
 
 class helper:
@@ -94,6 +95,17 @@ class helper:
             return True
         else:
             return False
+
+    def same_files(self, f1, f2):
+        p1 = Path(f1).resolve()
+        p2 = Path(f1).resolve()
+        if p1.exists() and p1.stat().st_size > 0 and p2.exists() and p2.stat().st_size > 0: 
+            check = filecmp.cmp(f1,f2)
+            if check:
+                print("{} and {} are the same".format(f1,f2))
+            else:
+                print("{} and {} are different".format(f1,f2))
+            return check
 
     # --- debug help ---
     def debug_dump_dataframe_to_file(self, df, fout=None):

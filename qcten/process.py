@@ -42,6 +42,7 @@ class work():
         # 2. parse --fout; write info to self.allfout
         self.prepare_output(verbose=verbose)
         # 3. calculate
+        self.prepare_grid(verbose=verbose)
         self.prepare_data(verbose=verbose)
         self.calculate(verbose=verbose)
         # 4. write to files
