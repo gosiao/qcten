@@ -17,10 +17,10 @@ class input_data:
         self.options         = {}
 
         # list of available functions for a selected type of input data:
-        # input is t2d3 (second-rank tensor in 3D)
+        # input data is a second-rank tensor in 3D (t2d3)
         self.all_fun_t2d3 = global_data.all_fun_t2d3
 
-        # input is t1d3 = (first-rank tensor (= vector) in 3D)
+        # input is a first-rank tensor (= vector) in 3D (t1d3)
         self.all_fun_t1d3 = global_data.all_fun_t1d3
 
     def parse_options(self):

@@ -23,7 +23,6 @@ class t1d3():
         self.t1d3_points   = []
 
 
-        # TUTAJ
         # column names defined by the user:
         self.colnames_inp = []
         self.colnames_out = []
@@ -124,7 +123,7 @@ class t1d3():
             sys.exit(msg)
         else:
             pass
-            # here get grid data?
+            # fixme: get grid data
 
         if self.input_options['calc_from_tensor_1order_3d'] is None:
 

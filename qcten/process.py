@@ -36,7 +36,7 @@ class work():
         self.fulldata = pd.DataFrame()
 
 
-    def run(self, verbose=True):
+    def run(self, verbose=False):
         # 1. parse --finp; write info to self.allfinp
         self.prepare_input(verbose=verbose)
         # 2. parse --fout; write info to self.allfout
@@ -325,44 +325,32 @@ class work():
 
         result_df = pd.DataFrame()
 
-        if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
+        #if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
 
-            work = t0d3(self.options, self.grid, self.fulldata)
-            work.run()
+        #    work = t0d3(self.options, self.grid, self.fulldata)
+        #    work.run()
 
-            result_df = pd.DataFrame(work.t0d3_points)
-            result_df = self.update_df(result_df, new_df_cols=work.t0d3_cols)
+        #    result_df = pd.DataFrame(work.t0d3_points)
+        #    result_df = self.update_df(result_df, new_df_cols=work.t0d3_cols)
 
-        if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
+        #if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
-            work = t2d3(self.options, self.grid, self.fulldata)
-            work.run()
+        #    work = t2d3(self.options, self.grid, self.fulldata)
+        #    work.run()
 
-            result_df = pd.DataFrame(work.t2d3_points)
-            result_df = self.update_df(result_df, new_df_cols=work.t2d3_cols)
+        #    result_df = pd.DataFrame(work.t2d3_points)
+        #    result_df = self.update_df(result_df, new_df_cols=work.t2d3_cols)
 
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
-            print('CHECKUP options: ', type(self.options))
-            for k, v in self.options.items():
-                print('     k, v: ', k, v)
-            print('CHECKUP allfout: ', type(self.allfouts))
-            for v in self.allfouts:
-                print('     v: ', v)
-            print('CHECKUP fulldata: ', type(self.fulldata))
-
             work = t1d3(self.options, self.allfouts, self.fulldata)
-            work.run(verbose=True)
+            work.run(verbose=verbose)
             result_df = work.work_data
 
         self.fulldata = pd.concat((self.fulldata, result_df), axis=1)
         self.fulldata = self.fulldata.loc[:,~self.fulldata.columns.duplicated()]
 
-#           FIXME
-            #result_df = pd.DataFrame(work.t1d3_points)
-            #result_df = self.update_df(result_df, new_df_cols=work.t1d3_cols)
-            #???result_df = work.update_df(result_df, new_df_cols=work.t1d3_cols)
 
         return result_df
 

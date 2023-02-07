@@ -1,9 +1,6 @@
-import sys
 import numpy as np
-import scipy.linalg as la
 import math
 import pandas as pd
-from pprint import pprint
 
 
 def get_sym_part_of_t2d3(m):
@@ -13,9 +10,6 @@ def get_sym_part_of_t2d3(m):
     with columns corresponding to 3x3 tensor elements
     t11, t12, t13, t21, ...
     """
-
-    #m is np.array(3,3)
-    #s = (m + m.T)/2.0
 
     df = pd.DataFrame()
     df['s11'] =  m['t11']
@@ -39,9 +33,6 @@ def get_antisym_part_of_t2d3(m):
     t11, t12, t13, t21, ...
     """
 
-    #m is np.array(3,3)
-    #a = (m - m.T)/2.0
-
     df = pd.DataFrame()
     df['a11'] =  0.0
     df['a12'] = (m['t12']-m['t21'])/2.0
@@ -63,12 +54,6 @@ def frobenius_norm_squared_t2d3(m):
     with columns corresponding to 3x3 tensor elements;
     m needs to have exactly 9 columns
     """
-
-    #m is np.array(3,3)
-    #n = 0
-    #for i in range(3):
-    #    for j in range(3):
-    #        n += m[i,j]**2
 
     squares = m.apply(lambda x : np.square(x))
     result = squares.sum(axis=1)

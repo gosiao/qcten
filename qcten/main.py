@@ -5,7 +5,6 @@ from .process import *
 def run(args_file=None, verbose=False):
 
     """
-    main engine function of the qcten
     FIXME
     """
 
