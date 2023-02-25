@@ -17,11 +17,20 @@ class input_data:
         self.options         = {}
 
         # list of available functions for a selected type of input data:
+        # --------------------------------------------------------------
         # input data is a second-rank tensor in 3D (t2d3)
         self.all_fun_t2d3 = global_data.all_fun_t2d3
 
         # input is a first-rank tensor (= vector) in 3D (t1d3)
         self.all_fun_t1d3 = global_data.all_fun_t1d3
+
+        # input is a first-rank tensor (= vector) in 3D (t1d3)
+        self.all_fun_t1d3 = global_data.all_fun_t1d3
+
+        # import other options from global_data:
+        # --------------------------------------
+        self.grid_types = global_data.grid_types
+
 
     def parse_options(self):
 
@@ -105,11 +114,11 @@ class input_data:
         optional_args.add_argument('--grid_type',
                                    dest='grid_type',
                                    action='store',
-                                   choices=['uniform', 'rectilinear'],
-                                   default='uniform',
+                                   choices=self.grid_types,
+                                   default='uniform_rectilinear',
                                    required=False,
                                    help='''
-                                        mesh type (default: uniform rectilinear)
+                                        mesh type (default: uniform_rectilinear)
                                         ''')
 
 

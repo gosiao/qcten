@@ -14,8 +14,8 @@ class ttk_basics():
         """
         self.options = options
         self.data = data 
-        self.finp_csv = finp_csv # vti file to write to
-        self.fout_vti = fout_vti # vti file to write to
+        self.finp_csv = finp_csv
+        self.fout_vti = fout_vti
         #self.inpgrid_dim = [int(x) for x in self.options['resampled_dim'].split(',')]
         self.resampled_dim = [int(x) for x in self.options['resampled_dim'].split(',') if self.options['resampled_dim']]
 
@@ -24,7 +24,7 @@ class ttk_basics():
 
         if self.finp_csv is None:
             # temporary solution...
-            fcsv = 'temp.csv'
+            fcsv = 'temp2.csv'
             self.data.to_csv(fcsv, index=False)
         else:
             fcsv = self.finp_csv
@@ -32,7 +32,7 @@ class ttk_basics():
         denscsv = CSVReader(FileName=fcsv)
         print('In write_data_to_vti: ', type(denscsv))
         pprint(denscsv)
-        if self.options['grid_type'] == 'uniform':
+        if self.options['grid_type'] == 'uniform_rectilinear':
             npoints = len(self.data.index)  
             n1dim = np.cbrt(npoints)
             if n1dim.is_integer():

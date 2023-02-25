@@ -34,6 +34,7 @@ class global_data:
                          'omega']
 
 
-    # grid type: if regular - calculate spacing
+    # grid types
+    grid_types = ['uniform_rectilinear']
 
 
