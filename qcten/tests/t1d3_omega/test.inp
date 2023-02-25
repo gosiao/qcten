@@ -49,7 +49,7 @@
 #
 # 8. decide what output you need:
 #
---fout=csv; omega_vorticity_z.csv; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
+#--fout=csv; omega_vorticity_z.csv; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
 --fout=vti; omega_vorticity_z.vti; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
 --fout_select=all
 --flog=result_log.txt
