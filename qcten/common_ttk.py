@@ -24,7 +24,7 @@ class ttk_basics():
 
         if self.finp_csv is None:
             # temporary solution...
-            fcsv = 'temp2.csv'
+            fcsv = 'temp.csv'
             self.data.to_csv(fcsv, index=False)
         else:
             fcsv = self.finp_csv

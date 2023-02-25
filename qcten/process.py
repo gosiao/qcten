@@ -19,32 +19,29 @@ class work():
         self.options  = options
         self.rundir = rundir
 
-        # io data
+        # io
         self.allfinps  = ()
         self.allfouts  = ()
         self.flog      = self.options['flog']
 
-
-        # print control (debug)
-        #self.verbose = verbose
-
-        # OLD
         # grid and data
         self.grid = {}
-        self.grid_function = {}
-        self.data = {}
         self.fulldata = pd.DataFrame()
 
 
     def run(self, verbose=False):
+
         # 1. parse --finp; write info to self.allfinp
         self.prepare_input(verbose=verbose)
+
         # 2. parse --fout; write info to self.allfout
         self.prepare_output(verbose=verbose)
+
         # 3. calculate
         self.prepare_grid(verbose=verbose)
         self.prepare_data(verbose=verbose)
         self.calculate(verbose=verbose)
+
         # 4. write to files
         self.write_and_close(verbose=verbose)
 
@@ -284,6 +281,7 @@ class work():
                 pass
 
             df.apply(pd.to_numeric, errors='coerce')
+
             dfs.append(df)
 
         # 2. combine a list of dataframes into one dataframe;

@@ -9,7 +9,6 @@ from .helper import *
 
 def run_test_generic(testdir):
 
-    #verbose=True
     verbose=False
 
     th = helper()
@@ -50,7 +49,7 @@ def run_test_generic(testdir):
     setup.print_options()
 
     calc = qcten.process.work(testdir_path, setup.options)
-    calc.run(verbose=True)
+    calc.run(verbose=verbose)
 
     #
     # 5. compare output files with reference files
