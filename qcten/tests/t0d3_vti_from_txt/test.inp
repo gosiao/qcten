@@ -1,0 +1,32 @@
+# 
+# 1. decide which files with input data should be read in:
+#
+--finp=txt; ../testdata/lih_rho_cubegrid10/rho.txt; cols=[x, y, z, rho]; sep= ; skip=0
+#
+# 2. decide which columns correspond to grid points and which - to data
+#
+#    order of grid points coordinates:
+#       x, y, z
+--grid=[x, y, z]
+#
+# 3. decide which data 'makes a tensor':
+#     * the names of tensor elements must match the names of columns on input files read in point 1 (with --finp). 
+#
+--form_tensor_0order_3d=[rho]
+#
+# 4. do some simple work in TTK
+#
+#   - signal that TTK will be used as a calculator
+#   - apply "resample to image"
+#   - do a 3-step calculation: calculate grad(rho), calculate ||grad(rho)||, and calculate RDG=f(rho);
+#     here, the order of tasks matters:
+#
+--ttk_task=calculate
+--resampled_dim=10,10,10
+#
+# 5. decide what output you need:
+#
+--fout=csv; rho.csv; cols=[x, y, z, rho]
+--fout=vti; rho.vti; cols=[x, y, z, rho]
+--fout_select=all
+--flog=result_log.txt
