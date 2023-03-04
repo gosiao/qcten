@@ -99,7 +99,10 @@ def cleanup(testdir):
 
 def list_viable_tests(test_paths=None):
 
-    testdirs = ["t1d3_omega"]
+    testdirs = [
+                "t0d3_vti_from_txt",
+                "t1d3_omega"
+                ]
     #testdirs = ["t0d3_vti_from_txt"]
     #testdirs = ["t0d3_rdg_from_rho",
     #            "t1d3_rortex_shear",
