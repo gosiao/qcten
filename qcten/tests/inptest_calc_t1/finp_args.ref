@@ -1,1 +1,0 @@
-../testdata/lih_jbtensor_cubegrid10/data.csv:{'file_name': '../testdata/lih_jbtensor_cubegrid10/data.csv', 'column_names': ['x', 'y', 'z', 'bx_jx', 'bx_jy', 'bx_jz', 'by_jx', 'by_jy', 'by_jz', 'bz_jx', 'bz_jy', 'bz_jz'], 'sep': '\\s+', 'header': 1}

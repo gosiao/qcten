@@ -58,9 +58,6 @@ def run_test_generic(testdir):
     grid = calc.prepare_grid()
     th.put_refdict(Path(th.scratch_dir, 'grid_names.tmp'), grid)
 
-    os.chdir(th.scratch_dir)
-
-
     #
     # 5. compare output files with reference files
     #
@@ -81,7 +78,7 @@ def run_test_generic(testdir):
 def list_viable_tests(test_paths=None):
     testdirs = [
         "inptest_calc_t0",
-        #"inptest_calc_t1",
+        "inptest_calc_t1",
         #"inptest_calc_t2"
         ]
     return testdirs
