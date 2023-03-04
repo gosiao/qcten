@@ -1,0 +1,10 @@
+--inptest=True
+--finp=csv; ../testdata/lih_jbvector_cubegrid10/jbx.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz]; sep= ; skip=1
+--finp=csv; ../testdata/lih_jbvector_cubegrid10/jby.csv; cols=[x, y, z, by_jx, by_jy, by_jz]; sep= ; skip=1
+--finp=csv; ../testdata/lih_jbvector_cubegrid10/jbz.csv; cols=[x, y, z, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
+--grid=[x, y, z]
+--form_tensor_2order_3d=[bx_jx, by_jx, bz_jx, bx_jy, by_jy, bz_jy, bx_jz, by_jz, bz_jz]
+--calc_from_tensor_2order_3d=deviator_anisotropy
+--fout=csv; jbz.csv; cols=[x, y, z, bz_jz, deviator_anisotropy]
+--fout_select=selected
+--flog=result.log
