@@ -2,14 +2,13 @@ import os
 import sys
 import pytest
 from pathlib import Path
-from deepdiff import DeepDiff
 
 
 import qcten
 from .helper import *
 
 
-def run_test_generic(testdir):
+def run_test_steps(testdir):
 
     verbose=False
 
@@ -74,6 +73,63 @@ def run_test_generic(testdir):
     assert (all(x==True for x in same))
 
 
+def run_test_full(testdir):
+
+    verbose=False
+
+    th = helper()
+
+    #
+    # 1. set paths:
+    #    th.test_space = path to the root of test directory
+    #    th.testdata_dir = path to the directory of test data
+    #
+    if not th.test_space_is_set:
+        th.set_test_space(verbose=verbose)
+
+
+    testdir_path = Path(testdir).absolute()
+
+    #
+    # 2. set paths to the scratch space for this test
+    #
+    if not th.scratch_space_is_set:
+        th.set_scratch_space(testdir, verbose=verbose)
+
+    os.chdir(th.scratch_dir)
+
+    #
+    # 3. find input file
+    #
+    for tf in os.listdir(testdir_path):
+        if tf.endswith('.inp'):
+            test_file = Path(testdir_path, tf)
+
+    os.chdir(th.test_space)
+
+    #
+    # 4. run test - test in steps
+    #
+    result=qcten.main.run(args_file=test_file, verbose=verbose)
+    th.put_refdataframe(Path(th.scratch_dir, 'fulldata.tmp'), result)
+
+    #
+    # 5. compare output files with reference files
+    #
+    same = []
+    files_to_compare = ['fulldata']
+    for c in files_to_compare:
+        f_test = Path(th.scratch_dir, c+'.tmp')
+        f_ref  = Path(testdir_path, 'reference', c+'.ref')
+        if f_ref.exists() and f_test.exists():
+            same.append(th.same_files(f_test, f_ref))
+        else:
+            sys.exit('missing file!')
+
+    assert (all(x==True for x in same))
+
+
+
 
 def list_viable_tests(test_paths=None):
     testdirs = [
@@ -86,7 +142,8 @@ def list_viable_tests(test_paths=None):
 
 def test_viable_tests():
     for t in list_viable_tests():
-        run_test_generic(t)
+        run_test_steps(t)
+        #run_test_full(t)
 
 
 

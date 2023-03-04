@@ -53,6 +53,10 @@ def run_test_generic(testdir):
     calc = qcten.process.work(testdir_path, setup.options)
     calc.run(verbose=verbose)
 
+    #temp
+    #result=qcten.main.run(args_file=test_file, verbose=verbose)
+    #th.put_refdataframe(Path(th.scratch_dir, 'fulldata.tmp'), result)
+
 
     #
     # 5. compare output files with reference files
