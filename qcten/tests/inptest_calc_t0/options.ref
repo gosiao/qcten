@@ -1,8 +1,0 @@
-finp : ['txt; ../testdata/lih_rho_cubegrid10/rho.txt; [x, y, z, rho]']
-fout : ['csv; rho.csv; [x, y, z, rho]']
-fout_select : all
-flog : result_log.txt
-grid : [x, y, z]
-grid_function : [rho]
-inptest : True
-rortex_fill_empty : NULL

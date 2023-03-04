@@ -3,15 +3,13 @@
 # 
 # 1. input data:
 #
---finp=txt; ../testdata/lih_rho_cubegrid10/rho.txt; [x, y, z, rho]
+--finp=txt; ../testdata/lih_rho_cubegrid10/rho.txt; cols=[x, y, z, rho]; sep= ; skip=0
 #
 # 2. decide which columns correspond to grid points and which - to data
 #
 #    order of grid points coordinates:
 #       x, y, z
 --grid=[x, y, z]
-#    here, process scalar field:
---grid_function=[rho]
 #
 # 3. decide which data 'makes a tensor':
 #     * the names of tensor elements must match the names of columns on input files read in point 1 (with --finp). 
@@ -20,6 +18,6 @@
 #
 # 4. decide what output you need:
 #
---fout=csv; rho.csv; [x, y, z, rho]
+--fout=csv; rho.csv; cols=[x, y, z, rho]
 --fout_select=all
 --flog=result_log.txt

@@ -47,6 +47,23 @@ class helper:
     
  
 
+    def put_reflist(self, fout, ref_list):
+        with open(fout, 'w') as f:
+            for line in ref_list:
+                f.write(line+'\n')
+    
+    def put_refdict(self, fout, ref_dict):
+        with open(fout, 'w') as f:
+            for k, v in ref_dict.items():
+                f.write('{} : {}\n'.format(k, str(v)))
+
+    def put_refdataframe(self, fout, df):
+        if not df.empty:
+            df = df.astype(np.float64)
+            #df.dropna(axis=0,how='any',inplace=True)
+            df.to_csv(fout, index=False)
+
+
     def get_ref_aslist(self, finp):
         with open(finp, 'r') as f:
             result = f.read().splitlines()
@@ -77,13 +94,12 @@ class helper:
             #    result[k]=v
         return result
 
-    def get_ref_aspddataframe(self, finp):
-        #result = pd.read_fwf(finp, colspecs='infer', header=None)
-        #result = pd.read_csv(finp, header=0, dtype = np.float64)
 
+    def get_ref_aspddataframe(self, finp):
         result = pd.read_csv(finp, header=0, dtype = np.float64)
         result.apply(pd.to_numeric, errors='coerce')
         return result
+
 
     def diff_dicts(self, d1, d2):
         return DeepDiff(d1, d2, ignore_string_case=True)
@@ -106,19 +122,6 @@ class helper:
             else:
                 print("{} and {} are different".format(f1,f2))
             return check
-
-    # --- debug help ---
-    def debug_dump_dataframe_to_file(self, df, fout=None):
-        if fout is None:
-            if self.scratch_dir is None:
-                self.set_test_space()
-            fout = Path(os.path.join(self.scratch_dir, 'temp.csv'))
-            fout.parent.mkdir(parents=True, exist_ok=True)
-        if not df.empty:
-            df = df.astype(np.float64)
-            df.to_csv(fout, index=False)
-            #df.dropna(axis=0,how='any',inplace=True)
-            #df.to_csv(fout, index=False)
 
 
 
