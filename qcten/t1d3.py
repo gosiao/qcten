@@ -13,7 +13,7 @@ class t1d3():
     def __init__(self, cli_options, output_options, input_data):
 
         # general setup
-        self.input_options = cli_options #you should not need this here!
+        self.input_options = cli_options # fixme move this out
         self.calc_options  = output_options
         self.input_data    = input_data
         self.flog          = self.input_options['flog']
@@ -32,19 +32,11 @@ class t1d3():
         self.all_fun_t1d3 = global_data.all_fun_t1d3
         self.fun_t1d3_req_grad = global_data.fun_t1d3_req_grad
 
-
-
-
-
-
-        # NEW:
-        # data required to do the work
+        # working data
         self.work_data = pd.DataFrame()
 
         # data columns that will be written to output(s)
         self.data_cols_to_export = {}
-
-        # data columns that will be written to output(s)
 
         # variables to be saved to the output:
         self.data_to_export= {}
@@ -1078,56 +1070,51 @@ class t1d3():
 
 
 
-    def norm(self):
-        '''
+    def norm(self, verbose=False):
+        """
         calculate the norm of a 3d vector
 
         For vector v, whose elements are v_i:
 
-         norm = sqrt(sum_{i} (v_{i})**2)
+        norm = sqrt(sum_{i} (v_{i})**2)
 
-        '''
+        """
 
-        # calculate
+        data = self.work_data[['vx', 'vy', 'vz']].rename(columns={
+                                           'vx':'t1', 'vy':'t2', 'vz':'t3'})
 
-        for i, d in enumerate(self.t1d3_points):
+        norm = norm_of_t1d3(data)
 
-            norm = (self.t1d3_points[i]['vx'])**2 \
-                 + (self.t1d3_points[i]['vy'])**2 \
-                 + (self.t1d3_points[i]['vz'])**2
+        data = pd.concat([self.work_data, norm], axis=1)
+        self.work_data = data
 
-            self.t1d3_points[i]['v_norm'] = np.sqrt(norm)
-
-        # save on output
-
-        self.t1d3_cols.append('v_norm')
-
-        if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
-            self.t1d3_cols.append('vx')
-            self.t1d3_cols.append('vy')
-            self.t1d3_cols.append('vz')
+        if verbose:
+            print('Output from norm:')
+            pprint(self.work_data)
 
 
 
-    def mean(self):
-        '''
+    def mean(self, verbose=False):
+        """
         calculate the mean of vector elements
 
         For vector v, whose elements are v_i:
 
-         mean = (sum_{i} v_{i})/3
+        mean = 1/3 (sum_{i} v_{i})
 
-        '''
+        """
 
-        for i, d in enumerate(self.t1d3_points):
+        data = self.work_data[['vx', 'vy', 'vz']].rename(columns={
+                                           'vx':'t1', 'vy':'t2', 'vz':'t3'})
 
-            mean = (self.t1d3_points[i]['vx']
-                 +  self.t1d3_points[i]['vy']
-                 +  self.t1d3_points[i]['vz'])/3.0
+        mean = get_mean_of_t1d3(data)
 
-            self.t1d3_points[i]['mean'] = mean
+        data = pd.concat([self.work_data, mean], axis=1)
+        self.work_data = data
 
-        self.t1d3_cols.append('mean')
+        if verbose:
+            print('Output from mean:')
+            pprint(self.work_data)
 
 
 

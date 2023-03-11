@@ -23,7 +23,7 @@ class ttk_basics():
     def write_data_to_vti(self):
 
         if self.finp_csv is None:
-            # temporary solution...
+            # fixme temporary -for testing
             fcsv = 'temp.csv'
             self.data.to_csv(fcsv, index=False)
         else:

@@ -105,7 +105,8 @@ def list_viable_tests(test_paths=None):
 
     testdirs = [
                 "t0d3_vti_from_txt",
-                "t1d3_omega"
+                "t1d3_omega",
+                "t1d3_norm_mean"
                 ]
     #testdirs = ["t0d3_vti_from_txt"]
     #testdirs = ["t0d3_rdg_from_rho",

@@ -61,3 +61,31 @@ def frobenius_norm_squared_t2d3(m):
     return result
 
 
+def get_mean_of_t1d3(m):
+
+    """
+    entering m is pandas dataframe
+    with columns corresponding to vector elements
+    t1, t2, t3, ...
+    """
+
+    df = pd.DataFrame()
+    df['mean'] =  (m['t1']+m['t2']+m['t3'])/3.0
+
+    return df
+
+
+def norm_of_t1d3(m):
+
+    """
+    entering m is pandas dataframe
+    with columns corresponding to vector elements
+    t1, t2, t3, ...
+    """
+
+    df = pd.DataFrame()
+    df['norm'] =  np.sqrt(m['t1']**2 + m['t2']**2 + m['t3']**2)
+
+    return df
+
+
