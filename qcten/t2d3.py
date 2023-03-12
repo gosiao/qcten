@@ -5,6 +5,15 @@ import math
 
 class t2d3():
 
+    """
+    This class holds settings and operations
+    on tensors of rank 2 in 3D space.
+
+    @author:       Gosia Olejniczak
+    @contact:      gosia.olejniczak@gmail.com
+    """
+
+
     def __init__(self, input_options, grid, input_data):
 
         # general setup
@@ -63,9 +72,8 @@ class t2d3():
                 if (arg == 'rortex_tensor_combined'):
                     self.rortex_tensor_combined()
 
-                #if (arg == 'omega_rortex_tensor_combined'):
-                #    self.omega_rortex_tensor_combined()
-
+                if (arg == 'omega_rortex_tensor_combined'):
+                    self.omega_rortex_tensor_combined()
 
 
         if 'calc_from_tensor_2order_3d_fragments' in self.input_options and self.input_options['calc_from_tensor_2order_3d_fragments'] is not None:
@@ -583,10 +591,8 @@ class t2d3():
         return result
 
 
-    #def omega_rortex_tensor_combined(self):
-    #    '''
-
-    #    '''
+    def omega_rortex_tensor_combined(self):
+        print('omega_rortex_tensor_combined: inprep')
 
     #    for i, d in enumerate(self.t2d3_points):
 

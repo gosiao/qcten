@@ -5,6 +5,15 @@ import math
 
 class t0d3():
 
+    """
+    This class holds settings and operations
+    on tensors of rank 0 (scalars) in 3D space.
+
+    @author:       Gosia Olejniczak
+    @contact:      gosia.olejniczak@gmail.com
+    """
+
+
     def __init__(self, input_options, grid, input_data):
 
         # general setup
@@ -36,42 +45,8 @@ class t0d3():
 
             for arg in self.input_options['calc_from_tensor_0order_3d']:
 
-                if (arg == 'tensor_inv1'):
-                    self.tensor_inv1()
-
-                if (arg == 'tensor_inv2'):
-                    self.tensor_inv2()
-
-                if (arg == 'tensor_inv3'):
-                    self.tensor_inv3()
-
-                if (arg == 'trace'):
-                    self.trace()
-
-                if (arg == 'isotropic'):
-                    self.isotropic()
-
-                if (arg == 'deviator'):
-                    self.deviator()
-
-                if (arg == 'antisymmetric'):
-                    self.antisymmetric()
-
-                if (arg == 'deviator_anisotropy'):
-                    self.deviator_anisotropy()
-
-                if (arg == 'rortex_tensor_combined'):
-                    self.rortex_tensor_combined()
-
-                #if (arg == 'omega_rortex_tensor_combined'):
-                #    self.omega_rortex_tensor_combined()
-
-
-
-        if 'calc_from_tensor_0order_3d_fragments' in self.input_options and self.input_options['calc_from_tensor_0order_3d_fragments'] is not None:
-            args = self.input_options['calc_from_tensor_0order_3d_fragments'].split(':')
-            if (args[0]  == 'gradient'):
-                self.gradient(args[1])
+                if (arg == 'gradient'):
+                    self.gradient()
 
         # prepare output
         self.prepare_output()
@@ -162,6 +137,7 @@ class t0d3():
         '''
         calculate gradient of f
         f is an 'original' element name
+        FIXME testthis
         '''
 
         tensor_elements         = dict(zip(self.t0d3.values(), self.t0d3.keys()))

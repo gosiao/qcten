@@ -5,7 +5,7 @@ class global_data:
     list of available functions for a selected type of input data
     """
 
-    # input is t2d3 (second-rank tensor in 3D)
+    # input is t2d3 (second-rank tensor field in 3D)
     all_fun_t2d3 = ['trace',
                     'isotropic',
                     'deviator',
@@ -17,7 +17,7 @@ class global_data:
                     'tensor_inv2',
                     'tensor_inv3']
 
-    # input is t1d3 = (first-rank tensor (= vector) in 3D)
+    # input is t1d3 = (first-rank tensor field (= vector field) in 3D)
     all_fun_t1d3 = ['rortex',
                     'omega_rortex',
                     'norm',
@@ -26,6 +26,9 @@ class global_data:
                     'omega',
                     'curlv_cdot_axis',
                     'rortex_cdot_axis']
+
+    # input is t0d3 = (zero-rank tensor field (= scalar field) in 3D)
+    all_fun_t0d3 = ['gradient']
 
     # functions that require the gradient of a vector
     fun_t1d3_req_grad = ['rortex',

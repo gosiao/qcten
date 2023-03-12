@@ -10,10 +10,18 @@ from pprint import pprint
 
 class t1d3():
 
+    """
+    This class holds settings and operations
+    on tensors of rank 1 (vectors) in 3D space.
+
+    @author:       Gosia Olejniczak
+    @contact:      gosia.olejniczak@gmail.com
+    """
+
     def __init__(self, cli_options, output_options, input_data):
 
         # general setup
-        self.input_options = cli_options # fixme move this out
+        self.input_options = cli_options # FIXME - move this out
         self.calc_options  = output_options
         self.input_data    = input_data
         self.flog          = self.input_options['flog']
@@ -99,6 +107,12 @@ class t1d3():
 
                 if (arg == 'mean'):
                     self.mean()
+
+                if (arg == 'curlv_cdot_axis'):
+                    self.curlv_cdot_axis()
+
+                if (arg == 'rortex_cdot_axis'):
+                    self.rortex_cdot_axis()
 
         if self.input_options['projection_axis'] is not None:
             self.project_v_on_projection_axis()
@@ -964,6 +978,7 @@ class t1d3():
          yx  yy  yz  ->   dvy/dx  dvy/dy  dvy/dz
          zx  zy  zz       dvz/dx  dvz/dy  dvz/dz
         
+        gosia TODO - this needs testing
         '''
 
         # calculate vorticity
@@ -985,7 +1000,7 @@ class t1d3():
             self.rortex_in_point(i, d)
 
             # 4. calculate shear:
-            # TODO: fix this!
+            # FIXME
             #self.shear_in_point(i, d, full_grad_tensor)
 
 
@@ -1133,7 +1148,7 @@ class t1d3():
 
         '''
 
-        #todo: call need_gradient + refactor
+        # TODO call need_gradient + refactor
 
         if not self.input_options['use_grad_from_file']:
             print('error! todo: gradient data not available on input')
@@ -1190,7 +1205,7 @@ class t1d3():
         """
         calculate omega ("Omega vortex identification method")
 
-        based on Eq. 12 in Liu et. al, Journal of Hydrodynamics, 31, 205, 2019 (DOI: )
+        based on Eq. 12 in Liu et. al, Journal of Hydrodynamics, 31, 205, 2019 (DOI: https://link.springer.com/article/10.1007/s42241-019-0022-4)
 
         calculations need the gradient of a vector field: nabla(v)
 
@@ -1222,5 +1237,11 @@ class t1d3():
             pprint(self.work_data)
 
 
+    def curlv_cdot_axis(self, verbose=False):
+        print('curl_cdot_axis: fixme')
+
+
+    def rortex_cdot_axis(self, verbose=False):
+        print('rortex_cdot_axis: fixme')
 
 

@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from deepdiff import DeepDiff
 import filecmp
-from .. import process
+import qcten
 
 class helper:
 

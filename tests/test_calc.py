@@ -35,9 +35,11 @@ def run_test_generic(testdir):
     #
     # 3. find input file
     #
+    print('FILES!!!! ', testdir_path)
     for tf in os.listdir(testdir_path):
         if tf.endswith('.inp'):
             test_file = Path(testdir_path, tf)
+    print('FILES!!!! ', test_file)
 
     os.chdir(th.test_space)
 
@@ -119,6 +121,7 @@ def list_viable_tests(test_paths=None):
 
 def test_viable_tests():
     for t in list_viable_tests():
+        print('RUNNING NOW!!! ', t)
         run_test_generic(t)
         #cleanup(t)
 

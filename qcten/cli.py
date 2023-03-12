@@ -24,8 +24,8 @@ class input_data:
         # input is a first-rank tensor (= vector) in 3D (t1d3)
         self.all_fun_t1d3 = global_data.all_fun_t1d3
 
-        # input is a first-rank tensor (= vector) in 3D (t1d3)
-        self.all_fun_t1d3 = global_data.all_fun_t1d3
+        # input is a zero-rank tensor (= scalar) in 3D (t1d3)
+        self.all_fun_t0d3 = global_data.all_fun_t0d3
 
         # import other options from global_data:
         # --------------------------------------
