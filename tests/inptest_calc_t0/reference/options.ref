@@ -1,0 +1,23 @@
+finp : ['txt; ../testdata/lih_rho_cubegrid10/rho.txt; cols=[x, y, z, rho]; sep= ; skip=0']
+fout : ['csv; rho.csv; cols=[x, y, z, rho]']
+fout_select : all
+flog : result_log.txt
+grid : [x, y, z]
+grid_function : None
+grid_type : uniform_rectilinear
+inptest : True
+form_tensor_0order_3d : [rho]
+form_tensor_1order_3d : None
+form_tensor_2order_3d : None
+calc_from_tensor_2order_3d : None
+calc_from_tensor_2order_3d_fragments : None
+form_grad_tensor_1order_3d : None
+use_grad_from_file : None
+calc_from_tensor_1order_3d : None
+calc_from_tensor_1order_3d_calc_grad : None
+projection_axis : None
+fill_empty : NULL
+ttk_task : None
+resampled_dim : None
+calc_fun : None
+calc_gradient : None

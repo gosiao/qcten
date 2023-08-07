@@ -1,0 +1,55 @@
+# 
+# 1. decide which files with input data should be read in:
+#
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/gradjbz.csv; cols=[x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]; sep= ; skip=0
+#--finp=txt; ../testdata/lih_jbvector_cubegrid10/jbz.txt; [x, y, z, bz_jx, bz_jy, bz_jz]
+#--finp=txt; ../testdata/lih_jbvector_cubegrid10/gradjbz.txt; [x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
+#
+# 2. decide which columns correspond to grid points and which - to data
+#
+#    order of grid points coordinates:
+#       x, y, z
+--grid=[x, y, z]
+#    select the elements of tensor fields
+#--grid_function=[bz_jx, bz_jy, bz_jz, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
+#
+# 3. decide which data 'makes a tensor':
+#     * the names of tensor elements must match the names of columns on input files read in point 1 (with --finp). 
+#     * the order of vector elements matters! see below:
+#
+#                         order of vector elements:
+#              vec{v} =  [  vx,    vy,   vz]
+--form_tensor_1order_3d=[bz_jx, bz_jy, bz_jz]
+#
+# 4. if the computation needs a gradient of a tensor field, decide whether you calculate it here or read it from file;
+#    in the latter case, assign data columns to the elements of the gradient of the tensor
+#     * the names of tensor elements must match the names of columns on input files read in point 1 (with --finp). 
+#     * the order of vector elements matters! see below:
+#
+--use_grad_from_file=True
+#       grad(\vec{v}) =       [d(vx)/dx,    d(vx)/dy,    d(vx)/dz,    d(vy)/dx,    d(vy)/dy,    d(vy)/dz,    d(vz)/dx,    d(vz)/dy,    d(vz)/dz]
+--form_grad_tensor_1order_3d=[bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
+#
+# 5. decide what you want to calculate for this tensor:
+#
+--calc_from_tensor_1order_3d=omega
+--calc_from_tensor_1order_3d=vorticity
+#
+# 6. --projection_axis allows to choose the direction on which all vectors that appear in the computations are projected;
+#    * this gives an additional scalar data "projected_axis-cdot-{vector}', where {vector} is a name of a vector field
+#    * here, we select z-direction
+#
+--projection_axis=[0,0,1]
+#
+# 7. since we plan to write to vti by calling ttk,
+#    add a few simple options to test
+#
+--resampled_dim=10,10,10
+#
+# 8. decide what output you need:
+#
+#--fout=csv; omega_vorticity_z.csv; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
+--fout=vti; omega_vorticity_z.vti; cols=[x, y, z, omega:omega_bz, curlv_cdot_axis:bz_wz]
+--fout_select=all
+--flog=result_log.txt

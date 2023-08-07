@@ -1,0 +1,23 @@
+# 0. this is inptest; do not work, only verify input data
+--inptest=True
+# 
+# 1. input data:
+#
+--finp=txt; ../testdata/lih_rho_cubegrid10/rho.txt; cols=[x, y, z, rho]; sep= ; skip=0
+#
+# 2. decide which columns correspond to grid points and which - to data
+#
+#    order of grid points coordinates:
+#       x, y, z
+--grid=[x, y, z]
+#
+# 3. decide which data 'makes a tensor':
+#     * the names of tensor elements must match the names of columns on input files read in point 1 (with --finp). 
+#
+--form_tensor_0order_3d=[rho]
+#
+# 4. decide what output you need:
+#
+--fout=csv; rho.csv; cols=[x, y, z, rho]
+--fout_select=all
+--flog=result_log.txt

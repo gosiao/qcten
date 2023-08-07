@@ -1,0 +1,35 @@
+# 
+# 1. decide which files with input data should be read in:
+#
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
+#
+# 2. columns corresponding to grid points
+#
+#    order of grid points coordinates:
+#       x, y, z
+--grid=[x, y, z]
+#
+# 3. columns corresponding to a vectr:
+#     * the names of vector elements must match the names of columns on input files read in point 1
+#     * the order of vector elements matters; here we feature \vec{j}^{B_z} vector
+#
+#                         order of vector elements:
+#              vec{v} =  [  vx,    vy,   vz]
+--form_tensor_1order_3d=[bz_jx, bz_jy, bz_jz]
+#
+# 4. vector function to calculate; here: norm
+#
+--calc_from_tensor_1order_3d=mean
+--calc_from_tensor_1order_3d=norm
+#
+# 5. since we plan to write to vti by calling ttk,
+#    add a few simple options to test
+#
+--resampled_dim=10,10,10
+#
+# 6. decide what output you need:
+#
+--fout=csv; mean_norm.csv; cols=[x, y, z, mean:mean_j_bz, norm:norm_j_bz]
+--fout=vti; mean_norm.vti; cols=[x, y, z, mean:mean_j_bz, norm:norm_j_bz]
+--fout_select=all
+--flog=result_log.txt

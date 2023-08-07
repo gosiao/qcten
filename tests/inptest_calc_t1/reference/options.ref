@@ -1,0 +1,23 @@
+finp : ['csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1']
+fout : ['csv; jbz.csv; cols=[x, y, z, mean]']
+fout_select : selected
+flog : result.log
+grid : [x, y, z]
+grid_function : None
+grid_type : uniform_rectilinear
+inptest : True
+form_tensor_0order_3d : None
+form_tensor_1order_3d : [bz_jx, bz_jy, bz_jz]
+form_tensor_2order_3d : None
+calc_from_tensor_2order_3d : None
+calc_from_tensor_2order_3d_fragments : None
+form_grad_tensor_1order_3d : None
+use_grad_from_file : None
+calc_from_tensor_1order_3d : ['mean']
+calc_from_tensor_1order_3d_calc_grad : None
+projection_axis : None
+fill_empty : NULL
+ttk_task : None
+resampled_dim : None
+calc_fun : None
+calc_gradient : None
