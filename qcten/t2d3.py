@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import scipy.linalg as la
 import math
@@ -34,6 +35,9 @@ class t2d3():
 
 
     def run(self):
+
+        print("ERROR: operations on t2d3 not available in this version")
+        sys.exit()
 
         # prepare
         self.assign_tensor_2order_3d()

@@ -323,18 +323,18 @@ class work():
 
         result_df = pd.DataFrame()
 
-        #if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
+        if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
 
-        #    work = t0d3(self.options, self.grid, self.fulldata)
-        #    work.run()
+            work = t0d3(self.options, self.grid, self.fulldata)
+            work.run()
 
         #    result_df = pd.DataFrame(work.t0d3_points)
         #    result_df = self.update_df(result_df, new_df_cols=work.t0d3_cols)
 
-        #if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
+        if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
-        #    work = t2d3(self.options, self.grid, self.fulldata)
-        #    work.run()
+            work = t2d3(self.options, self.grid, self.fulldata)
+            work.run()
 
         #    result_df = pd.DataFrame(work.t2d3_points)
         #    result_df = self.update_df(result_df, new_df_cols=work.t2d3_cols)
