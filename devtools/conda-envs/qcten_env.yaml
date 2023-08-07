@@ -1,0 +1,13 @@
+name: qcten_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10.12
+  - pytest=7.2.1
+  - pytest-cov=4.1.0
+  - codecov=2.1.13
+  - numpy=1.24.2
+  - poetry=1.5.1
+  - scipy=1.11.1
+  - paraview=5.11.1
