@@ -256,11 +256,17 @@ class work():
         for v in self.allfinps:
 
             if v.file_type.lower() == 'txt':
-                #df = pd.read_fwf(v['file_path'], colspecs='infer', header=v['file_skiprow'], names=v['file_column_names'])
-                df = pd.read_fwf(v.file_path, 
-                                 colspecs='infer', 
-                                 skiprows = v.file_skiprow, 
-                                 names=v.file_column_names)
+                if v.file_skiprow is None:
+                    df = pd.read_csv(v.file_path,
+                                     header = None,
+                                     names  = v.file_column_names,
+                                     delim_whitespace = True,
+                                     dtype = np.float64)
+                else:
+                    df = pd.read_fwf(v.file_path, 
+                                     colspecs='infer', 
+                                     skiprows = v.file_skiprow, 
+                                     names=v.file_column_names)
 
             elif v.file_type.lower() == 'csv':
                 if v.file_column_separator is None or v.file_column_separator.isspace():
@@ -279,6 +285,7 @@ class work():
                                      dtype = np.float64)
 
             elif v.file_type.lower() == 'hdf5':
+                print('hdf5 inputs not supported in this version')
                 pass
 
             df.apply(pd.to_numeric, errors='coerce')
