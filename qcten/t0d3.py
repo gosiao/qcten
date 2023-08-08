@@ -36,10 +36,6 @@ class t0d3():
 
     def run(self):
 
-        print("ERROR: operations on t0d3 not available in this version")
-        sys.exit()
-
-
         # prepare
         self.assign_tensor_0order_3d()
         self.assign_output_for_tensor_0order_3d()

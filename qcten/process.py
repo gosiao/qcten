@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 from .t2d3 import *
 from .t1d3 import *
+#FIXMEfrom .t0d3 import *
 from .common_ttk import *
 
 class work():
@@ -323,11 +324,11 @@ class work():
 
         result_df = pd.DataFrame()
 
-        if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
-
-            work = t0d3(self.options, self.grid, self.fulldata)
-            work.run()
-
+        #if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
+        #
+        #    work = t0d3(self.options, self.grid, self.fulldata)
+        #    work.run()
+        #
         #    result_df = pd.DataFrame(work.t0d3_points)
         #    result_df = self.update_df(result_df, new_df_cols=work.t0d3_cols)
 
