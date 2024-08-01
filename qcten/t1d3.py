@@ -18,6 +18,7 @@ class t1d3():
     @contact:      gosia.olejniczak@gmail.com
     """
 
+
     def __init__(self, cli_options, output_options, input_data):
 
         # general setup
@@ -29,7 +30,6 @@ class t1d3():
         # global data structures
         self.t1d3          = {}
         self.t1d3_points   = []
-
 
         # column names defined by the user:
         self.colnames_inp = []
@@ -432,6 +432,8 @@ class t1d3():
         we assume a regular grid
         '''
 
+        print('TU: find_spacing_uniform_grid :', self.t1d3_points)
+
         x0 = self.t1d3_points[0]['x']
         y0 = self.t1d3_points[0]['y']
         z0 = self.t1d3_points[0]['z']
@@ -455,6 +457,7 @@ class t1d3():
         self.dy = dy
         self.dz = dz
 
+        print('find_spacing_uniform_grid :', x0, y0, z0, self.dx, self.dy, self.dz)
         with open(self.flog, 'a') as f:
             f.write('Grid spacing: dx, dy, dz = {}, {}, {}\n'.format(dx, dy, dz))
 

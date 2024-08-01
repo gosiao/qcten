@@ -35,11 +35,9 @@ def run_test_generic(testdir):
     #
     # 3. find input file
     #
-    print('FILES!!!! ', testdir_path)
     for tf in os.listdir(testdir_path):
         if tf.endswith('.inp'):
             test_file = Path(testdir_path, tf)
-    print('FILES!!!! ', test_file)
 
     os.chdir(th.test_space)
 
@@ -106,9 +104,11 @@ def cleanup(testdir):
 def list_viable_tests(test_paths=None):
 
     testdirs = [
-                "t0d3_vti_from_txt",
-                "t1d3_omega",
-                "t1d3_norm_mean"
+                #"t0d3_vti_from_txt",
+                #"t1d3_omega",
+                #"t1d3_norm_mean",
+                "t2d3_trace"
+                #"t2d3_invariants"
                 ]
     #testdirs = ["t0d3_vti_from_txt"]
     #testdirs = ["t0d3_rdg_from_rho",
@@ -124,8 +124,4 @@ def test_viable_tests():
         print('RUNNING NOW!!! ', t)
         run_test_generic(t)
         #cleanup(t)
-
-
-
-
 

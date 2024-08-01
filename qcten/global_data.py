@@ -2,8 +2,24 @@
 class global_data:
 
     """
-    list of available functions for a selected type of input data
+    Functionalities covered:
+    * A list of available functions for a selected type of input data
+    * A list of functions with special requirements
+    * A list of types of grids
     """
+
+    # input is t0d3 = (zero-rank tensor field (= scalar field) in 3D)
+    all_fun_t0d3 = ['gradient']
+
+    # input is t1d3 = (first-rank tensor field (= vector field) in 3D)
+    all_fun_t1d3 = ['rortex',
+                    'omega_rortex',
+                    'norm',
+                    'mean',
+                    'vorticity',
+                    'omega',
+                    'curlv_cdot_axis',
+                    'rortex_cdot_axis']
 
     # input is t2d3 (second-rank tensor field in 3D)
     all_fun_t2d3 = ['trace',
@@ -17,25 +33,13 @@ class global_data:
                     'tensor_inv2',
                     'tensor_inv3']
 
-    # input is t1d3 = (first-rank tensor field (= vector field) in 3D)
-    all_fun_t1d3 = ['rortex',
-                    'omega_rortex',
-                    'norm',
-                    'mean',
-                    'vorticity',
-                    'omega',
-                    'curlv_cdot_axis',
-                    'rortex_cdot_axis']
-
-    # input is t0d3 = (zero-rank tensor field (= scalar field) in 3D)
-    all_fun_t0d3 = ['gradient']
-
     # functions that require the gradient of a vector
     fun_t1d3_req_grad = ['rortex',
                          'omega_rortex',
                          'rortex_cdot_axis',
                          'omega']
 
+    fun_t2d3_req_grad = []
 
     # grid types
     grid_types = ['uniform_rectilinear']

@@ -3,8 +3,10 @@
 ## About
 
 `qcten` is a library that calculates and manipulates tensor fields in real space.
+
 Currently, it covers tensor fields of ranks up to 2. 
-Primarily developed for quantum chemistry data computed in the Quantum Chemistry Topology (QCT) applications.
+Primarily developed for quantum chemistry data computed in the Quantum Chemistry Topology (QCT) applications,
+and for facilitating the workflow involving Quantum Chemistry calculations (in DIRAC and pyadf) and TDA (in TTK).
 
 
 ## Installation
@@ -35,5 +37,5 @@ The easiest way to use `qcten` on your data, is to do the following:
 
 ### Copyright
 
-Copyright (c) 2023, Gosia Olejniczak
+Copyright (c) 2024, Gosia Olejniczak
 

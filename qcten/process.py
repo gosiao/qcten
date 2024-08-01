@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 from .t2d3 import *
 from .t1d3 import *
-#FIXMEfrom .t0d3 import *
+from .t0d3 import *
 from .common_ttk import *
 
 class work():
@@ -42,6 +42,7 @@ class work():
         self.prepare_grid(verbose=verbose)
         self.prepare_data(verbose=verbose)
         self.calculate(verbose=verbose)
+        print(self.fulldata)
 
         # 4. write to files
         self.write_and_close(verbose=verbose)
@@ -105,7 +106,6 @@ class work():
         optional
         3. column names (only if the input is a TXT file)
         4. number of header lines (only if the input is a TXT file)
-
         """
 
         if self.allfinps is not None:
@@ -130,9 +130,8 @@ class work():
 
             temp.append(f_info)
 
-            #self.print_options_to_log()
-
         self.allfinps = tuple(temp)
+        #self.print_options_to_log()
 
         if verbose:
             print('files with input data:')
@@ -331,21 +330,17 @@ class work():
 
         result_df = pd.DataFrame()
 
-        #if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
-        #
-        #    work = t0d3(self.options, self.grid, self.fulldata)
-        #    work.run()
-        #
-        #    result_df = pd.DataFrame(work.t0d3_points)
-        #    result_df = self.update_df(result_df, new_df_cols=work.t0d3_cols)
+        if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
+        
+            work = t0d3(self.options, self.allfouts, self.fulldata)
+            work.run(verbose=verbose)
+            result_df = work.work_data
 
         if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
-            work = t2d3(self.options, self.grid, self.fulldata)
-            work.run()
-
-        #    result_df = pd.DataFrame(work.t2d3_points)
-        #    result_df = self.update_df(result_df, new_df_cols=work.t2d3_cols)
+            work = t2d3(self.options, self.allfouts, self.fulldata)
+            work.run(verbose=verbose)
+            result_df = work.work_data
 
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:

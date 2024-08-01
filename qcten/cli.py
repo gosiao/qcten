@@ -154,6 +154,15 @@ class input_data:
                                         which columns should be used to form the tensor field of order 2
                                         ''')
 
+        optional_args.add_argument('--calc_from_tensor_0order_3d',
+                                   dest='calc_from_tensor_0order_3d',
+                                   action='append',
+                                   choices=self.all_fun_t0d3,
+                                   required=False,
+                                   help='''
+                                        what to calculate from tensor_0order_3d
+                                        ''')
+
         optional_args.add_argument('--calc_from_tensor_2order_3d',
                                    dest='calc_from_tensor_2order_3d',
                                    action='append',
@@ -179,6 +188,15 @@ class input_data:
                                    help='''
                                         which columns should be used to form the gradient of the tensorfield of order 1
                                         ''')
+
+        optional_args.add_argument('--form_grad_tensor_2order_3d',
+                                   dest='form_grad_tensor_2order_3d',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which columns should be used to form the gradient of the tensorfield of order 2
+                                        ''')
+
 
         optional_args.add_argument('--use_grad_from_file',
                                    dest='use_grad_from_file',

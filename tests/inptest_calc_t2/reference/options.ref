@@ -9,6 +9,7 @@ inptest : True
 form_tensor_0order_3d : None
 form_tensor_1order_3d : None
 form_tensor_2order_3d : [bx_jx, by_jx, bz_jx, bx_jy, by_jy, bz_jy, bx_jz, by_jz, bz_jz]
+calc_from_tensor_0order_3d : None
 calc_from_tensor_2order_3d : ['deviator_anisotropy']
 calc_from_tensor_2order_3d_fragments : None
 form_grad_tensor_1order_3d : None

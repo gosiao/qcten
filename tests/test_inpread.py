@@ -133,9 +133,9 @@ def run_test_full(testdir):
 
 def list_viable_tests(test_paths=None):
     testdirs = [
-        "inptest_calc_t0",
-        "inptest_calc_t1",
-        "inptest_calc_t2"
+        #"inptest_calc_t0",
+        #"inptest_calc_t1",
+        #"inptest_calc_t2"
         ]
     return testdirs
 

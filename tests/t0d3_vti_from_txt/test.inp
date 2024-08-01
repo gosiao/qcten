@@ -3,7 +3,7 @@
 #
 --finp=txt; ../testdata/lih_rho_cubegrid10/rho.txt; cols=[x, y, z, rho]; sep= ; skip=0
 #
-# 2. decide which columns correspond to grid points and which - to data
+# 2. decide which columns correspond to grid points
 #
 #    order of grid points coordinates:
 #       x, y, z
@@ -18,8 +18,6 @@
 #
 #   - signal that TTK will be used as a calculator
 #   - apply "resample to image"
-#   - do a 3-step calculation: calculate grad(rho), calculate ||grad(rho)||, and calculate RDG=f(rho);
-#     here, the order of tasks matters:
 #
 --ttk_task=calculate
 --resampled_dim=10,10,10

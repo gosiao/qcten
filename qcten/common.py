@@ -89,3 +89,17 @@ def norm_of_t1d3(m):
     return df
 
 
+def trace_of_t2d3(m):
+
+    """
+    entering m is pandas dataframe
+    with columns corresponding to tensor elements
+    t11, t22, t33, ...
+    """
+
+    df = pd.DataFrame()
+    df['trace'] =  m['t11'] + m['t22'] + m['t33']
+
+    return df
+
+
