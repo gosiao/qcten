@@ -16,16 +16,18 @@ class work():
 
     def __init__(self, rundir, options):
 
-        # all options read from an input script
+        # options read from an input script or a command line
         self.options  = options
+
+        # working directory
         self.rundir = rundir
 
-        # io
+        # IO
         self.allfinps  = ()
         self.allfouts  = ()
         self.flog      = self.options['flog']
 
-        # grid and data
+        # grid and grid functions
         self.grid = {}
         self.fulldata = pd.DataFrame()
 
@@ -33,19 +35,19 @@ class work():
     def run(self, verbose=False):
 
         # 1. parse --finp; write info to self.allfinp
-        self.prepare_input(verbose=verbose)
+        self.prepare_input(verbose)
 
         # 2. parse --fout; write info to self.allfout
-        self.prepare_output(verbose=verbose)
+        self.prepare_output(verbose)
 
         # 3. calculate
-        self.prepare_grid(verbose=verbose)
-        self.prepare_data(verbose=verbose)
-        self.calculate(verbose=verbose)
+        self.prepare_grid(verbose)
+        self.prepare_data(verbose)
+        self.calculate(verbose)
         print(self.fulldata)
 
-        # 4. write to files
-        self.write_and_close(verbose=verbose)
+        ## 4. write to files
+        #self.write_and_close(verbose=verbose)
 
 
     def write_and_close(self, verbose=False):
@@ -95,7 +97,7 @@ class work():
     def prepare_input(self, verbose=False):
 
         """
-        here we decode the input to '--finp'
+        decode the input of '--finp'
         
         there are at least 2 and at most 4 arguments to --finp:
 
@@ -131,7 +133,6 @@ class work():
             temp.append(f_info)
 
         self.allfinps = tuple(temp)
-        #self.print_options_to_log()
 
         if verbose:
             print('files with input data:')
@@ -195,7 +196,7 @@ class work():
         --finp/--fout format; path; [columns]; [sep]; [skip] 
         """
 
-        # format, path and name of a file
+        # format and full path of a file
         f_type   = args[0].strip()
         f_path   = args[1].strip()
 
@@ -313,20 +314,43 @@ class work():
 
     def assign_data(self, label, verbose=False):
         """
-        assign column names to the convention used in qcten
+        assign column names to the ones used in qcten
         """
 
-        data_cols = self.fulldata.columns
+        print("BEFORE:")
+        pprint(self.fulldata.columns)
+
+        grad_args=[]
+        _cols_to_use=global_data.cols_to_use['grid']
 
         if label == "t0d3":
-            self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,global_data.cols_to_use['t0d3'])}, inplace=True)
-        elif label == "t1d3":
-            self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,global_data.cols_to_use['t1d3'])}, inplace=True)
-        elif label == "t2d3":
-            self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,global_data.cols_to_use['t2d3'])}, inplace=True)
-            #if (self.input_options['form_grad_tensor_2order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+            args = [arg.strip().strip('[').strip(']') for arg in self.options['form_tensor_0order_3d'].split(',')]
 
+        elif label == "t1d3":
+            args = [arg.strip().strip('[').strip(']') for arg in self.options['form_tensor_1order_3d'].split(',')]
+            if self.options["form_grad_tensor_1order_3d"] is not None:
+                grad_args = [arg.strip().strip('[').strip(']') for arg in self.options['form_grad_tensor_1order_3d'].split(',')]
+
+        elif label == "t2d3":
+            args = [arg.strip().strip('[').strip(']') for arg in self.options['form_tensor_2order_3d'].split(',')]
+
+        for col in self.fulldata.columns:
+            for iarg, arg in enumerate(args):
+                if arg == col:
+                    self.fulldata.rename(columns={col:global_data.cols_to_use[label][iarg]}, inplace=True)
+                    _cols_to_use.append(global_data.cols_to_use[label][iarg])
+            if grad_args is not None:
+                for iarg, arg in enumerate(grad_args):
+                    if arg == col:
+                        self.fulldata.rename(columns={col:global_data.grad_cols_to_use[label][iarg]}, inplace=True)
+                        _cols_to_use.append(global_data.grad_cols_to_use[label][iarg])
+
+        cols_to_remove=[x for x in self.fulldata.columns if x not in _cols_to_use]
+
+        print("AFTERE:")
         pprint(self.fulldata.columns)
+
+        return cols_to_remove
 
 
     def prepare_grid(self, verbose=False):
@@ -358,6 +382,16 @@ class work():
             work.run(verbose=verbose)
             result_df = work.work_data
 
+        if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
+
+#HERE
+            cols_to_remove=self.assign_data("t1d3")
+            self.fulldata.drop(columns=cols_to_remove, inplace=True)
+            pprint(self.fulldata)
+            work = t1d3(self.options, self.allfouts, self.fulldata)
+            work.run(verbose=verbose)
+            #result_df = work.work_data
+
         if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
             self.assign_data("t2d3")
@@ -365,13 +399,6 @@ class work():
             work.run(verbose=verbose)
             result_df = work.work_data
 
-
-        if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
-
-            self.assign_data("t1d3")
-            work = t1d3(self.options, self.allfouts, self.fulldata)
-            work.run(verbose=verbose)
-            result_df = work.work_data
 
         self.fulldata = pd.concat((self.fulldata, result_df), axis=1)
         self.fulldata = self.fulldata.loc[:,~self.fulldata.columns.duplicated()]

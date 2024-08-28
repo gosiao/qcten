@@ -22,10 +22,10 @@ class t1d3():
     def __init__(self, cli_options, output_options, input_data):
 
         # general setup
-        self.input_options = cli_options # FIXME - move this out
-        self.calc_options  = output_options
-        self.input_data    = input_data
-        self.flog          = self.input_options['flog']
+        self.input_options   = cli_options # FIXME - move this out
+        self.output_options  = output_options
+        self.input_data      = input_data  # dataframe
+        self.flog            = self.input_options['flog']
 
         # global data structures
         self.t1d3          = {}
@@ -176,7 +176,7 @@ class t1d3():
 
         cols_available_for_outputs = self.all_fun_t1d3 + self.colnames_inp 
 
-        for v in self.calc_options:
+        for v in self.output_options:
             if v.file_path is not None:
                 data_cols = []
                 for icol, col in enumerate(v.file_column_names):

@@ -51,8 +51,8 @@ class input_data:
                                             * file type (one of: txt, csv, hdf5, vti)
                                             * file name
                                         * other arguments are optional:
-                                            * column names ([col1, col2, ...]); default = column names in the first row of finp
-                                            * number of header lines to skip; default = 1
+                                            * column names ([col1, col2, ...]); default = None
+                                            * number of header lines to skip; default = 0
                                         ''')
 
         required_args.add_argument('--fout',
