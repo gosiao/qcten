@@ -35,26 +35,39 @@ class input_data:
     def parse_options(self):
 
         parser = argparse.ArgumentParser()
-
         required_args = parser.add_argument_group('required arguments')
 
-
+        #
+        # mandatory arguments
+        #
         required_args.add_argument('--finp',
                                    dest='finp',
                                    action='append',
-                                   metavar='file type (one of: txt, csv, hdf5, vti); file name; optional: column names ([col1, col2, ...]); optional: number of header lines to skip',
+                                   metavar='file type; file name; column names; number of header lines to skip',
                                    required=True,
                                    help='''
-                                        information on the input file with real-space data
+                                        information about the input file with real-space data:
+                                        * first two arguments are mandatory:
+                                            * file type (one of: txt, csv, hdf5, vti)
+                                            * file name
+                                        * other arguments are optional:
+                                            * column names ([col1, col2, ...]); default = column names in the first row of finp
+                                            * number of header lines to skip; default = 1
                                         ''')
 
         required_args.add_argument('--fout',
                                    dest='fout',
                                    action='append',
-                                   metavar='file type (one of: txt, csv, hdf5, vti); file name; optional: column names ([col1, col2:renamed_col2, ...]); optional: number of header lines to skip',
+                                   metavar='file type; file name; column names; number of header lines to skip',
                                    required=True,
                                    help='''
-                                        information on the output file with data
+                                        information about the output file with data:
+                                        * first two arguments are mandatory:
+                                            * file type (one of: txt, csv, hdf5, vti)
+                                            * file name
+                                        * other arguments are optional:
+                                            * column names ([col1, col2:renamed_col2, ...]); default = default names used in the code;
+                                            * number of header lines to skip; default = 0
                                         ''')
 
         required_args.add_argument('--fout_select',
@@ -76,7 +89,7 @@ class input_data:
                                    metavar='FILE (txt)',
                                    required=True,
                                    help='''
-                                        log file to write to
+                                        log file with debug prints
                                         ''')
 
         required_args.add_argument('--grid',
@@ -85,23 +98,15 @@ class input_data:
                                    metavar='[column with x_coor, column with y_coor, column with z_coor]',
                                    required=True,
                                    help='''
-                                        which columns contain grid x, y, z point coordinates
+                                        column names containing grid x, y, z point coordinates
                                         ''')
 
-        #required_args.add_argument('--grid_function',
-        #                           dest='grid_function',
-        #                           action='store',
-        #                           metavar='[column with data 1, column with data 2, ...]',
-        #                           required=True,
-        #                           help='''
-        #                                which columns contain data
-        #                                ''')
-
-#
+        #
+        # optional arguments
+        #
 
         optional_args = parser.add_argument_group('optional arguments')
 
-        # rethink this:
         optional_args.add_argument('--grid_function',
                                    dest='grid_function',
                                    action='store',
@@ -121,7 +126,6 @@ class input_data:
                                         mesh type (default: uniform_rectilinear)
                                         ''')
 
-
         optional_args.add_argument('--inptest',
                                    dest='inptest',
                                    action='store',
@@ -130,28 +134,15 @@ class input_data:
                                         test input and quit
                                         ''')
 
+        #
+        # arguments specific to working on tensor_0order_3d (scalar fields)
+        #
         optional_args.add_argument('--form_tensor_0order_3d',
                                    dest='form_tensor_0order_3d',
                                    action='store',
                                    required=False,
                                    help='''
                                         which columns should be used to form the tensor field of order 0 (= scalar field)
-                                        ''')
-
-        optional_args.add_argument('--form_tensor_1order_3d',
-                                   dest='form_tensor_1order_3d',
-                                   action='store',
-                                   required=False,
-                                   help='''
-                                        which columns should be used to form the tensor field of order 1 (= vector field)
-                                        ''')
-
-        optional_args.add_argument('--form_tensor_2order_3d',
-                                   dest='form_tensor_2order_3d',
-                                   action='store',
-                                   required=False,
-                                   help='''
-                                        which columns should be used to form the tensor field of order 2
                                         ''')
 
         optional_args.add_argument('--calc_from_tensor_0order_3d',
@@ -163,6 +154,53 @@ class input_data:
                                         what to calculate from tensor_0order_3d
                                         ''')
 
+        optional_args.add_argument('--form_grad_tensor_0order_3d',
+                                   dest='form_grad_tensor_0order_3d',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which columns should be used to form the gradient of the tensor field of order 0
+                                        ''')
+
+        #
+        # arguments specific to working on tensor_1order_3d (vector fields)
+        #
+        optional_args.add_argument('--form_tensor_1order_3d',
+                                   dest='form_tensor_1order_3d',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which columns should be used to form the tensor field of order 1 (= vector field)
+                                        ''')
+
+        optional_args.add_argument('--calc_from_tensor_1order_3d',
+                                   dest='calc_from_tensor_1order_3d',
+                                   action='append',
+                                   choices=self.all_fun_t1d3,
+                                   required=False,
+                                   help='''
+                                        what to calculate from tensor_1order_3d
+                                        ''')
+
+        optional_args.add_argument('--form_grad_tensor_1order_3d',
+                                   dest='form_grad_tensor_1order_3d',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which columns should be used to form the gradient of the tensor field of order 1
+                                        ''')
+
+        #
+        # arguments specific to working on tensor_2order_3d (2nd-order tensor fields)
+        #
+        optional_args.add_argument('--form_tensor_2order_3d',
+                                   dest='form_tensor_2order_3d',
+                                   action='store',
+                                   required=False,
+                                   help='''
+                                        which columns should be used to form the tensor field of order 2
+                                        ''')
+
         optional_args.add_argument('--calc_from_tensor_2order_3d',
                                    dest='calc_from_tensor_2order_3d',
                                    action='append',
@@ -172,7 +210,7 @@ class input_data:
                                         what to calculate from tensor_2order_3d
                                         ''')
 
-        # verify this:
+        # verify this!
         optional_args.add_argument('--calc_from_tensor_2order_3d_fragments',
                                    dest='calc_from_tensor_2order_3d_fragments',
                                    action='store',
@@ -181,22 +219,18 @@ class input_data:
                                         what to calculate from tensor_2order_3d; functions that apply to the fragment of the tensor
                                         ''')
 
-        optional_args.add_argument('--form_grad_tensor_1order_3d',
-                                   dest='form_grad_tensor_1order_3d',
-                                   action='store',
-                                   required=False,
-                                   help='''
-                                        which columns should be used to form the gradient of the tensorfield of order 1
-                                        ''')
-
         optional_args.add_argument('--form_grad_tensor_2order_3d',
                                    dest='form_grad_tensor_2order_3d',
                                    action='store',
                                    required=False,
                                    help='''
-                                        which columns should be used to form the gradient of the tensorfield of order 2
+                                        which columns should be used to form the gradient of the tensor field of order 2
                                         ''')
 
+
+        #
+        # other arguments
+        #
 
         optional_args.add_argument('--use_grad_from_file',
                                    dest='use_grad_from_file',
@@ -206,23 +240,13 @@ class input_data:
                                         are the elements of the gradient of the tensor field available on file?
                                         ''')
 
-        optional_args.add_argument('--calc_from_tensor_1order_3d',
-                                   dest='calc_from_tensor_1order_3d',
-                                   action='append',
-                                   choices=self.all_fun_t1d3,
-                                   required=False,
-                                   help='''
-                                        what to calculate from vector_3d
-                                        ''')
-
-        # verify this:
-        optional_args.add_argument('--calc_from_tensor_1order_3d_calc_grad',
-                                   dest='calc_from_tensor_1order_3d_calc_grad',
+        optional_args.add_argument('--calc_grad_method',
+                                   dest='calc_grad_method',
                                    action='store',
                                    choices=['numpy', 'finite_elements'],
                                    required=False,
                                    help='''
-                                        calc_from_tensor_1order_3d_calc_grad
+                                        how to calculate the gradient of a tensor
                                         ''')
 
         optional_args.add_argument('--projection_axis',
@@ -233,7 +257,6 @@ class input_data:
                                         selected external axis (on which we project vectors)
                                         ''')
 
-
         optional_args.add_argument('--fill_empty',
                                    dest='fill_empty',
                                    action='store',
@@ -243,7 +266,9 @@ class input_data:
                                         how to fill empty data fields;
                                         ''')
 
+        #
         # options specific to TTK:
+        #
         optional_args.add_argument('--ttk_task',
                                    dest='ttk_task',
                                    action='store',
@@ -252,7 +277,6 @@ class input_data:
                                    help='''
                                         which TTK task will be performed
                                         ''')
-
 
         optional_args.add_argument('--resampled_dim',
                                    dest='resampled_dim',
@@ -273,7 +297,6 @@ class input_data:
                                    action='append',
                                    required=False,
                                    help='apply the gradientOfUnstructuredDataSet filter')
-
 
         args = parser.parse_args(self.args_list)
         self.options = vars(args)
@@ -301,6 +324,7 @@ def read_input(finp=None, verbose=False):
         try:
             args = sys.argv[1:]
         except:
+            print("Run `qcten --help` for a list of arguments")
             sys.exit(1)
         if verbose:
             msg1 = 'Arguments for qcten are read from command line'

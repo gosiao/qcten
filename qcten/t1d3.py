@@ -338,68 +338,25 @@ class t1d3():
 
         """
 
-
         # grid
-        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['grid'].split(',')]
-        self.colnames_qcten['x'] = args[0]
-        self.colnames_qcten['y'] = args[1]
-        self.colnames_qcten['z'] = args[2]
-        self.colnames_inp = args
+        # ====
+        for col in global_data.cols_to_use['grid']:
+            self.colnames_qcten[col] = self.input_data[col]
 
-        if verbose:
-            msg = 'grid columns are assigned: ' \
-                + 'x={}, y={}, z={}, '.format(self.colnames_qcten['x'],
-                                              self.colnames_qcten['y'],
-                                              self.colnames_qcten['z'])
-            print(msg)
+        # data
+        # ====
 
+        # tensor
+        for col in global_data.cols_to_use['t1d3']:
+            self.colnames_qcten[col] = self.input_data[col]
 
-        # t1d3
-        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_tensor_1order_3d'].split(',')]
-
-        self.colnames_qcten['vx'] = args[0]
-        self.colnames_qcten['vy'] = args[1]
-        self.colnames_qcten['vz'] = args[2]
-        self.colnames_inp.extend(args)
-
-        if verbose:
-            msg = 'vector columns are assigned: ' \
-                + 'vx={}, vy={}, vz={}, '.format(self.colnames_qcten['vx'],
-                                                 self.colnames_qcten['vy'],
-                                                 self.colnames_qcten['vz'])
-            print(msg)
-
-        # grad(t1d3)
+        # tensor gradient
         if (self.input_options['form_grad_tensor_1order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+            for col in global_data.grad_cols_to_use['t1d3']:
+                self.colnames_qcten[col] = self.input_data[col]
 
-            args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_tensor_1order_3d'].split(',')]
-
-            self.colnames_qcten['dvx_dx'] = args[0]
-            self.colnames_qcten['dvx_dy'] = args[1]
-            self.colnames_qcten['dvx_dz'] = args[2]
-
-            self.colnames_qcten['dvy_dx'] = args[3]
-            self.colnames_qcten['dvy_dy'] = args[4]
-            self.colnames_qcten['dvy_dz'] = args[5]
-
-            self.colnames_qcten['dvz_dx'] = args[6]
-            self.colnames_qcten['dvz_dy'] = args[7]
-            self.colnames_qcten['dvz_dz'] = args[8]
-        
-            self.colnames_inp.extend(args)
-
-            if verbose:
-                msg = 'grad(vector) columns are assigned: ' \
-                    + ' dvx_dx='+self.colnames_qcten['dvx_dx'] \
-                    + ' dvx_dy='+self.colnames_qcten['dvx_dy'] \
-                    + ' dvx_dz='+self.colnames_qcten['dvx_dz'] \
-                    + ' dvy_dx='+self.colnames_qcten['dvy_dx'] \
-                    + ' dvy_dy='+self.colnames_qcten['dvy_dy'] \
-                    + ' dvy_dz='+self.colnames_qcten['dvy_dz'] \
-                    + ' dvz_dx='+self.colnames_qcten['dvz_dx'] \
-                    + ' dvz_dy='+self.colnames_qcten['dvz_dy'] \
-                    + ' dvz_dz='+self.colnames_qcten['dvz_dz']
-                print(msg)
+        if verbose:
+            print('grid and data columns are assigned: ' + str(x) for x in self.colnames_qcten[col])
 
 
 

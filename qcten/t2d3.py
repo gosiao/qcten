@@ -22,10 +22,10 @@ class t2d3():
     def __init__(self, cli_options, output_options, input_data):
 
         # general setup
-        self.input_options = cli_options # FIXME - move this out
+        #self.input_options = cli_options # FIXME - move this out
         self.calc_options  = output_options
         self.input_data    = input_data
-        self.flog          = self.input_options['flog']
+        #self.flog          = self.input_options['flog']
 
         # global data structures 
         self.t2d3          = {}
@@ -239,102 +239,24 @@ class t2d3():
         """
 
         # grid
-        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['grid'].split(',')]
-        self.colnames_qcten['x'] = args[0]
-        self.colnames_qcten['y'] = args[1]
-        self.colnames_qcten['z'] = args[2]
-        self.colnames_inp = args
+        # ====
+        for col in global_data.cols_to_use['grid']:
+            self.colnames_qcten[col] = self.input_data[col]
 
-        if verbose:
-            msg = 'grid columns are assigned: ' \
-                + 'x={}, y={}, z={}, '.format(self.colnames_qcten['x'],
-                                              self.colnames_qcten['y'],
-                                              self.colnames_qcten['z'])
-            print(msg)
+        # data
+        # ====
 
+        # tensor
+        for col in global_data.cols_to_use['t2d3']:
+            self.colnames_qcten[col] = self.input_data[col]
 
-        # t2d3
-        args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_tensor_2order_3d'].split(',')]
-
-        self.colnames_qcten['xx'] = args[0]
-        self.colnames_qcten['xy'] = args[1]
-        self.colnames_qcten['xz'] = args[2]
-        self.colnames_qcten['yx'] = args[3]
-        self.colnames_qcten['yy'] = args[4]
-        self.colnames_qcten['yz'] = args[5]
-        self.colnames_qcten['zx'] = args[6]
-        self.colnames_qcten['zy'] = args[7]
-        self.colnames_qcten['zz'] = args[8]
-        self.colnames_inp.extend(args)
-
-        if verbose:
-            msg = 'vector columns are assigned: ' \
-                + 'vx={}, vy={}, vz={}, '.format(self.colnames_qcten['xx'],
-                                                 self.colnames_qcten['xy'],
-                                                 self.colnames_qcten['xz'],
-                                                 self.colnames_qcten['yx'],
-                                                 self.colnames_qcten['yy'],
-                                                 self.colnames_qcten['yz'],
-                                                 self.colnames_qcten['zx'],
-                                                 self.colnames_qcten['zy'],
-                                                 self.colnames_qcten['zz'])
-            print(msg)
-
-        # grad(t1d3)
+        # tensor gradient
         if (self.input_options['form_grad_tensor_2order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+            for col in global_data.grad_cols_to_use['t2d3']:
+                self.colnames_qcten[col] = self.input_data[col]
 
-            args = [arg.strip().strip('[').strip(']') for arg in self.input_options['form_grad_tensor_2order_3d'].split(',')]
-
-            self.colnames_qcten['dxx_dx'] = args[0]
-            self.colnames_qcten['dxx_dy'] = args[1]
-            self.colnames_qcten['dxx_dz'] = args[2]
-
-            self.colnames_qcten['dxy_dx'] = args[3]
-            self.colnames_qcten['dxy_dy'] = args[4]
-            self.colnames_qcten['dxy_dz'] = args[5]
-
-            self.colnames_qcten['dxz_dx'] = args[6]
-            self.colnames_qcten['dxz_dy'] = args[7]
-            self.colnames_qcten['dxz_dz'] = args[8]
-
-            self.colnames_qcten['dyx_dx'] = args[9]
-            self.colnames_qcten['dyx_dy'] = args[10]
-            self.colnames_qcten['dyx_dz'] = args[11]
-
-            self.colnames_qcten['dyy_dx'] = args[12]
-            self.colnames_qcten['dyy_dy'] = args[13]
-            self.colnames_qcten['dyy_dz'] = args[14]
-
-            self.colnames_qcten['dyz_dx'] = args[15]
-            self.colnames_qcten['dyz_dy'] = args[16]
-            self.colnames_qcten['dyz_dz'] = args[17]
-
-            self.colnames_qcten['dzx_dx'] = args[18]
-            self.colnames_qcten['dzx_dy'] = args[19]
-            self.colnames_qcten['dzx_dz'] = args[20]
-
-            self.colnames_qcten['dzy_dx'] = args[21]
-            self.colnames_qcten['dzy_dy'] = args[22]
-            self.colnames_qcten['dzy_dz'] = args[23]
-
-            self.colnames_qcten['dzz_dx'] = args[24]
-            self.colnames_qcten['dzz_dy'] = args[25]
-            self.colnames_qcten['dzz_dz'] = args[26]
-
-            self.colnames_inp.extend(args)
-
-            #if verbose:
-            #    msg = 'grad(vector) columns are assigned: ' \
-            #        + ' dvx_dx='+self.colnames_qcten['dvx_dx'] \
-            #        + ' dvx_dy='+self.colnames_qcten['dvx_dy'] \
-            #        + ' dvx_dz='+self.colnames_qcten['dvx_dz'] \
-            #        + ' dvy_dx='+self.colnames_qcten['dvy_dx'] \
-            #        + ' dvy_dy='+self.colnames_qcten['dvy_dy'] \
-            #        + ' dvy_dz='+self.colnames_qcten['dvy_dz'] \
-            #        + ' dvz_dx='+self.colnames_qcten['dvz_dx'] \
-            #        + ' dvz_dy='+self.colnames_qcten['dvz_dy'] \
-            #        + ' dvz_dz='+self.colnames_qcten['dvz_dz']
-            #    print(msg)
+        if verbose:
+            print('grid and data columns are assigned: ' + str(x) for x in self.colnames_qcten[col])
 
 
     def get_t2d3_data_points(self, verbose=False):

@@ -202,10 +202,11 @@ class work():
         # names of data fields (columns on input/output files if txt/csv)
         f_cols   = None
         if len(args) > 2:
-            arg = args[2].strip()
-            if arg != 'None':
-                if arg[0:5] == 'cols=':
-                    f_cols   = [a.strip().strip('[').strip(']') for a in arg[5:].split(',')]
+            if (f_type == 'txt' or f_type == 'csv'):
+                arg = args[2].strip()
+                if arg != 'None':
+                    if arg[0:5] == 'cols=':
+                        f_cols   = [a.strip().strip('[').strip(']') for a in arg[5:].split(',')]
 
         # column separator; defaults to a coma
         f_sep = ','
@@ -258,30 +259,34 @@ class work():
                 if v.file_skiprow is None:
                     df = pd.read_csv(v.file_path,
                                      header = None,
-                                     names  = v.file_column_names,
+                                     index_col = False,
+                                     usecols = v.file_column_names,
                                      delim_whitespace = True,
-                                     dtype = np.float64)
+                                     dtype = np.float64)[v.file_column_names]
                 else:
                     df = pd.read_fwf(v.file_path, 
                                      colspecs='infer', 
                                      skiprows = v.file_skiprow, 
-                                     names=v.file_column_names)
+                                     index_col = False,
+                                     usecols = v.file_column_names)[v.file_column_names]
 
             elif v.file_type.lower() == 'csv':
                 if v.file_column_separator is None or v.file_column_separator.isspace():
                     df = pd.read_csv(v.file_path,
                                      header = 0,
-                                     names  = v.file_column_names,
+                                     index_col = False,
+                                     usecols = v.file_column_names,
                                      delim_whitespace = True,
                                      skiprows = v.file_skiprow,
-                                     dtype = np.float64)
+                                     dtype = np.float64)[v.file_column_names]
                 else:
                     df = pd.read_csv(v.file_path,
                                      header = 0,
-                                     names  = v.file_column_names,
+                                     index_col = False,
+                                     usecols = v.file_column_names,
                                      sep = v.file_column_separator,
                                      skiprows = v.file_skiprow,
-                                     dtype = np.float64)
+                                     dtype = np.float64)[v.file_column_names]
 
             elif v.file_type.lower() == 'hdf5':
                 print('hdf5 inputs not supported in this version')
@@ -305,7 +310,23 @@ class work():
             pprint(fulldata.columns)
             pprint(fulldata)
 
-        return fulldata
+
+    def assign_data(self, label, verbose=False):
+        """
+        assign column names to the convention used in qcten
+        """
+
+        data_cols = self.fulldata.columns
+
+        if label == "t0d3":
+            self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,global_data.cols_to_use['t0d3'])}, inplace=True)
+        elif label == "t1d3":
+            self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,global_data.cols_to_use['t1d3'])}, inplace=True)
+        elif label == "t2d3":
+            self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,global_data.cols_to_use['t2d3'])}, inplace=True)
+            #if (self.input_options['form_grad_tensor_2order_3d'] is not None) and (self.input_options['use_grad_from_file']):
+
+        pprint(self.fulldata.columns)
 
 
     def prepare_grid(self, verbose=False):
@@ -332,12 +353,14 @@ class work():
 
         if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
         
+            self.assign_data("t0d3")
             work = t0d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
             result_df = work.work_data
 
         if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
+            self.assign_data("t2d3")
             work = t2d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
             result_df = work.work_data
@@ -345,6 +368,7 @@ class work():
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
+            self.assign_data("t1d3")
             work = t1d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
             result_df = work.work_data
