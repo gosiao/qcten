@@ -31,7 +31,7 @@
 #
 --calc_from_tensor_1order_3d=vorticity
 #
-# 5. since we plan to write to vti by calling ttk,
+# 6. since we plan to write to vti by calling ttk,
 #    add a few simple options to test
 #
 --resampled_dim=10,10,10

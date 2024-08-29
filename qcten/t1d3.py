@@ -35,35 +35,6 @@ class t1d3():
         # column names defined by the user:
         self.colnames_inp = []
         self.colnames_out = []
-        # column names used in this class:
-        self.colnames_qcten = {}
-
-        self.all_fun_t1d3 = global_data.all_fun_t1d3
-        self.fun_t1d3_req_grad = global_data.fun_t1d3_req_grad
-
-        # variables to be saved to the output:
-        self.t1d3_cols     = []
-
-        #
-        # grid
-        #
-
-        # grid points
-        self.x = self.data['x']
-        self.y = self.data['y']
-        self.z = self.data['z']
-        # grid spacing
-        self.dx = 0
-        self.dy = 0
-        self.dz = 0
-        # grid dimensions
-        self.dim_x = 0
-        self.dim_y = 0
-        self.dim_z = 0
-        self.dim_cube = 0
-
-        # other
-        self.projection_axis = {}
 
 
     def run(self, verbose=False):
@@ -87,11 +58,10 @@ class t1d3():
                 self.mean()
 
             if (arg == 'vorticity'):
-                #self.get_t1d3_gradient()
                 self.vorticity()
-#
-#            if (arg == 'omega'):
-#                self.omega(verbose=verbose)
+
+            if (arg == 'omega'):
+                self.omega(verbose)
 #
 #
 #            if (arg == 'curlv_cdot_axis'):
@@ -111,7 +81,7 @@ class t1d3():
         prepare the data for output(s)
         """
 
-        cols_available_for_outputs = self.all_fun_t1d3 + self.colnames_inp 
+        cols_available_for_outputs = global_data.all_fun_t1d3 + self.colnames_inp 
 
         for v in self.output_options:
             if v.file_path is not None:
@@ -911,48 +881,47 @@ class t1d3():
 
 
 
-    #def omega(self, verbose=False):
+    def omega(self, verbose):
 
-    #    """
-    #    calculate omega ("Omega vortex identification method")
+        """
+        calculate omega ("Omega vortex identification method")
 
-    #    based on Eq. 12 in Liu et. al, Journal of Hydrodynamics, 31, 205, 2019 (DOI: https://link.springer.com/article/10.1007/s42241-019-0022-4)
+        based on Eq. 12 in Liu et. al, Journal of Hydrodynamics, 31, 205, 2019 (DOI: https://link.springer.com/article/10.1007/s42241-019-0022-4)
 
-    #    calculations need the gradient of a vector field: nabla(v)
+        calculations need the gradient of a vector field: nabla(v)
 
-    #    then:
-    #    1. calculate the symmetric (S) and antisymmetric (A) parts of nabla(v)
-    #    2. calculate the Frobenius norms of these parts, squared, |S|^2 and |A|^2, respectively
-    #    3. calculate omega = |A|^2 / (|A|^2 + |S|^2)
+        then:
+        1. calculate the symmetric (S) and antisymmetric (A) parts of nabla(v)
+        2. calculate the Frobenius norms of these parts, squared, |S|^2 and |A|^2, respectively
+        3. calculate omega = |A|^2 / (|A|^2 + |S|^2)
 
-    #    """
+        """
 
-    #    full_grad_tensor = self.data[['dvx_dx', 'dvx_dy', 'dvx_dz',
-    #                                       'dvy_dx', 'dvy_dy', 'dvy_dz',
-    #                                       'dvz_dx', 'dvz_dy', 'dvz_dz']].rename(columns={
-    #                                       'dvx_dx':'t11', 'dvx_dy':'t12', 'dvx_dz':'t13',
-    #                                       'dvy_dx':'t21', 'dvy_dy':'t22', 'dvy_dz':'t23',
-    #                                       'dvz_dx':'t31', 'dvz_dy':'t32', 'dvz_dz':'t33'})
-
-    #    sym_part = get_sym_part_of_t2d3(full_grad_tensor)
-    #    antisym_part  = get_antisym_part_of_t2d3(full_grad_tensor)
-
-    #    sym_norm     = frobenius_norm_squared_t2d3(sym_part)
-    #    antisym_norm = frobenius_norm_squared_t2d3(antisym_part)
-    #    omega = antisym_norm/(antisym_norm + sym_norm)
-
-    #    self.data = pd.concat((self.data, omega.rename('omega')), axis=1)
-
-    #    if verbose:
-    #        print('Output from omega:')
-    #        pprint(self.data)
+        tmp = [x for x in global_data.grad_cols_to_use['t1d3'] if x not in self.data.columns]
+        if tmp:
+            self.data['t1_dx'], self.data['t1_dy'], self.data['t1_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't1') 
+            self.data['t2_dx'], self.data['t2_dy'], self.data['t2_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't2') 
+            self.data['t3_dx'], self.data['t3_dy'], self.data['t3_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't3') 
 
 
-    #def curlv_cdot_axis(self, verbose=False):
-    #    print('curl_cdot_axis: fixme')
+        full_grad_tensor = self.data[['t1_dx', 't1_dy', 't1_dz',
+                                      't2_dx', 't2_dy', 't2_dz',
+                                      't3_dx', 't3_dy', 't3_dz']].rename(columns={
+                                      't1_dx':'t11', 't1_dy':'t12', 't1_dz':'t13',
+                                      't2_dx':'t21', 't2_dy':'t22', 't2_dz':'t23',
+                                      't3_dx':'t31', 't3_dy':'t32', 't3_dz':'t33'})
 
+        sym_part = get_sym_part_of_t2d3(full_grad_tensor)
+        antisym_part  = get_antisym_part_of_t2d3(full_grad_tensor)
 
-    #def rortex_cdot_axis(self, verbose=False):
-    #    print('rortex_cdot_axis: fixme')
+        sym_norm     = frobenius_norm_squared_t2d3(sym_part)
+        antisym_norm = frobenius_norm_squared_t2d3(antisym_part)
+        omega = antisym_norm/(antisym_norm + sym_norm)
+
+        self.data = pd.concat((self.data, omega.rename('omega')), axis=1)
+
+        if verbose:
+            print('Output from omega:')
+            pprint(self.data)
 
 
