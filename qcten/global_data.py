@@ -56,8 +56,10 @@ class global_data:
     # t0                   - scalar field ("t0d3")
     # t1, t2, t3           - components of a vector field ("t1d3")
     # t11, t12, t13, ...   - components of a tensor field of rank 2 ("t2d3")
-    cols_to_use = {'grid':['x','y','z'],
-                   't0d3':['t0'],
+
+    grid_cols_to_use = {'rectilinear_3d':['x','y','z']}
+
+    cols_to_use = {'t0d3':['t0'],
                    't1d3':['t1','t2','t3'],
                    't2d3':['t11','t12','t13','t21','t22','t23','t31','t32','t33'],
                    }

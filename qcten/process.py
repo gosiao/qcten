@@ -40,17 +40,18 @@ class work():
         # 2. parse --fout; write info to self.allfout
         self.prepare_output(verbose)
 
-        # 3. calculate
-        self.prepare_grid(verbose)
+        # 3. prepare data, verify, check consistency
         self.prepare_data(verbose)
+
+        # 4. calculate
         self.calculate(verbose)
         print(self.fulldata)
 
-        ## 4. write to files
-        #self.write_and_close(verbose=verbose)
+        # 5. write to files
+        self.write_and_close(verbose)
 
 
-    def write_and_close(self, verbose=False):
+    def write_and_close(self, verbose):
 
         if not self.fulldata.empty:
             self.fulldata = self.fulldata.astype(np.float64)
@@ -138,13 +139,11 @@ class work():
             print('files with input data:')
             pprint(self.allfinps)
 
-        return self.allfinps
-
 
     def prepare_output(self, verbose=False):
 
         """
-        here we decode the input to '--fout'
+        decode the input of '--fout'
         
         there are at least 2 and at most 4 arguments to --fout:
 
@@ -154,8 +153,7 @@ class work():
 
         optional
         3. column names
-        4. number of header lines
-
+        4. number of header lines (only if the input is a TXT file)
         """
 
         if self.allfouts is not None:
@@ -165,7 +163,7 @@ class work():
         for f_arg in self.options["fout"]:
 
             args = f_arg.split(';')
-            if len(args) < 2 or len(args) > 4:
+            if len(args) < 2 or len(args) > 5:
                 msg = 'ERROR: wrong number of arguments to --fout'
                 sys.exit(msg)
 
@@ -186,8 +184,6 @@ class work():
             print('files for output data:')
             pprint(self.allfouts)
 
-        return self.allfouts
-
 
     def prepare_io(self, args):
 
@@ -200,10 +196,12 @@ class work():
         f_type   = args[0].strip()
         f_path   = args[1].strip()
 
-        # names of data fields (columns on input/output files if txt/csv)
+        # names of data fields:
+        # they are also labels on input/output files;
+        # (unless it is an hdf5 file)
         f_cols   = None
         if len(args) > 2:
-            if (f_type == 'txt' or f_type == 'csv'):
+            if (f_type != 'hdf5'):
                 arg = args[2].strip()
                 if arg != 'None':
                     if arg[0:5] == 'cols=':
@@ -242,10 +240,10 @@ class work():
         return f
 
 
-    def prepare_data(self, verbose=False):
+    def prepare_data(self, verbose):
 
         """
-        read the input data (in TXT) into pandas dataframes
+        read the input data into pandas dataframes
 
         TODO: 
         * deal with empty or non-float fields
@@ -307,24 +305,29 @@ class work():
             self.fulldata = fulldata
 
         if verbose:
-            print('Data (from prepare_data): ')
+            print('Original data (from prepare_data): ')
             pprint(fulldata.columns)
             pprint(fulldata)
 
 
     def assign_data(self, label, verbose=False):
         """
-        assign column names to the ones used in qcten
+        assign data labels to the ones used internally in qcten
         """
 
-        print("BEFORE:")
-        pprint(self.fulldata.columns)
-
+        args=[]
+        grid_args=[]
         grad_args=[]
-        _cols_to_use=global_data.cols_to_use['grid']
 
+        # always start with assigning grid labels
+        grid_label = "rectilinear_3d"
+        grid_args = [arg.strip().strip('[').strip(']') for arg in self.options['grid'].split(',')]
+
+        # assign data labels
         if label == "t0d3":
             args = [arg.strip().strip('[').strip(']') for arg in self.options['form_tensor_0order_3d'].split(',')]
+            if self.options["form_grad_tensor_0order_3d"] is not None:
+                grad_args = [arg.strip().strip('[').strip(']') for arg in self.options['form_grad_tensor_0order_3d'].split(',')]
 
         elif label == "t1d3":
             args = [arg.strip().strip('[').strip(']') for arg in self.options['form_tensor_1order_3d'].split(',')]
@@ -333,12 +336,25 @@ class work():
 
         elif label == "t2d3":
             args = [arg.strip().strip('[').strip(']') for arg in self.options['form_tensor_2order_3d'].split(',')]
+            if self.options["form_grad_tensor_2order_3d"] is not None:
+                grad_args = [arg.strip().strip('[').strip(']') for arg in self.options['form_grad_tensor_2order_3d'].split(',')]
+        else:
+            print("Unsuported label in assign_data")
+            sys.exit(1)
+
+        _cols_to_use=[]
 
         for col in self.fulldata.columns:
-            for iarg, arg in enumerate(args):
-                if arg == col:
-                    self.fulldata.rename(columns={col:global_data.cols_to_use[label][iarg]}, inplace=True)
-                    _cols_to_use.append(global_data.cols_to_use[label][iarg])
+            if grid_args is not None:
+                for iarg, arg in enumerate(grid_args):
+                    if arg == col:
+                        self.fulldata.rename(columns={col:global_data.grid_cols_to_use[grid_label][iarg]}, inplace=True)
+                        _cols_to_use.append(global_data.grid_cols_to_use[grid_label][iarg])
+            if args is not None:
+                for iarg, arg in enumerate(args):
+                    if arg == col:
+                        self.fulldata.rename(columns={col:global_data.cols_to_use[label][iarg]}, inplace=True)
+                        _cols_to_use.append(global_data.cols_to_use[label][iarg])
             if grad_args is not None:
                 for iarg, arg in enumerate(grad_args):
                     if arg == col:
@@ -347,28 +363,7 @@ class work():
 
         cols_to_remove=[x for x in self.fulldata.columns if x not in _cols_to_use]
 
-        print("AFTERE:")
-        pprint(self.fulldata.columns)
-
         return cols_to_remove
-
-
-    def prepare_grid(self, verbose=False):
-        """
-        find which column names correspond to grid data (in csv)
-        TODO: make sure the same grid is on all finp files
-        """
-
-        args = [arg.strip().strip('[').strip(']') for arg in self.options['grid'].split(',')]
-        grid = {'x':args[0], 'y': args[1], 'z':args[2]}
-        if self.grid == {}: 
-            self.grid['x'] = args[0]
-            self.grid['y'] = args[1]
-            self.grid['z'] = args[2]
-        if verbose:
-            print('grid columns are assigned: x={}, y={}, z={}'.format(self.grid['x'],self.grid['y'],self.grid['z']))
-            
-        return grid
 
 
     def calculate(self, verbose=False):
@@ -377,16 +372,17 @@ class work():
 
         if 'form_tensor_0order_3d' in self.options and self.options['form_tensor_0order_3d'] is not None:
         
-            self.assign_data("t0d3")
+            cols_to_remove=self.assign_data("t0d3")
+            self.fulldata.drop(columns=cols_to_remove, inplace=True)
             work = t0d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
             result_df = work.work_data
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
-#HERE
             cols_to_remove=self.assign_data("t1d3")
             self.fulldata.drop(columns=cols_to_remove, inplace=True)
+            self.verify_data_for_calcs("t1d3", verbose)
             pprint(self.fulldata)
             work = t1d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
@@ -394,7 +390,8 @@ class work():
 
         if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
-            self.assign_data("t2d3")
+            cols_to_remove=self.assign_data("t2d3")
+            self.fulldata.drop(columns=cols_to_remove, inplace=True)
             work = t2d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
             result_df = work.work_data
@@ -472,7 +469,45 @@ class work():
 
 
 
+    def verify_data_for_calcs(self, label, verbose):
+        """
+        verify whether all data needed for the type of calculations exists;
+        take care of missing data, exceptions, etc.
+        """
 
+        print("COL0:", self.fulldata.columns)
+        if self.options['grid'] is None:
+            msg = 'ERROR: check `--grid` in your input'
+            sys.exit(msg)
+        else:
+            for col in global_data.grid_cols_to_use['rectilinear_3d']:
+                print("COL:", col)
+                if col not in self.fulldata.columns:
+                    msg = 'ERROR: missing assignment to `--grid`'
+                    sys.exit(msg)
+            # fixme: get grid data
+
+        if label == "t1d3":
+            if self.options['calc_from_tensor_1order_3d'] is None:
+
+                msg = 'WARNING: Nothing to calculate from the vector field. ' \
+                    + 'Check --calc_from_tensor_1order_3d in your input'
+                sys.exit(msg)
+    
+                for arg in self.options['calc_from_tensor_1order_3d']:
+                    if arg not in self.all_fun_t1d3:
+                        msg = 'ERROR: requested function not in the list of available functions ' \
+                            + 'Check --calc_from_tensor_1order_3d in your input. ' \
+                            + 'Available functions: ', self.all_fun_t1d3
+                        sys.exit(msg)
+    
+            else:
+                for arg in self.options['calc_from_tensor_1order_3d']:
+                    if (arg in global_data.fun_t1d3_req_grad):
+                        if self.options['use_grad_from_file']:
+                            print('Gradient of t1d3 is read from file')
+                        else:
+                            print('Gradient of t1d3 will be calculated')
 
 
 
