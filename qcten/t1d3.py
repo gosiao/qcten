@@ -1,6 +1,5 @@
 import sys
 import numpy as np
-import scipy.linalg as la
 import math
 import pandas as pd
 from .global_data import *
@@ -48,17 +47,16 @@ class t1d3():
         for arg in self.input_options['calc_from_tensor_1order_3d']:
 
             if (arg == 'rortex' or arg == 'omega_rortex'):
-                #self.get_t1d3_gradient()
-                self.rortex_and_shear()
+                self.rortex_and_shear(verbose)
 
             if (arg == 'norm'):
-                self.norm()
+                self.norm(verbose)
 
             if (arg == 'mean'):
-                self.mean()
+                self.mean(verbose)
 
             if (arg == 'vorticity'):
-                self.vorticity()
+                self.vorticity(verbose)
 
             if (arg == 'omega'):
                 self.omega(verbose)
@@ -101,87 +99,6 @@ class t1d3():
                 self.colnames_out=data_cols
 
 
-
-
-
-    #def get_t1d3_gradient(self):
-
-    #    '''
-    #    
-    #    find the gradient of t1d3 vector
-    #    - either get it from file
-    #    - or calculate it numerically
-
-    #    '''
-
-    #    if not self.input_options['use_grad_from_file']:
-
-    #        # calculate gradient numerically
-    #        # ------------------------------
-
-    #        # calculate grid spacing
-    #        self.find_spacing_uniform_grid()
-
-    #        # calculate gradient numerically:
-    #        grad_vecx = self.gradient(self.selected_vector_element(self.t1d3['vx']))
-    #        grad_vecy = self.gradient(self.selected_vector_element(self.t1d3['vy']))
-    #        grad_vecz = self.gradient(self.selected_vector_element(self.t1d3['vz']))
-
-    #        # calculate vorticity if not available 
-    #        # TODO: add a possibility to read it from file (since DIRAC calculates curl_j)
-    #        curlv_x = grad_vecz[1] - grad_vecy[2]
-    #        curlv_y = grad_vecx[2] - grad_vecz[0]
-    #        curlv_z = grad_vecy[0] - grad_vecx[1]
-    #        curlv_magn = np.sqrt(curlv_x*curlv_x + curlv_y*curlv_y + curlv_z*curlv_z)
-
-    #    else:
-    #        # assign grad_vecx, grad_vecy, grad_vecz to data read from file
-
-    #        gx_x  = np.array([ p['dvx_dx'] for p in self.t1d3_points ], dtype=np.float64)
-    #        gx_y  = np.array([ p['dvx_dy'] for p in self.t1d3_points ], dtype=np.float64)
-    #        gx_z  = np.array([ p['dvx_dz'] for p in self.t1d3_points ], dtype=np.float64)
-
-    #        gy_x  = np.array([ p['dvy_dx'] for p in self.t1d3_points ], dtype=np.float64)
-    #        gy_y  = np.array([ p['dvy_dy'] for p in self.t1d3_points ], dtype=np.float64)
-    #        gy_z  = np.array([ p['dvy_dz'] for p in self.t1d3_points ], dtype=np.float64)
-
-    #        gz_x  = np.array([ p['dvz_dx'] for p in self.t1d3_points ], dtype=np.float64)
-    #        gz_y  = np.array([ p['dvz_dy'] for p in self.t1d3_points ], dtype=np.float64)
-    #        gz_z  = np.array([ p['dvz_dz'] for p in self.t1d3_points ], dtype=np.float64)
-
-    #        grad_vecx = [gx_x, gx_y, gx_z]
-    #        grad_vecy = [gy_x, gy_y, gy_z]
-    #        grad_vecz = [gz_x, gz_y, gz_z]
-
-    #        # calculate vorticity if not available:
-    #        # TODO: add a possibility to read it from file (since DIRAC calculates curl_j)
-    #        curlv_x = grad_vecz[1] - grad_vecy[2]
-    #        curlv_y = grad_vecx[2] - grad_vecz[0]
-    #        curlv_z = grad_vecy[0] - grad_vecx[1]
-    #        curlv_magn = np.sqrt(curlv_x*curlv_x + curlv_y*curlv_y + curlv_z*curlv_z)
-
-
-
-
-    #    # here starts an expensive loop over points:
-    #    # todo: move it outside
-
-    #    for i, d in enumerate(self.t1d3_points):
-
-    #        # 1. first, store the gradient and the curl as global variables:
-
-    #        self.t1d3_points[i]['dvx_dx'] = grad_vecx[0][i]  # dvx/dx
-    #        self.t1d3_points[i]['dvx_dy'] = grad_vecx[1][i]  # dvx/dy
-    #        self.t1d3_points[i]['dvx_dz'] = grad_vecx[2][i]  # dvx/dz
-
-    #        self.t1d3_points[i]['dvy_dx'] = grad_vecy[0][i]  # dvy/dx
-    #        self.t1d3_points[i]['dvy_dy'] = grad_vecy[1][i]  # dvy/dy
-    #        self.t1d3_points[i]['dvy_dz'] = grad_vecy[2][i]  # dvy/dz
-
-    #        self.t1d3_points[i]['dvz_dx'] = grad_vecz[0][i]  # dvz/dx
-    #        self.t1d3_points[i]['dvz_dy'] = grad_vecz[1][i]  # dvz/dy
-    #        self.t1d3_points[i]['dvz_dz'] = grad_vecz[2][i]  # dvz/dz
-
     #        # the order of elements:
     #        # (is the same as in Xu, Phys.Fluids 31, 095102 (2019), which we follow here)
     #        #
@@ -194,200 +111,8 @@ class t1d3():
     #                                     [grad_vecz[0][i], grad_vecz[1][i], grad_vecz[2][i]]],
     #                                     dtype=np.float64)
 
-    #        self.t1d3_points[i]['curlv_x']    = curlv_x[i]
-    #        self.t1d3_points[i]['curlv_y']    = curlv_y[i]
-    #        self.t1d3_points[i]['curlv_z']    = curlv_z[i]
-    #        self.t1d3_points[i]['curlv_magn'] = curlv_magn[i]
 
 
-    #    pass
-
-
-    def find_data_in_point_plusminus(self, d, f):
-
-        result = {}
-
-        x0 = d['x']
-        y0 = d['y']
-        z0 = d['z']
-
-        reltol=1e-09
-        abstol=1e-07
-
-        for p in self.t1d3_points:
-            x = p['x']
-            y = p['y']
-            z = p['z']
-
-            # +- dx/dy/dz 
-            if math.isclose(x, x0 + self.dx, rel_tol=reltol, abs_tol=abstol) and \
-               math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-               math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['x_plus'] = p[f]
-
-            elif math.isclose(x, x0 - self.dx, rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['x_minus'] = p[f]
-
-            elif math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0 + self.dy, rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['y_plus'] = p[f]
-
-            elif math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0 - self.dy, rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['y_minus'] = p[f]
-
-            elif math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0 + self.dz, rel_tol=reltol, abs_tol=abstol):
-                result['z_plus'] = p[f]
-
-            elif math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0 - self.dz, rel_tol=reltol, abs_tol=abstol):
-                result['z_minus'] = p[f]
-
-
-        return result
-
-
-    def find_data_on_border(self, d, f, which_border):
-
-        result = {}
-
-        x0 = d['x']
-        y0 = d['y']
-        z0 = d['z']
-
-        reltol=1e-09
-        abstol=1e-07
-
-
-        for p in self.t1d3_points:
-            x = p['x']
-            y = p['y']
-            z = p['z']
-
-            # +- dx/dy/dz 
-            if not which_border[1] and \
-               math.isclose(x, x0 + self.dx, rel_tol=reltol, abs_tol=abstol) and \
-               math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-               math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['x_plus'] = p[f]
-
-            if not which_border[0] and \
-                 math.isclose(x, x0 - self.dx, rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['x_minus'] = p[f]
-
-            if not which_border[3] and \
-                 math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0 + self.dy, rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['y_plus'] = p[f]
-
-            if not which_border[2] and \
-                 math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0 - self.dy, rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0,           rel_tol=reltol, abs_tol=abstol):
-                result['y_minus'] = p[f]
-
-            if not which_border[5] and \
-                 math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0 + self.dz, rel_tol=reltol, abs_tol=abstol):
-                result['z_plus'] = p[f]
-
-            if not which_border[4] and \
-                 math.isclose(x, x0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(y, y0,           rel_tol=reltol, abs_tol=abstol) and \
-                 math.isclose(z, z0 - self.dz, rel_tol=reltol, abs_tol=abstol):
-                result['z_minus'] = p[f]
-
-
-        return result
-
-
-    def gradient_from_finite_elements_value_in_point(self, d, f):
-
-        '''
-        we calculate the gradient of d[f] in point d['x'], d['y'], d['z']
-
-        if this grid point is 'inside' the cube, then we use the central differences formula:
-
-        else, if the grid point is on the boundary, we use the first differences formula:
-
-        '''
-
-        x = d['x']
-        y = d['y']
-        z = d['z']
-        s = d[f]
-
-        if (x == min(p['x'] for p in self.t1d3_points)) or (x == max(p['x'] for p in self.t1d3_points)) or \
-           (y == min(p['y'] for p in self.t1d3_points)) or (y == max(p['y'] for p in self.t1d3_points)) or \
-           (z == min(p['z'] for p in self.t1d3_points)) or (z == max(p['z'] for p in self.t1d3_points)):
-            #print('point on the border')
-
-            which_border = [x == min(p['x'] for p in self.t1d3_points),
-                            x == max(p['x'] for p in self.t1d3_points),
-                            y == min(p['y'] for p in self.t1d3_points),
-                            y == max(p['y'] for p in self.t1d3_points),
-                            z == min(p['z'] for p in self.t1d3_points),
-                            z == max(p['z'] for p in self.t1d3_points)]
-
-            data = self.find_data_on_border(d, f, which_border)
-            if which_border[0]:
-                grad_x = (data['x_plus'] - s)/self.dx
-            elif which_border[1]:
-                grad_x = (s - data['x_minus'])/self.dx
-            else:
-                grad_x = (data['x_plus'] - data['x_minus'])/(2.0*self.dx)
-
-            if which_border[2]:
-                grad_y = (data['y_plus'] - s)/self.dy
-            elif which_border[3]:
-                grad_y = (s - data['y_minus'])/self.dy
-            else:
-                grad_y = (data['y_plus'] - data['y_minus'])/(2.0*self.dy)
-
-            if which_border[4]:
-                grad_z = (data['z_plus'] - s)/self.dz
-            elif which_border[5]:
-                grad_z = (s - data['z_minus'])/self.dz
-            else:
-                grad_z = (data['z_plus'] - data['z_minus'])/(2.0*self.dz)
-
-        else:
-            data = self.find_data_in_point_plusminus(d, f)
-            grad_x = (data['x_plus'] - data['x_minus'])/(2.0*self.dx)
-            grad_y = (data['y_plus'] - data['y_minus'])/(2.0*self.dy)
-            grad_z = (data['z_plus'] - data['z_minus'])/(2.0*self.dz)
-
-        result = [grad_x, grad_y, grad_z]
-
-        return result
-
-
-    def gradient_from_finite_elements(self, f):
-        '''
-        assuming a regular grid
-        '''
-
-        print('calculating a gradient of ', f)
-        self.find_spacing_uniform_grid()
-
-        for i, p in enumerate(self.t1d3_points):
-            grad_f = self.gradient_from_finite_elements_value_in_point(p, f)
-            self.t1d3_points[i]['grad_x'] = grad_f[0]
-            self.t1d3_points[i]['grad_y'] = grad_f[1]
-            self.t1d3_points[i]['grad_z'] = grad_f[2]
-
-        return grad_f
 
 
     def selected_vector_element(self, f):
@@ -407,310 +132,273 @@ class t1d3():
 
 
 
+    def rortex(self, df):
+
+        # 1. first, work on points, in which the number of complex eigenvalues == 2
+        df2 = df.loc[df['number_complex_eigenvalues'] == 2]
+
+        # find vectors corresponding to complex and real eigenvalues,
+        # and rename variables as in Xu et al. Phys Fluids 31, 095102 (2019)
+        #lambda_ci = abs(eigval_complex[0].imag)
+        #lambda_cr =     eigval_complex[0].real
+        #lambda_r  =     eigval_real
+
+        #tmp = df2.apply(lambda x: find_real(x, label="eig_val_", ind_range=3), axis=1)
+        #df2['new']=tmp
+
+        # calculate the normalized real eigenvector corresponding to the real eigenvalue:
+        df2["eigvec_real_magn"] = df2.apply(lambda x: norm_of_vec(x, label="eig_vec_"+str(x["real_eigval_ind"][0])), axis=1)
+        df2["eigvec_real_normalized"] = df2.apply(lambda x: [e/(x["eigvec_real_magn"]) for e in x["eig_vec_"+str(x["real_eigval_ind"][0])]], axis=1)
+
+        print("DF2")
+        pprint(df2)
+        #pprint(df2[["eig_val_0", "eig_val_1", "eig_val_2", "real_eigval_ind"]])
+
+        # 2. then, work on the remaining points
+        df3 = df.loc[df['number_complex_eigenvalues'] != 2]
 
 
-    def test_eigendecomposition(self, eig_val, eig_vec, mat):
 
-        epsilon=1.0e-8
 
+
+        #if (point_data['number_complex_eigenvalues'] == 2):
+
+        #    eigval_complex=[]
+        #    eigvec_complex=[]
+
+        #    for iv, v in enumerate([point_data['dv_eig_val1'], point_data['dv_eig_val2'], point_data['dv_eig_val3']]):
+
+        #        # TODO: check how robust this is
+
+        #        if isinstance(v, complex):
+        #            eigval_complex.append(v)
+        #            if (iv == 0):
+        #                eigvec_complex.append([point_data['dv_eig_vec1_x'], point_data['dv_eig_vec1_y'], point_data['dv_eig_vec1_z']])
+        #            if (iv == 1):
+        #                eigvec_complex.append([point_data['dv_eig_vec2_x'], point_data['dv_eig_vec2_y'], point_data['dv_eig_vec2_z']])
+        #            if (iv == 2):
+        #                eigvec_complex.append([point_data['dv_eig_vec3_x'], point_data['dv_eig_vec3_y'], point_data['dv_eig_vec3_z']])
+
+        #        else:
+        #            eigval_real = v
+        #            if (iv == 0):
+        #                eigvec_real   = [point_data['dv_eig_vec1_x'], point_data['dv_eig_vec1_y'], point_data['dv_eig_vec1_z']]
+        #            if (iv == 1):
+        #                eigvec_real   = [point_data['dv_eig_vec2_x'], point_data['dv_eig_vec2_y'], point_data['dv_eig_vec2_z']]
+        #            if (iv == 2):
+        #                eigvec_real   = [point_data['dv_eig_vec3_x'], point_data['dv_eig_vec3_y'], point_data['dv_eig_vec3_z']]
+
+        #            # make sure that all components of this eigenvector are real (gradient tensor has real entries)
+        #            for e in eigvec_real:
+        #                if isinstance(e, complex) and e.imag != 0.0:
+        #                    raise Exception('the real eigenvector has complex elements, check the eigendecomposition!')
+        #            eigvec_real = [e.real for e in eigvec_real]
+
+        #    # finally calculate rortex vector
+        #    # these are eqs. 33 and 34 in Xu et al. Phys Fluids 31, 095102 (2019)
+
+        #    # step 1: eq. 30
+        #    omega_cdot_r = self.t1d3_points[point_index]['curlv_x']*eigvec_real_normalized[0] \
+        #                 + self.t1d3_points[point_index]['curlv_y']*eigvec_real_normalized[1] \
+        #                 + self.t1d3_points[point_index]['curlv_z']*eigvec_real_normalized[2]
+        #    sign_changed = False
+        #    if (omega_cdot_r < 0.0):
+        #        # eq. 30 in Xu et al. Phys Fluids 31, 095102 (2019)
+        #        omega_cdot_r = - omega_cdot_r
+        #        sign_changed = True
+
+        #    # step 2: eq. 33
+        #    val = omega_cdot_r**2 - 4*(lambda_ci**2)
+        #    if (val < 0.0):
+        #        raise Exception('WARNING: omega_cdot_r**2 - 4*(lambda_ci**2) < 0 and equals {}'.format(val))
+
+        #    rortex_magnitude = omega_cdot_r - np.sqrt(val)
+
+        #    self.t1d3_points[point_index]['rortex_magnitude'] = rortex_magnitude
+
+        #    # step 3: eq. 34
+        #    if sign_changed:
+        #        factor = -1.0
+        #    else:
+        #        factor = 1.0
+        #    self.t1d3_points[point_index]['rortex_vector_x'] = factor * rortex_magnitude * eigvec_real_normalized[0]
+        #    self.t1d3_points[point_index]['rortex_vector_y'] = factor * rortex_magnitude * eigvec_real_normalized[1]
+        #    self.t1d3_points[point_index]['rortex_vector_z'] = factor * rortex_magnitude * eigvec_real_normalized[2]
+
+        #    if self.input_options['projection_axis'] is not None:
+        #        # project rortex vector on a selected axis
+        #        # it is useful for plots (coloring)
+        #        rortex_cdot_axis = self.t1d3_points[point_index]['rortex_vector_x']*self.input_options['projection_axis'][0] \
+        #                         + self.t1d3_points[point_index]['rortex_vector_y']*self.input_options['projection_axis'][1] \
+        #                         + self.t1d3_points[point_index]['rortex_vector_z']*self.input_options['projection_axis'][2]
+        #        self.t1d3_points[point_index]['rortex_cdot_axis'] = rortex_cdot_axis
+
+
+        #    ## rortex in tensor form (eq. 3 in Xu et al. Phys Fluids 31, 095102 (2019)):
+        #    phi = 0.5*rortex_magnitude
+        #    self.t1d3_points[point_index]['rortex_tensor_xx'] =  0.0
+        #    self.t1d3_points[point_index]['rortex_tensor_xy'] = -phi
+        #    self.t1d3_points[point_index]['rortex_tensor_xz'] =  0.0
+        #    self.t1d3_points[point_index]['rortex_tensor_yx'] =  phi
+        #    self.t1d3_points[point_index]['rortex_tensor_yy'] =  0.0
+        #    self.t1d3_points[point_index]['rortex_tensor_yz'] =  0.0
+        #    self.t1d3_points[point_index]['rortex_tensor_zx'] =  0.0
+        #    self.t1d3_points[point_index]['rortex_tensor_zy'] =  0.0
+        #    self.t1d3_points[point_index]['rortex_tensor_zz'] =  0.0
+
+        #    if ('omega_rortex' in self.input_options['calc_from_tensor_1order_3d']):
+        #        # we use Eq. 36 from Xu et al. Phys Fluids 31, 095102 (2019)
+
+        #        omega_rortex = omega_cdot_r**2 / (2*(omega_cdot_r**2 - 2*(lambda_ci**2) + 2*(lambda_cr**2) + lambda_r**2))
+
+        #        grad_vec_magn = (self.t1d3_points[point_index]['dvx_dx']**2
+        #                       + self.t1d3_points[point_index]['dvx_dy']**2
+        #                       + self.t1d3_points[point_index]['dvx_dz']**2
+        #                       + self.t1d3_points[point_index]['dvy_dx']**2
+        #                       + self.t1d3_points[point_index]['dvy_dy']**2
+        #                       + self.t1d3_points[point_index]['dvy_dz']**2
+        #                       + self.t1d3_points[point_index]['dvz_dx']**2
+        #                       + self.t1d3_points[point_index]['dvz_dy']**2
+        #                       + self.t1d3_points[point_index]['dvz_dz']**2)
+
+        #        self.t1d3_points[point_index]['omega_rortex'] = omega_rortex
+        #        self.t1d3_cols.append('omega_rortex')
+
+        #else:
+        #    # TODO: what's best to do here?
+        #    # first let's assign these values to None
+        #    # in final analysis they will be set to 0
+        #    self.t1d3_points[point_index]['rortex_vector_x'] = None
+        #    self.t1d3_points[point_index]['rortex_vector_y'] = None
+        #    self.t1d3_points[point_index]['rortex_vector_z'] = None
+        #    self.t1d3_points[point_index]['rortex_magnitude'] = None
+
+        #    self.t1d3_points[point_index]['rortex_tensor_xx'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_xy'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_xz'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_yx'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_yy'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_yz'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_zx'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_zy'] = None
+        #    self.t1d3_points[point_index]['rortex_tensor_zz'] = None
+
+        #    self.t1d3_points[point_index]['omega_rortex'] = None
+        #    self.t1d3_points[point_index]['omega_rortex2'] = None
+
+        #    if self.input_options['projection_axis'] is not None:
+        #        self.t1d3_points[point_index]['rortex_cdot_axis'] = None
+
+
+        ## decide what to save on the output file:
+        #self.t1d3_cols.append('rortex_vector_x')
+        #self.t1d3_cols.append('rortex_vector_y')
+        #self.t1d3_cols.append('rortex_vector_z')
+        #self.t1d3_cols.append('rortex_magnitude')
+        #if self.input_options['projection_axis'] is not None:
+        #    self.t1d3_cols.append('rortex_cdot_axis')
+
+
+        #if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
+
+        #    self.t1d3_cols.append('rortex_tensor_xx')
+        #    self.t1d3_cols.append('rortex_tensor_xy')
+        #    self.t1d3_cols.append('rortex_tensor_xz')
+        #    self.t1d3_cols.append('rortex_tensor_yx')
+        #    self.t1d3_cols.append('rortex_tensor_yy')
+        #    self.t1d3_cols.append('rortex_tensor_yz')
+        #    self.t1d3_cols.append('rortex_tensor_zx')
+        #    self.t1d3_cols.append('rortex_tensor_zy')
+        #    self.t1d3_cols.append('rortex_tensor_zz')
+
+        #if self.input_options['fout_select'] == 'all':
+
+        #    self.t1d3_cols.append('number_complex_eigenvalues')
+
+        #    self.t1d3_cols.append('dv_eig_val1')
+        #    self.t1d3_cols.append('dv_eig_val2')
+        #    self.t1d3_cols.append('dv_eig_val3')
+
+        #    self.t1d3_cols.append('dv_eig_vec1_x')
+        #    self.t1d3_cols.append('dv_eig_vec1_y')
+        #    self.t1d3_cols.append('dv_eig_vec1_z')
+        #    self.t1d3_cols.append('dv_eig_vec2_x')
+        #    self.t1d3_cols.append('dv_eig_vec2_y')
+        #    self.t1d3_cols.append('dv_eig_vec2_z')
+        #    self.t1d3_cols.append('dv_eig_vec3_x')
+        #    self.t1d3_cols.append('dv_eig_vec3_y')
+        #    self.t1d3_cols.append('dv_eig_vec3_z')
+
+
+    def rortex_and_shear(self, verbose):
+
+        '''
+        algorithm implemented here is from Xu et al. Phys Fluids 31, 095102 (2019):
+        * rortex is calculated as in steps (1)-(4) from sec. II.C therein
+        * shear is calculated as the 'gradient of the vector field - rortex'
+
+        rortex and shear are in general presented as second-order tensors,
+        here:
+        * rortex is calculated in its vector form (see Xu et al. Phys Fluids 31, 095102 (2019))
+        * the elements of a shear tensor are calculated explicitly
+        (see eq. 2 and 4 in Xu et al. Phys Fluids 31, 095102 (2019))
+
+        we need the gradient of velocity vector field:
+
+        * the order of elements on the gradient tensor (after Xu, Phys.Fluids 31, 095102 (2019)):
+        
+         xx  xy  xz       dvx/dx  dvx/dy  dvx/dz 
+         yx  yy  yz  ->   dvy/dx  dvy/dy  dvy/dz
+         zx  zy  zz       dvz/dx  dvz/dy  dvz/dz
+        
+        gosia TODO - this needs testing
+        '''
+
+        # 1. construct the gradient tensor
+        tmp = [x for x in global_data.grad_cols_to_use['t1d3'] if x not in self.data.columns]
+        if tmp:
+            self.data['t1_dx'], self.data['t1_dy'], self.data['t1_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't1') 
+            self.data['t2_dx'], self.data['t2_dy'], self.data['t2_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't2') 
+            self.data['t3_dx'], self.data['t3_dy'], self.data['t3_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't3') 
+
+
+        full_grad_tensor = self.data[['t1_dx', 't1_dy', 't1_dz',
+                                      't2_dx', 't2_dy', 't2_dz',
+                                      't3_dx', 't3_dy', 't3_dz']].rename(columns={
+                                      't1_dx':'t11', 't1_dy':'t12', 't1_dz':'t13',
+                                      't2_dx':'t21', 't2_dy':'t22', 't2_dz':'t23',
+                                      't3_dx':'t31', 't3_dy':'t32', 't3_dz':'t33'})
+
+        print("full_grad_tensor")
+        pprint(full_grad_tensor)
+
+        # 2. do the eigendecomposition of the gradient tensor (pointwise):
+        full_grad_tensor["t2d3_as_npndarray"] = full_grad_tensor.apply(lambda row: row.to_numpy().reshape((3,3)), axis=1)
+        tmp = full_grad_tensor.apply(lambda x: tensor_eigendecomposition(x["t2d3_as_npndarray"]), axis=1)
+        tmp = pd.DataFrame(tmp.tolist(), index=tmp.index)
+        full_grad_tensor["number_complex_eigenvalues"] = tmp["number_complex_eigenvalues"]
+        full_grad_tensor["real_eigval_ind"] = tmp["real_eigval_ind"]
+        full_grad_tensor["eig_pair_0"] = tmp["eig_pair_0"]
+        full_grad_tensor["eig_pair_1"] = tmp["eig_pair_1"]
+        full_grad_tensor["eig_pair_2"] = tmp["eig_pair_2"]
         for i in range(3):
+            full_grad_tensor["eig_val_"+str(i)]  = [x[0] for x in tmp["eig_pair_"+str(i)]]
+            full_grad_tensor["eig_vec_"+str(i)]  = [x[1] for x in tmp["eig_pair_"+str(i)]]
 
-            e_vec = eig_vec[:, i]
-            e_val = eig_val[i]
 
-            if isinstance(e_vec, complex) and e_vec.imag == 0:
-                e_vec=e_vec.real
-            if isinstance(e_val, complex) and e_val.imag == 0:
-                e_val = e_val.real
+        print("AFTER EIG:")
+        #pprint(tmp)
+        print(full_grad_tensor.columns)
+        pprint(full_grad_tensor)
 
-            l = np.dot(mat, e_vec)
-            r = e_val*e_vec
-            #if not np.allclose(l, r, atol=epsilon):
-            #    raise Exception('Error in eigendecomposition: A*v != lambda*v')
-            diff = abs(l - r)
-            for j, d in enumerate(diff):
-                if d > epsilon:
-                    raise Exception('Error in eigendecomposition: A*v = {} while lambda*v = {}'.format(l[j], r[j]))
 
+        # 3. calculate rortex and shear
+        self.rortex(full_grad_tensor)
+            #self.shear_in_point(i, d, full_grad_tensor)
 
 
-    #def tensor_eigendecomposition(self, point_index, fullgradtensor):
-
-    #    eigenvalues, eigenvectors = la.eig(fullgradtensor)
-
-    #    # eigenvectors are in columns of "eigenvectors"
-    #    # corresponding eigenvalues are in "eigenvalues" (in the same order)
-    #    e_vec1 = eigenvectors[:, 0]
-    #    e_vec2 = eigenvectors[:, 1]
-    #    e_vec3 = eigenvectors[:, 2]
-
-    #    # double check: test the eigendecomposition:
-    #    # todo: refactor using decorators
-    #    test_eig=True
-    #    if test_eig:
-    #        self.test_eigendecomposition(eigenvalues, eigenvectors, fullgradtensor)
-
-    #    e_val = []
-    #    number_complex_eigenvalues = 0
-
-    #    for e in eigenvalues:
-    #        if isinstance(e, complex):
-    #            if (e.imag==0.0):
-    #                # TODO: might be better to use the threshold to cut out very small values
-    #                e_val.append(e.real)
-    #                #print('WARNING: small imaginary part of eigenvalue: {}'.format(e))
-    #            else:
-    #                e_val.append(e)
-    #                number_complex_eigenvalues += 1
-    #        else:
-    #            e_val.append(e)
-
-    #    self.t1d3_points[point_index]['dv_eig_val1']  = e_val[0]
-    #    self.t1d3_points[point_index]['dv_eig_val2']  = e_val[1]
-    #    self.t1d3_points[point_index]['dv_eig_val3']  = e_val[2]
-
-    #    self.t1d3_points[point_index]['dv_eig_vec1_x']  = e_vec1[0]
-    #    self.t1d3_points[point_index]['dv_eig_vec1_y']  = e_vec1[1]
-    #    self.t1d3_points[point_index]['dv_eig_vec1_z']  = e_vec1[2]
-
-    #    self.t1d3_points[point_index]['dv_eig_vec2_x']  = e_vec2[0]
-    #    self.t1d3_points[point_index]['dv_eig_vec2_y']  = e_vec2[1]
-    #    self.t1d3_points[point_index]['dv_eig_vec2_z']  = e_vec2[2]
-
-    #    self.t1d3_points[point_index]['dv_eig_vec3_x']  = e_vec3[0]
-    #    self.t1d3_points[point_index]['dv_eig_vec3_y']  = e_vec3[1]
-    #    self.t1d3_points[point_index]['dv_eig_vec3_z']  = e_vec3[2]
-
-    #    self.t1d3_points[point_index]['number_complex_eigenvalues']  = number_complex_eigenvalues
-
-
-
-    #def rortex_in_point(self, point_index, point_data):
-
-
-    #    if (point_data['number_complex_eigenvalues'] == 2):
-
-    #        eigval_complex=[]
-    #        eigvec_complex=[]
-
-    #        for iv, v in enumerate([point_data['dv_eig_val1'], point_data['dv_eig_val2'], point_data['dv_eig_val3']]):
-
-    #            # TODO: check how robust this is
-
-    #            if isinstance(v, complex):
-    #                eigval_complex.append(v)
-    #                if (iv == 0):
-    #                    eigvec_complex.append([point_data['dv_eig_vec1_x'], point_data['dv_eig_vec1_y'], point_data['dv_eig_vec1_z']])
-    #                if (iv == 1):
-    #                    eigvec_complex.append([point_data['dv_eig_vec2_x'], point_data['dv_eig_vec2_y'], point_data['dv_eig_vec2_z']])
-    #                if (iv == 2):
-    #                    eigvec_complex.append([point_data['dv_eig_vec3_x'], point_data['dv_eig_vec3_y'], point_data['dv_eig_vec3_z']])
-
-    #            else:
-    #                eigval_real = v
-    #                if (iv == 0):
-    #                    eigvec_real   = [point_data['dv_eig_vec1_x'], point_data['dv_eig_vec1_y'], point_data['dv_eig_vec1_z']]
-    #                if (iv == 1):
-    #                    eigvec_real   = [point_data['dv_eig_vec2_x'], point_data['dv_eig_vec2_y'], point_data['dv_eig_vec2_z']]
-    #                if (iv == 2):
-    #                    eigvec_real   = [point_data['dv_eig_vec3_x'], point_data['dv_eig_vec3_y'], point_data['dv_eig_vec3_z']]
-
-    #                # make sure that all components of this eigenvector are real (gradient tensor has real entries)
-    #                for e in eigvec_real:
-    #                    if isinstance(e, complex) and e.imag != 0.0:
-    #                        raise Exception('the real eigenvector has complex elements, check the eigendecomposition!')
-    #                eigvec_real = [e.real for e in eigvec_real]
-
-    #        # calculate the normalized real eigenvector corresponding to the real eigenvalue:
-    #        eigvec_real_magn       = np.sqrt(eigvec_real[0]**2 + eigvec_real[1]**2 + eigvec_real[2]**2)
-    #        eigvec_real_normalized = [e/eigvec_real_magn for e in eigvec_real]
-
-    #        # rename variables as in Xu et al. Phys Fluids 31, 095102 (2019)
-    #        lambda_ci = abs(eigval_complex[0].imag)
-    #        lambda_cr =     eigval_complex[0].real
-    #        lambda_r  =     eigval_real
-
-    #        # finally calculate rortex vector
-    #        # these are eqs. 33 and 34 in Xu et al. Phys Fluids 31, 095102 (2019)
-
-    #        # step 1: eq. 30
-    #        omega_cdot_r = self.t1d3_points[point_index]['curlv_x']*eigvec_real_normalized[0] \
-    #                     + self.t1d3_points[point_index]['curlv_y']*eigvec_real_normalized[1] \
-    #                     + self.t1d3_points[point_index]['curlv_z']*eigvec_real_normalized[2]
-    #        sign_changed = False
-    #        if (omega_cdot_r < 0.0):
-    #            # eq. 30 in Xu et al. Phys Fluids 31, 095102 (2019)
-    #            omega_cdot_r = - omega_cdot_r
-    #            sign_changed = True
-
-    #        # step 2: eq. 33
-    #        val = omega_cdot_r**2 - 4*(lambda_ci**2)
-    #        if (val < 0.0):
-    #            raise Exception('WARNING: omega_cdot_r**2 - 4*(lambda_ci**2) < 0 and equals {}'.format(val))
-
-    #        rortex_magnitude = omega_cdot_r - np.sqrt(val)
-
-    #        self.t1d3_points[point_index]['rortex_magnitude'] = rortex_magnitude
-
-    #        # step 3: eq. 34
-    #        if sign_changed:
-    #            factor = -1.0
-    #        else:
-    #            factor = 1.0
-    #        self.t1d3_points[point_index]['rortex_vector_x'] = factor * rortex_magnitude * eigvec_real_normalized[0]
-    #        self.t1d3_points[point_index]['rortex_vector_y'] = factor * rortex_magnitude * eigvec_real_normalized[1]
-    #        self.t1d3_points[point_index]['rortex_vector_z'] = factor * rortex_magnitude * eigvec_real_normalized[2]
-
-    #        if self.input_options['projection_axis'] is not None:
-    #            # project rortex vector on a selected axis
-    #            # it is useful for plots (coloring)
-    #            rortex_cdot_axis = self.t1d3_points[point_index]['rortex_vector_x']*self.input_options['projection_axis'][0] \
-    #                             + self.t1d3_points[point_index]['rortex_vector_y']*self.input_options['projection_axis'][1] \
-    #                             + self.t1d3_points[point_index]['rortex_vector_z']*self.input_options['projection_axis'][2]
-    #            self.t1d3_points[point_index]['rortex_cdot_axis'] = rortex_cdot_axis
-
-
-    #        ## rortex in tensor form (eq. 3 in Xu et al. Phys Fluids 31, 095102 (2019)):
-    #        phi = 0.5*rortex_magnitude
-    #        self.t1d3_points[point_index]['rortex_tensor_xx'] =  0.0
-    #        self.t1d3_points[point_index]['rortex_tensor_xy'] = -phi
-    #        self.t1d3_points[point_index]['rortex_tensor_xz'] =  0.0
-    #        self.t1d3_points[point_index]['rortex_tensor_yx'] =  phi
-    #        self.t1d3_points[point_index]['rortex_tensor_yy'] =  0.0
-    #        self.t1d3_points[point_index]['rortex_tensor_yz'] =  0.0
-    #        self.t1d3_points[point_index]['rortex_tensor_zx'] =  0.0
-    #        self.t1d3_points[point_index]['rortex_tensor_zy'] =  0.0
-    #        self.t1d3_points[point_index]['rortex_tensor_zz'] =  0.0
-
-    #        if ('omega_rortex' in self.input_options['calc_from_tensor_1order_3d']):
-    #            # we use Eq. 36 from Xu et al. Phys Fluids 31, 095102 (2019)
-
-    #            omega_rortex = omega_cdot_r**2 / (2*(omega_cdot_r**2 - 2*(lambda_ci**2) + 2*(lambda_cr**2) + lambda_r**2))
-
-    #            grad_vec_magn = (self.t1d3_points[point_index]['dvx_dx']**2
-    #                           + self.t1d3_points[point_index]['dvx_dy']**2
-    #                           + self.t1d3_points[point_index]['dvx_dz']**2
-    #                           + self.t1d3_points[point_index]['dvy_dx']**2
-    #                           + self.t1d3_points[point_index]['dvy_dy']**2
-    #                           + self.t1d3_points[point_index]['dvy_dz']**2
-    #                           + self.t1d3_points[point_index]['dvz_dx']**2
-    #                           + self.t1d3_points[point_index]['dvz_dy']**2
-    #                           + self.t1d3_points[point_index]['dvz_dz']**2)
-
-    #            self.t1d3_points[point_index]['omega_rortex'] = omega_rortex
-    #            self.t1d3_cols.append('omega_rortex')
-
-    #    else:
-    #        # TODO: what's best to do here?
-    #        # first let's assign these values to None
-    #        # in final analysis they will be set to 0
-    #        self.t1d3_points[point_index]['rortex_vector_x'] = None
-    #        self.t1d3_points[point_index]['rortex_vector_y'] = None
-    #        self.t1d3_points[point_index]['rortex_vector_z'] = None
-    #        self.t1d3_points[point_index]['rortex_magnitude'] = None
-
-    #        self.t1d3_points[point_index]['rortex_tensor_xx'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_xy'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_xz'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_yx'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_yy'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_yz'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_zx'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_zy'] = None
-    #        self.t1d3_points[point_index]['rortex_tensor_zz'] = None
-
-    #        self.t1d3_points[point_index]['omega_rortex'] = None
-    #        self.t1d3_points[point_index]['omega_rortex2'] = None
-
-    #        if self.input_options['projection_axis'] is not None:
-    #            self.t1d3_points[point_index]['rortex_cdot_axis'] = None
-
-
-    #    # decide what to save on the output file:
-    #    self.t1d3_cols.append('rortex_vector_x')
-    #    self.t1d3_cols.append('rortex_vector_y')
-    #    self.t1d3_cols.append('rortex_vector_z')
-    #    self.t1d3_cols.append('rortex_magnitude')
-    #    if self.input_options['projection_axis'] is not None:
-    #        self.t1d3_cols.append('rortex_cdot_axis')
-
-
-    #    if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
-
-    #        self.t1d3_cols.append('rortex_tensor_xx')
-    #        self.t1d3_cols.append('rortex_tensor_xy')
-    #        self.t1d3_cols.append('rortex_tensor_xz')
-    #        self.t1d3_cols.append('rortex_tensor_yx')
-    #        self.t1d3_cols.append('rortex_tensor_yy')
-    #        self.t1d3_cols.append('rortex_tensor_yz')
-    #        self.t1d3_cols.append('rortex_tensor_zx')
-    #        self.t1d3_cols.append('rortex_tensor_zy')
-    #        self.t1d3_cols.append('rortex_tensor_zz')
-
-    #    if self.input_options['fout_select'] == 'all':
-
-    #        self.t1d3_cols.append('number_complex_eigenvalues')
-
-    #        self.t1d3_cols.append('dv_eig_val1')
-    #        self.t1d3_cols.append('dv_eig_val2')
-    #        self.t1d3_cols.append('dv_eig_val3')
-
-    #        self.t1d3_cols.append('dv_eig_vec1_x')
-    #        self.t1d3_cols.append('dv_eig_vec1_y')
-    #        self.t1d3_cols.append('dv_eig_vec1_z')
-    #        self.t1d3_cols.append('dv_eig_vec2_x')
-    #        self.t1d3_cols.append('dv_eig_vec2_y')
-    #        self.t1d3_cols.append('dv_eig_vec2_z')
-    #        self.t1d3_cols.append('dv_eig_vec3_x')
-    #        self.t1d3_cols.append('dv_eig_vec3_y')
-    #        self.t1d3_cols.append('dv_eig_vec3_z')
-
-
-    #def rortex_and_shear(self):
-
-    #    '''
-    #    algorithm implemented here is from Xu et al. Phys Fluids 31, 095102 (2019):
-    #    * rortex is calculated as in steps (1)-(4) from sec. II.C therein
-    #    * shear is calculated as the 'gradient of the vector field - rortex'
-
-    #    rortex and shear are in general presented as second-order tensors,
-    #    here:
-    #    * rortex is calculated in its vector form (see Xu et al. Phys Fluids 31, 095102 (2019))
-    #    * the elements of a shear tensor are calculated explicitly
-    #    (see eq. 2 and 4 in Xu et al. Phys Fluids 31, 095102 (2019))
-
-    #    we need the gradient of velocity vector field:
-
-    #    * the order of elements on the gradient tensor (after Xu, Phys.Fluids 31, 095102 (2019)):
-    #    
-    #     xx  xy  xz       dvx/dx  dvx/dy  dvx/dz 
-    #     yx  yy  yz  ->   dvy/dx  dvy/dy  dvy/dz
-    #     zx  zy  zz       dvz/dx  dvz/dy  dvz/dz
-    #    
-    #    gosia TODO - this needs testing
-    #    '''
-
-    #    # calculate vorticity
-    #    self.vorticity()
-
-
-    #    for i, d in enumerate(self.t1d3_points):
-
-    #        # 1. construct the gradient tensor
-    #        full_grad_tensor = np.array([ [d['dvx_dx'], d['dvx_dy'], d['dvx_dz']],
-    #                                      [d['dvy_dx'], d['dvy_dy'], d['dvy_dz']],
-    #                                      [d['dvz_dx'], d['dvz_dy'], d['dvz_dz']] ],
-    #                                     dtype=np.float64)
-
-    #        # 2. do the eigendecomposition of the gradient tensor:
-    #        self.tensor_eigendecomposition(i, full_grad_tensor)
-
-    #        # 3. calculate rortex
-    #        self.rortex_in_point(i, d)
-
-    #        # 4. calculate shear:
-    #        # FIXME
-    #        #self.shear_in_point(i, d, full_grad_tensor)
+        # 4. save results
+        #self.data['rortex_magnitude'] = rortex_magnitude
 
 
 
@@ -794,7 +482,7 @@ class t1d3():
 
 
 
-    def norm(self, verbose=False):
+    def norm(self, verbose):
         """
         calculate the L2 norm of a 3d vector
 
@@ -817,7 +505,7 @@ class t1d3():
 
 
 
-    def mean(self, verbose=False):
+    def mean(self, verbose):
         """
         calculate the mean of vector elements
 
@@ -838,7 +526,7 @@ class t1d3():
 
 
 
-    def vorticity(self):
+    def vorticity(self, verbose):
 
         '''
         calculate the curl of the vector:

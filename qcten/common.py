@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.linalg as la
 import math
 import pandas as pd
 from pprint import pprint
@@ -119,6 +120,70 @@ def trace_of_t2d3(m):
     return df
 
 
+def tensor_eigendecomposition(m):
+
+    """
+    entering m is 3x3 np.array
+    """
+
+    eigenvalues, eigenvectors = la.eig(m)
+
+    # eigenvectors are in columns of "eigenvectors" (eigenvectors[:, ind])
+    # corresponding eigenvalues are in "eigenvalues" (in the same order)
+
+    # double check: test the eigendecomposition:
+    # todo: refactor using decorators
+    test_eig=True
+    if test_eig:
+        test_eigendecomposition(eigenvalues, eigenvectors, m)
+
+    number_complex_eigenvalues = 0
+    res = {}
+    real_eigval_ind = []
+    for ind, e in enumerate(eigenvalues):
+        if isinstance(e, complex):
+            if (abs(e.imag) < 10**(-6)*abs(e.real)):
+                eigval = np.real(e)
+                real_eigval_ind.append(ind)
+            else:
+                eigval = e
+                number_complex_eigenvalues += 1
+        else:
+            eigval = e
+            real_eigval_ind.append(ind)
+        res['eig_pair_'+str(ind)] = [eigval, eigenvectors[:,ind]]
+    res['number_complex_eigenvalues'] = number_complex_eigenvalues
+    res['real_eigval_ind'] = real_eigval_ind
+
+    return res
+
+
+def test_eigendecomposition(eig_val, eig_vec, mat):
+
+    epsilon=1.0e-8
+
+    for i in range(len(eig_val)):
+
+        e_vec = eig_vec[:, i]
+        e_val = eig_val[i]
+
+        if isinstance(e_vec, complex) and e_vec.imag == 0:
+            e_vec=e_vec.real
+        if isinstance(e_val, complex) and e_val.imag == 0:
+            e_val = e_val.real
+
+        l = np.dot(mat, e_vec)
+        r = e_val*e_vec
+        #if not np.allclose(l, r, atol=epsilon):
+        #    raise Exception('Error in eigendecomposition: A*v != lambda*v')
+        diff = abs(l - r)
+        for j, d in enumerate(diff):
+            if d > epsilon:
+                raise Exception('Error in eigendecomposition: A*v = {} while lambda*v = {}'.format(l[j], r[j]))
+
+
+
+
 #
 # generic input
 #
@@ -133,9 +198,6 @@ def gradient(method, m, t):
 
     if method == 'numpy':
         grad = gradient_from_numpy(m, t)
-    elif method == 'finite_elements':
-        pass
-        #grad = gradient_from_finite_elements(m,t)
     else:
         print('warning: wrong argument of `--calc_grad_method`')
         grad=None
@@ -204,4 +266,23 @@ def get_grid_info(m):
     return dim_x, dim_y, dim_z, dim_cube
 
 
+#
+# other
+#
+
+
+def norm_of_vec(m, label):
+
+    tmp = 0
+    for i in range(3):
+        tmp = tmp + m[label][i]**2
+    return np.sqrt(tmp)
+
+
+def find_real(x, label, ind_range):
+    i_real=[]
+    for i in range(ind_range):
+        if isinstance(x[label+str(i)], float):
+            i_real.append(i)
+    return i_real
 

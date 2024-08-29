@@ -243,7 +243,7 @@ class input_data:
         optional_args.add_argument('--calc_grad_method',
                                    dest='calc_grad_method',
                                    action='store',
-                                   choices=['numpy', 'finite_elements'],
+                                   choices=['numpy'],
                                    required=False,
                                    help='''
                                         how to calculate the gradient of a tensor

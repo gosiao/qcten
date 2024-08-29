@@ -1,23 +1,22 @@
 # 
 # 1. decide which files with input data should be read in:
 #
---finp=../testdata/lih_jbtensor_cubegrid10/data.csv; [x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; \s+; 1
---finp=../testdata/lih_jbtensor_cubegrid10/gradjbz.csv; [x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]; \s+; 0
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/gradjbz.csv; cols=[x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]; sep= ; skip=1
 #
-# 2. decide which columns correspond to grid points (same grid for every --finp is assumed!)
+# 2. columns corresponding to grid points
 #
 #    order of grid points coordinates:
 #       x, y, z
 --grid=[x, y, z]
 #
-# 3. decide which data 'makes a vector':
-#     * the names of vector elements must match the names of (selected) columns on input files read in point 1 (with --finp). 
-#     * the order of vector elements matters! see below:
+# 3. columns corresponding to a vectr:
+#     * the names of vector elements must match the names of columns on input files read in point 1
+#     * the order of vector elements matters; here we feature \vec{j}^{B_z} vector
 #
-#                  order of vector elements:
-#                  x       y      z
---form_vector_3d=[bz_jx, bz_jy, bz_jz]
-#
+#                         order of vector elements:
+#              vec{v} =  [  vx,    vy,   vz]
+--form_tensor_1order_3d=[bz_jx, bz_jy, bz_jz]
 #
 # 4. in this test we are using the gradient of a vector read in from a file (--use_grad_from_file)
 #    so here we decide which data 'makes a tensor' corresponding to that gradient:
@@ -25,21 +24,24 @@
 #     * the order of tensor elements matters! see below:
 #
 #  grad(\vec{v}) =    [d(vx)/dx,    d(vx)/dy,    d(vx)/dz,    d(vy)/dx,    d(vy)/dy,    d(vy)/dz,    d(vz)/dx,    d(vz)/dy,    d(vz)/dz]
---form_grad_vector_3d=[bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
+--form_grad_tensor_1order_3d=[bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
 --use_grad_from_file=True
 #
-# 5. decide what you want to calculate for this vector:
+# 5. vector function to calculate:
 #
---calc_from_vector_3d=rortex
+#
+--calc_from_tensor_1order_3d=rortex
 # additionally: fill empty fields with 0
---rortex_fill_empty=0
+#--rortex_fill_empty=0
 #
-# 6. we also select z-direction, this will additionally print out the 'selected_axis cdot vectors'
+# 6. since we plan to write to vti by calling ttk,
+#    add a few simple options to test
 #
---selected_axis=[0,0,1]
+--resampled_dim=10,10,10
 #
 # 7. decide what output you need:
 #
---fout=result.csv
---fout_select=result_only
+--fout=csv; rortex_jbz.csv; cols=[x, y, z, rortex_magnitude:rortex_magnitude_jbz]
+--fout=vti; rortex_jbz.vti; cols=[x, y, z, rortex_magnitude:rortex_magnitude_jbz]
+--fout_select=all
 --flog=result_log.txt
