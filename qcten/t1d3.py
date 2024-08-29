@@ -105,19 +105,6 @@ class t1d3():
 
 
 
-    def get_grid_info(self):
-
-        """
-        if the grid is regular, then calculate grid spacing
-        """
-
-        # TODO: add a flag for it
-        self.dim_x = len(np.unique([p['x'] for p in self.t1d3_points]))
-        self.dim_y = len(np.unique([p['y'] for p in self.t1d3_points]))
-        self.dim_z = len(np.unique([p['z'] for p in self.t1d3_points]))
-        self.dim_cube = self.dim_x * self.dim_y * self.dim_z
-
-
     def assign_t1d3_output_names(self, verbose=False):
 
         """
@@ -244,43 +231,6 @@ class t1d3():
 
 
     #    pass
-
-
-    def find_spacing_uniform_grid(self):
-
-        '''
-        find spacing between grid points in x, y, z directions
-        we assume a regular grid
-        '''
-
-        print('TU: find_spacing_uniform_grid :', self.t1d3_points)
-
-        x0 = self.t1d3_points[0]['x']
-        y0 = self.t1d3_points[0]['y']
-        z0 = self.t1d3_points[0]['z']
-
-        dx = abs(x0)
-        dy = abs(y0)
-        dz = abs(z0)
-
-        for p in self.t1d3_points[1:]:
-            x = p['x']
-            y = p['y']
-            z = p['z']
-            if (abs(x - x0) < dx) and (abs(x - x0) > 0):
-                dx = abs(x - x0)
-            if (abs(y - y0) < dy) and (abs(y - y0) > 0):
-                dy = abs(y - y0)
-            if (abs(z - z0) < dz) and (abs(z - z0) > 0):
-                dz = abs(z - z0)
-
-        self.dx = dx
-        self.dy = dy
-        self.dz = dz
-
-        print('find_spacing_uniform_grid :', x0, y0, z0, self.dx, self.dy, self.dz)
-        with open(self.flog, 'a') as f:
-            f.write('Grid spacing: dx, dy, dz = {}, {}, {}\n'.format(dx, dy, dz))
 
 
     def find_data_in_point_plusminus(self, d, f):
@@ -470,26 +420,6 @@ class t1d3():
         return grad_f
 
 
-    def test_grad_numpy(self, f):
-
-        '''
-        be careful, this works OK if f has at most quadratix dependence on r
-        otherwise the approximation is too hars (see jupyter notebook in test_gradient)
-        TODO: requires more testing
-        '''
-
-        f_values = np.array([p[f] for p in self.t1d3_points], dtype=np.float64)
-        f_array  = f_values.reshape((self.dim_x, self.dim_y, self.dim_z))
-
-        grad_f   = np.gradient(f_array, self.dx, self.dy, self.dz, edge_order=2)
-        grad_f_x = grad_f[0].reshape((self.dim_cube))
-        grad_f_y = grad_f[1].reshape((self.dim_cube))
-        grad_f_z = grad_f[2].reshape((self.dim_cube))
-
-
-        return [grad_f_x, grad_f_y, grad_f_z]
-
-
     def selected_vector_element(self, f):
         '''
         vector elements are read into self.t1d3['vx'], self.t1d3['vy'], self.t1d3['vz']
@@ -507,21 +437,6 @@ class t1d3():
 
 
 
-    def gradient(self, f):
-        '''
-        calculate the gradient of f
-        f is a selected element of a vector
-        '''
-
-        if self.input_options['calc_from_tensor_1order_3d_calc_grad'] == 'numpy':
-            grad = self.test_grad_numpy(f)
-        elif self.input_options['calc_from_tensor_1order_3d_calc_grad'] == 'finite_elements':
-            grad = self.gradient_from_finite_elements(f)
-        else:
-            print('warning: wrong choice of calc_from_tensor_1order_3d_calc_grad')
-            grad=None
-
-        return grad
 
 
     def test_eigendecomposition(self, eig_val, eig_vec, mat):
@@ -968,34 +883,29 @@ class t1d3():
 
         '''
 
-        # TODO call need_gradient + refactor
+        tmp = [x for x in global_data.grad_cols_to_use['t1d3'] if x not in self.data.columns]
+        if tmp:
+            self.data['t1_dx'], self.data['t1_dy'], self.data['t1_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't1') 
+            self.data['t2_dx'], self.data['t2_dy'], self.data['t2_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't2') 
+            self.data['t3_dx'], self.data['t3_dy'], self.data['t3_dz'] = gradient(self.input_options['calc_grad_method'], self.data, 't3') 
 
-        if not self.input_options['use_grad_from_file']:
-            print('error! todo: gradient data not available on input')
-        else:
+        curlv_x = self.data['t3_dy'] - self.data['t2_dz']
+        curlv_y = self.data['t1_dz'] - self.data['t3_dx']
+        curlv_z = self.data['t2_dx'] - self.data['t1_dy']
 
-            curlv_x = self.data['t3_dy'] - self.data['t2_dz']
-            curlv_y = self.data['t1_dz'] - self.data['t3_dx']
-            curlv_z = self.data['t2_dx'] - self.data['t1_dy']
+        curlv_magnitude = np.sqrt(curlv_x**2 + curlv_y**2 + curlv_z**2)
 
-            curlv_magnitude = np.sqrt(curlv_x**2 + curlv_y**2 + curlv_z**2)
+        self.data['curlv_x'] = curlv_x
+        self.data['curlv_y'] = curlv_y
+        self.data['curlv_z'] = curlv_z
+        self.data['curlv_magnitude'] = curlv_magnitude
 
-            self.data['curlv_x'] = curlv_x
-            self.data['curlv_y'] = curlv_y
-            self.data['curlv_z'] = curlv_z
-            self.data['curlv_magnitude'] = curlv_magnitude
+        if self.input_options['projection_axis'] is not None:
+            curlv_cdot_axis = self.data['curlv_x']*self.data['projection_axis_x'] \
+                            + self.data['curlv_y']*self.data['projection_axis_y'] \
+                            + self.data['curlv_z']*self.data['projection_axis_z']
 
-            #if self.input_options['projection_axis'] is not None:
-            #    args = [arg.strip().strip('[').strip(']') for arg in self.input_options['projection_axis'].split(',')]
-            #    self.projection_axis['x'] = int(args[0])
-            #    self.projection_axis['y'] = int(args[1])
-            #    self.projection_axis['z'] = int(args[2])
-
-            #    curlv_cdot_axis = self.t1d3_points[i]['curlv_x']*self.projection_axis['x'] \
-            #                    + self.t1d3_points[i]['curlv_y']*self.projection_axis['y'] \
-            #                    + self.t1d3_points[i]['curlv_z']*self.projection_axis['z']
-
-            #    self.t1d3_points[i]['curlv_cdot_axis'] = curlv_cdot_axis
+            self.data['curlv_cdot_axis'] = curlv_cdot_axis
 
 
 

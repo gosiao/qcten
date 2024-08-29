@@ -474,17 +474,14 @@ class work():
         take care of missing data, exceptions, etc.
         """
 
-        print("COL0:", self.fulldata.columns)
         if self.options['grid'] is None:
             msg = 'ERROR: check `--grid` in your input'
             sys.exit(msg)
         else:
             for col in global_data.grid_cols_to_use['rectilinear_3d']:
-                print("COL:", col)
                 if col not in self.fulldata.columns:
                     msg = 'ERROR: missing assignment to `--grid`'
                     sys.exit(msg)
-            # fixme: get grid data
 
         if label == "t1d3":
             if self.options['calc_from_tensor_1order_3d'] is None:
@@ -504,10 +501,20 @@ class work():
                 for arg in self.options['calc_from_tensor_1order_3d']:
                     if (arg in global_data.fun_t1d3_req_grad):
                         if self.options['use_grad_from_file']:
-                            print('Gradient of t1d3 is read from file')
+                            print('Gradient of t1d3 will be read from file')
                         else:
-                            print('Gradient of t1d3 will be calculated')
+                            if self.options['calc_grad_method'] == 'numpy':
+                                print('Gradient of t1d3 will be calculated using numpy')
+                            else:
+                                print('Other methods for calculating the gradient are not available')
+                                sys.exit(1)
 
 
+
+        if self.options['projection_axis'] is not None:
+            args = [arg.strip().strip('[').strip(']') for arg in self.options['projection_axis'].split(',')]
+            self.fulldata["projection_axis_x"] = int(args[0])
+            self.fulldata["projection_axis_y"] = int(args[1])
+            self.fulldata["projection_axis_z"] = int(args[2])
 
 
