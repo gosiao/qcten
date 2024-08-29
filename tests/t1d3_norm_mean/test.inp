@@ -30,6 +30,6 @@
 # 6. decide what output you need:
 #
 --fout=csv; mean_norm.csv; cols=[x, y, z, mean:mean_j_bz, norm:norm_j_bz]
---fout=vti; mean_norm.vti; cols=[x, y, z, mean:mean_j_bz, norm:norm_j_bz]
+--fout=vti; mean_norm.vti; cols=[x, y, z, mean:mean_j_bz_for_vti, norm:norm_j_bz_for_vti]
 --fout_select=all
 --flog=result_log.txt

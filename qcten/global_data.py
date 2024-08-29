@@ -39,7 +39,8 @@ class global_data:
 
     # functions that require the gradient of a vector
     # ===============================================
-    fun_t1d3_req_grad = ['rortex',
+    fun_t1d3_req_grad = ['vorticity',
+                         'rortex',
                          'omega_rortex',
                          'rortex_cdot_axis',
                          'omega']

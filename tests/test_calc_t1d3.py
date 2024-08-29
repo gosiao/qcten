@@ -107,6 +107,7 @@ def list_viable_tests(test_paths=None):
                 #"t0d3_vti_from_txt",
                 #"t1d3_omega",
                 "t1d3_norm_mean",
+                "t1d3_vorticity",
                 #"t2d3_trace"
                 #"t2d3_invariants"
                 ]

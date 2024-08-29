@@ -21,7 +21,8 @@ class t1d3():
 
     def __init__(self, cli_options, output_options, input_data):
 
-        # general setup
+        #
+        # input data and general setup
         self.input_options   = cli_options # FIXME - move this out
         self.output_options  = output_options
         self.data            = input_data  # dataframe to work on
@@ -43,17 +44,25 @@ class t1d3():
         # variables to be saved to the output:
         self.t1d3_cols     = []
 
+        #
+        # grid
+        #
+
+        # grid points
+        self.x = self.data['x']
+        self.y = self.data['y']
+        self.z = self.data['z']
         # grid spacing
         self.dx = 0
         self.dy = 0
         self.dz = 0
-
         # grid dimensions
         self.dim_x = 0
         self.dim_y = 0
         self.dim_z = 0
         self.dim_cube = 0
 
+        # other
         self.projection_axis = {}
 
 
@@ -74,15 +83,16 @@ class t1d3():
             if (arg == 'norm'):
                 self.norm()
 
-#            if (arg == 'vorticity'):
-#                #self.get_t1d3_gradient()
-#                self.vorticity()
+            if (arg == 'mean'):
+                self.mean()
+
+            if (arg == 'vorticity'):
+                #self.get_t1d3_gradient()
+                self.vorticity()
 #
 #            if (arg == 'omega'):
 #                self.omega(verbose=verbose)
 #
-            if (arg == 'mean'):
-                self.mean()
 #
 #            if (arg == 'curlv_cdot_axis'):
 #                self.curlv_cdot_axis()
@@ -901,7 +911,7 @@ class t1d3():
 
     def norm(self, verbose=False):
         """
-        calculate the norm of a 3d vector
+        calculate the L2 norm of a 3d vector
 
         For vector v, whose elements are v_i:
 
@@ -943,70 +953,51 @@ class t1d3():
 
 
 
-    #def vorticity(self):
+    def vorticity(self):
 
-    #    '''
-    #    calculate the curl of the vector:
-    #    
-    #    For vector v = (vx, vy, vz):
+        '''
+        calculate the curl of the vector:
+        
+        For vector v = (vx, vy, vz):
 
-    #    w = \nabla \times v
+        w = \nabla \times v
 
-    #    wx = d(vz)/dy - d(vy)/dz
-    #    wy = d(vx)/dz - d(vz)/dx
-    #    wz = d(vy)/dx - d(vx)/dy
+        wx = d(vz)/dy - d(vy)/dz
+        wy = d(vx)/dz - d(vz)/dx
+        wz = d(vy)/dx - d(vx)/dy
 
-    #    '''
+        '''
 
-    #    # TODO call need_gradient + refactor
+        # TODO call need_gradient + refactor
 
-    #    if not self.input_options['use_grad_from_file']:
-    #        print('error! todo: gradient data not available on input')
-    #    else:
+        if not self.input_options['use_grad_from_file']:
+            print('error! todo: gradient data not available on input')
+        else:
 
-    #        for i, d in enumerate(self.t1d3_points):
+            curlv_x = self.data['t3_dy'] - self.data['t2_dz']
+            curlv_y = self.data['t1_dz'] - self.data['t3_dx']
+            curlv_z = self.data['t2_dx'] - self.data['t1_dy']
 
-    #            curlv_x = d['dvz_dy'] - d['dvy_dz']
-    #            curlv_y = d['dvx_dz'] - d['dvz_dx']
-    #            curlv_z = d['dvy_dx'] - d['dvx_dy']
-    #            curlv_magnitude = np.sqrt(curlv_x**2 + curlv_y**2 + curlv_z**2)
+            curlv_magnitude = np.sqrt(curlv_x**2 + curlv_y**2 + curlv_z**2)
 
-    #            self.t1d3_points[i]['curlv_x'] = curlv_x
-    #            self.t1d3_points[i]['curlv_y'] = curlv_y
-    #            self.t1d3_points[i]['curlv_z'] = curlv_z
-    #            self.t1d3_points[i]['curlv_magnitude'] = curlv_magnitude
+            self.data['curlv_x'] = curlv_x
+            self.data['curlv_y'] = curlv_y
+            self.data['curlv_z'] = curlv_z
+            self.data['curlv_magnitude'] = curlv_magnitude
 
-    #            if self.input_options['projection_axis'] is not None:
-    #                args = [arg.strip().strip('[').strip(']') for arg in self.input_options['projection_axis'].split(',')]
-    #                self.projection_axis['x'] = int(args[0])
-    #                self.projection_axis['y'] = int(args[1])
-    #                self.projection_axis['z'] = int(args[2])
+            #if self.input_options['projection_axis'] is not None:
+            #    args = [arg.strip().strip('[').strip(']') for arg in self.input_options['projection_axis'].split(',')]
+            #    self.projection_axis['x'] = int(args[0])
+            #    self.projection_axis['y'] = int(args[1])
+            #    self.projection_axis['z'] = int(args[2])
 
-    #                curlv_cdot_axis = self.t1d3_points[i]['curlv_x']*self.projection_axis['x'] \
-    #                                + self.t1d3_points[i]['curlv_y']*self.projection_axis['y'] \
-    #                                + self.t1d3_points[i]['curlv_z']*self.projection_axis['z']
+            #    curlv_cdot_axis = self.t1d3_points[i]['curlv_x']*self.projection_axis['x'] \
+            #                    + self.t1d3_points[i]['curlv_y']*self.projection_axis['y'] \
+            #                    + self.t1d3_points[i]['curlv_z']*self.projection_axis['z']
 
-    #                self.t1d3_points[i]['curlv_cdot_axis'] = curlv_cdot_axis
+            #    self.t1d3_points[i]['curlv_cdot_axis'] = curlv_cdot_axis
 
 
-    #        self.t1d3_cols.append('curlv_x')
-    #        self.t1d3_cols.append('curlv_y')
-    #        self.t1d3_cols.append('curlv_z')
-    #        self.t1d3_cols.append('curlv_magnitude')
-    #        if self.input_options['projection_axis'] is not None:
-    #            self.t1d3_cols.append('curlv_cdot_axis')
-
-    #        if (self.input_options['fout_select'] == 'all'):
-    #        #if (self.input_options['fout_select'] == 'selected'):
-    #            self.t1d3_cols.append('dvx_dx')
-    #            self.t1d3_cols.append('dvx_dy')
-    #            self.t1d3_cols.append('dvx_dz')
-    #            self.t1d3_cols.append('dvy_dx')
-    #            self.t1d3_cols.append('dvy_dy')
-    #            self.t1d3_cols.append('dvy_dz')
-    #            self.t1d3_cols.append('dvz_dx')
-    #            self.t1d3_cols.append('dvz_dy')
-    #            self.t1d3_cols.append('dvz_dz')
 
 
 

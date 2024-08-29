@@ -45,7 +45,6 @@ class work():
 
         # 4. calculate
         self.calculate(verbose)
-        print(self.fulldata)
 
         # 5. write to files
         self.write_and_close(verbose)
@@ -298,7 +297,7 @@ class work():
         # 2. combine a list of dataframes into one dataframe;
         #    first, remove the excess 'grid' columns (now -assuming the same grids):
         for df in dfs[1:]:
-            df.drop(columns=[self.grid['x'], self.grid['y'], self.grid['z']], inplace=True)
+            df.drop(columns=['x', 'y', 'z'], inplace=True)
 
         fulldata = pd.concat([df for df in dfs], axis=1, sort=False)
         if self.fulldata.empty:
@@ -386,7 +385,7 @@ class work():
             pprint(self.fulldata)
             work = t1d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
-            #result_df = work.work_data
+            result_df = work.data
 
         if 'form_tensor_2order_3d' in self.options and self.options['form_tensor_2order_3d'] is not None:
 
