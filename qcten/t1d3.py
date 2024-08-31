@@ -131,120 +131,121 @@ class t1d3():
         return selected_vector_element
 
 
+    def rortex_in_point(self, m, w, projection_axis):
 
-    def rortex(self, df):
+        #print('m ' , type(m))
+        #print('number_complex_eigenvalues = ', m['number_complex_eigenvalues'], type(m['number_complex_eigenvalues']))
+        #print('real_eigval_ind = ', m['real_eigval_ind'])
+        #print('eig_pair_0 = ', m['eig_pair_0'], type(m['eig_pair_0']))
+        #print('eig_pair_1 = ', m['eig_pair_1'], type(m['eig_pair_1']))
+        #print('eig_pair_2 = ', m['eig_pair_2'], type(m['eig_pair_2']))
+
+        thr_same_numbers = 10**(-10)
+        res = {}
 
         # 1. first, work on points, in which the number of complex eigenvalues == 2
-        df2 = df.loc[df['number_complex_eigenvalues'] == 2]
 
-        # find vectors corresponding to complex and real eigenvalues,
-        # and rename variables as in Xu et al. Phys Fluids 31, 095102 (2019)
-        #lambda_ci = abs(eigval_complex[0].imag)
-        #lambda_cr =     eigval_complex[0].real
-        #lambda_r  =     eigval_real
+        if m['number_complex_eigenvalues'] == 2:
+            #print(m)
+            #print(w)
 
-        #tmp = df2.apply(lambda x: find_real(x, label="eig_val_", ind_range=3), axis=1)
-        #df2['new']=tmp
+            # find vectors corresponding to complex and real eigenvalues,
+            # and rename variables as in Xu et al. Phys Fluids 31, 095102 (2019)
 
-        # calculate the normalized real eigenvector corresponding to the real eigenvalue:
-        df2["eigvec_real_magn"] = df2.apply(lambda x: norm_of_vec(x, label="eig_vec_"+str(x["real_eigval_ind"][0])), axis=1)
-        df2["eigvec_real_normalized"] = df2.apply(lambda x: [e/(x["eigvec_real_magn"]) for e in x["eig_vec_"+str(x["real_eigval_ind"][0])]], axis=1)
+            eig_val_complex = []
+            for i in range(3):
+                eig_val = m['eig_pair_'+str(i)][0]
+                eig_vec = m['eig_pair_'+str(i)][1]
+                if isinstance(eig_val, float):
+                    lambda_r = eig_val
+                    eig_vec_real = [e.real for e in eig_vec]
+                else:
+                    eig_val_complex.append(eig_val)
+            if abs(eig_val_complex[0].real - eig_val_complex[1].real) < thr_same_numbers:
+                lambda_ci = abs(eig_val_complex[0].imag)
+                lambda_cr =     eig_val_complex[0].real
+            else:
+                print('ERROR')
 
-        print("DF2")
-        pprint(df2)
-        #pprint(df2[["eig_val_0", "eig_val_1", "eig_val_2", "real_eigval_ind"]])
+            #print('lambda_r = ', lambda_r)
+            #print('lambda_ci= ', lambda_ci)
+            #print('lambda_cr= ', lambda_cr)
+
+            # calculate the normalized real eigenvector corresponding to the real eigenvalue:
+
+            eigvec_real_magn = np.sqrt(eig_vec_real[0]**2 + eig_vec_real[1]**2 + eig_vec_real[2]**2)
+            eigvec_real_normalized = [e/eigvec_real_magn for e in eig_vec_real]
+            #print('eigvec_real_magn = ', eigvec_real_magn)
+            #print('eigvec_real_normalized = ', eigvec_real_normalized)
+
+            # calculate rortex vector
+            # these are eqs. 33 and 34 in Xu et al. Phys Fluids 31, 095102 (2019)
+
+            # step 1: eq. 30 in Xu et al. Phys Fluids 31, 095102 (2019)
+            omega_cdot_r = w[0]*eigvec_real_normalized[0]  \
+                         + w[1]*eigvec_real_normalized[1]  \
+                         + w[2]*eigvec_real_normalized[2]
+            sign_changed =  False
+            if omega_cdot_r < 0.0:
+                sign_changed = True
+                factor = -1.0
+            else:
+                factor = 1.0
+            omega_cdot_r = factor * omega_cdot_r
+
+            # step 2: eq. 33
+            val = omega_cdot_r**2 - 4*(lambda_ci**2)
+            if (val < 0.0):
+                raise Exception('WARNING: omega_cdot_r**2 - 4*(lambda_ci**2) < 0 and equals {}'.format(val))
+
+            rortex_magnitude = omega_cdot_r - np.sqrt(val)
+
+            # step 3: eq. 34
+
+            rortex_vector = [factor * rortex_magnitude * e for e in eigvec_real_normalized]
+
+            if projection_axis is not None:
+                rortex_cdot_axis = rortex_vector[0]*projection_axis[0] \
+                                 + rortex_vector[1]*projection_axis[1] \
+                                 + rortex_vector[2]*projection_axis[2]
+            else:
+                rortex_cdot_axis = None
+
+            # rortex in tensor form (eq. 3 in Xu et al. Phys Fluids 31, 095102 (2019)):
+            phi = 0.5*rortex_magnitude
+            rortex_tensor = [0.0 for _ in range(9)]
+            rortex_tensor[1] = rortex_tensor[3] = -phi
+            rortex_tensor = {}
+            rortex_tensor['t11'] = 0.0
+            rortex_tensor['t12'] = -phi
+            rortex_tensor['t13'] = 0.0
+            rortex_tensor['t21'] = phi
+            rortex_tensor['t22'] = 0.0
+            rortex_tensor['t23'] = 0.0
+            rortex_tensor['t31'] = 0.0
+            rortex_tensor['t32'] = 0.0
+            rortex_tensor['t33'] = 0.0
+
+            res['rortex_magnitude'] = rortex_magnitude
+            res['rortex_cdot_axis'] = rortex_cdot_axis
+            for i in range(3):
+                l1=str(i+1)
+                res['rortex_vector_'+l1] = rortex_vector[i]
+                for j in range(3):
+                    l2=str(i+1)+str(j+1)
+                    res['rortex_tensor_'+l2] = rortex_tensor["t"+l2]
 
         # 2. then, work on the remaining points
-        df3 = df.loc[df['number_complex_eigenvalues'] != 2]
-
-
-
-
-
-        #if (point_data['number_complex_eigenvalues'] == 2):
-
-        #    eigval_complex=[]
-        #    eigvec_complex=[]
-
-        #    for iv, v in enumerate([point_data['dv_eig_val1'], point_data['dv_eig_val2'], point_data['dv_eig_val3']]):
-
-        #        # TODO: check how robust this is
-
-        #        if isinstance(v, complex):
-        #            eigval_complex.append(v)
-        #            if (iv == 0):
-        #                eigvec_complex.append([point_data['dv_eig_vec1_x'], point_data['dv_eig_vec1_y'], point_data['dv_eig_vec1_z']])
-        #            if (iv == 1):
-        #                eigvec_complex.append([point_data['dv_eig_vec2_x'], point_data['dv_eig_vec2_y'], point_data['dv_eig_vec2_z']])
-        #            if (iv == 2):
-        #                eigvec_complex.append([point_data['dv_eig_vec3_x'], point_data['dv_eig_vec3_y'], point_data['dv_eig_vec3_z']])
-
-        #        else:
-        #            eigval_real = v
-        #            if (iv == 0):
-        #                eigvec_real   = [point_data['dv_eig_vec1_x'], point_data['dv_eig_vec1_y'], point_data['dv_eig_vec1_z']]
-        #            if (iv == 1):
-        #                eigvec_real   = [point_data['dv_eig_vec2_x'], point_data['dv_eig_vec2_y'], point_data['dv_eig_vec2_z']]
-        #            if (iv == 2):
-        #                eigvec_real   = [point_data['dv_eig_vec3_x'], point_data['dv_eig_vec3_y'], point_data['dv_eig_vec3_z']]
-
-        #            # make sure that all components of this eigenvector are real (gradient tensor has real entries)
-        #            for e in eigvec_real:
-        #                if isinstance(e, complex) and e.imag != 0.0:
-        #                    raise Exception('the real eigenvector has complex elements, check the eigendecomposition!')
-        #            eigvec_real = [e.real for e in eigvec_real]
-
-        #    # finally calculate rortex vector
-        #    # these are eqs. 33 and 34 in Xu et al. Phys Fluids 31, 095102 (2019)
-
-        #    # step 1: eq. 30
-        #    omega_cdot_r = self.t1d3_points[point_index]['curlv_x']*eigvec_real_normalized[0] \
-        #                 + self.t1d3_points[point_index]['curlv_y']*eigvec_real_normalized[1] \
-        #                 + self.t1d3_points[point_index]['curlv_z']*eigvec_real_normalized[2]
-        #    sign_changed = False
-        #    if (omega_cdot_r < 0.0):
-        #        # eq. 30 in Xu et al. Phys Fluids 31, 095102 (2019)
-        #        omega_cdot_r = - omega_cdot_r
-        #        sign_changed = True
-
-        #    # step 2: eq. 33
-        #    val = omega_cdot_r**2 - 4*(lambda_ci**2)
-        #    if (val < 0.0):
-        #        raise Exception('WARNING: omega_cdot_r**2 - 4*(lambda_ci**2) < 0 and equals {}'.format(val))
-
-        #    rortex_magnitude = omega_cdot_r - np.sqrt(val)
-
-        #    self.t1d3_points[point_index]['rortex_magnitude'] = rortex_magnitude
-
-        #    # step 3: eq. 34
-        #    if sign_changed:
-        #        factor = -1.0
-        #    else:
-        #        factor = 1.0
-        #    self.t1d3_points[point_index]['rortex_vector_x'] = factor * rortex_magnitude * eigvec_real_normalized[0]
-        #    self.t1d3_points[point_index]['rortex_vector_y'] = factor * rortex_magnitude * eigvec_real_normalized[1]
-        #    self.t1d3_points[point_index]['rortex_vector_z'] = factor * rortex_magnitude * eigvec_real_normalized[2]
-
-        #    if self.input_options['projection_axis'] is not None:
-        #        # project rortex vector on a selected axis
-        #        # it is useful for plots (coloring)
-        #        rortex_cdot_axis = self.t1d3_points[point_index]['rortex_vector_x']*self.input_options['projection_axis'][0] \
-        #                         + self.t1d3_points[point_index]['rortex_vector_y']*self.input_options['projection_axis'][1] \
-        #                         + self.t1d3_points[point_index]['rortex_vector_z']*self.input_options['projection_axis'][2]
-        #        self.t1d3_points[point_index]['rortex_cdot_axis'] = rortex_cdot_axis
-
-
-        #    ## rortex in tensor form (eq. 3 in Xu et al. Phys Fluids 31, 095102 (2019)):
-        #    phi = 0.5*rortex_magnitude
-        #    self.t1d3_points[point_index]['rortex_tensor_xx'] =  0.0
-        #    self.t1d3_points[point_index]['rortex_tensor_xy'] = -phi
-        #    self.t1d3_points[point_index]['rortex_tensor_xz'] =  0.0
-        #    self.t1d3_points[point_index]['rortex_tensor_yx'] =  phi
-        #    self.t1d3_points[point_index]['rortex_tensor_yy'] =  0.0
-        #    self.t1d3_points[point_index]['rortex_tensor_yz'] =  0.0
-        #    self.t1d3_points[point_index]['rortex_tensor_zx'] =  0.0
-        #    self.t1d3_points[point_index]['rortex_tensor_zy'] =  0.0
-        #    self.t1d3_points[point_index]['rortex_tensor_zz'] =  0.0
+        else:
+            res['rortex_magnitude'] = np.nan
+            res['rortex_cdot_axis'] = np.nan
+            for i in range(3):
+                label=str(i+1)
+                res['rortex_vector_'+label] = np.nan
+                for j in range(3):
+                    l2=str(i+1)+str(j+1)
+                    res['rortex_tensor_'+l2] = np.nan
+        return res
 
         #    if ('omega_rortex' in self.input_options['calc_from_tensor_1order_3d']):
         #        # we use Eq. 36 from Xu et al. Phys Fluids 31, 095102 (2019)
@@ -353,6 +354,7 @@ class t1d3():
         
         gosia TODO - this needs testing
         '''
+        self.vorticity(verbose)
 
         # 1. construct the gradient tensor
         tmp = [x for x in global_data.grad_cols_to_use['t1d3'] if x not in self.data.columns]
@@ -376,29 +378,38 @@ class t1d3():
         full_grad_tensor["t2d3_as_npndarray"] = full_grad_tensor.apply(lambda row: row.to_numpy().reshape((3,3)), axis=1)
         tmp = full_grad_tensor.apply(lambda x: tensor_eigendecomposition(x["t2d3_as_npndarray"]), axis=1)
         tmp = pd.DataFrame(tmp.tolist(), index=tmp.index)
-        full_grad_tensor["number_complex_eigenvalues"] = tmp["number_complex_eigenvalues"]
-        full_grad_tensor["real_eigval_ind"] = tmp["real_eigval_ind"]
-        full_grad_tensor["eig_pair_0"] = tmp["eig_pair_0"]
-        full_grad_tensor["eig_pair_1"] = tmp["eig_pair_1"]
-        full_grad_tensor["eig_pair_2"] = tmp["eig_pair_2"]
-        for i in range(3):
-            full_grad_tensor["eig_val_"+str(i)]  = [x[0] for x in tmp["eig_pair_"+str(i)]]
-            full_grad_tensor["eig_vec_"+str(i)]  = [x[1] for x in tmp["eig_pair_"+str(i)]]
+        tmp = pd.concat([tmp, self.data[['curlv_x', 'curlv_y', 'curlv_z']]], axis=1)
 
+        if self.input_options['projection_axis'] is not None:
+            paxis = [self.data['projection_axis_x'], self.data['projection_axis_y'], self.data['projection_axis_z']]
+        else:
+            paxis = None
+        tmp2 = tmp.apply(lambda x: self.rortex_in_point(x, w = [x['curlv_x'], x['curlv_y'], x['curlv_z']], projection_axis=paxis), axis=1)
 
-        print("AFTER EIG:")
-        #pprint(tmp)
-        print(full_grad_tensor.columns)
-        pprint(full_grad_tensor)
-
-
-        # 3. calculate rortex and shear
-        self.rortex(full_grad_tensor)
-            #self.shear_in_point(i, d, full_grad_tensor)
-
+        tmp2 = pd.DataFrame(tmp2.to_list(), index=tmp2.index)
+        res = pd.concat([tmp2, self.data], axis=1)
+        #print('RES: ',  type(res), res.shape, res.columns, res.index)
+        #print('DATA: ', type(self.data), self.data.shape, self.data.columns, self.data.index)
+        for col in res.columns:
+            if col not in self.data.columns:
+                self.data[col] = res[col]
+        print(self.data.columns)
+        #pprint(self.data)
+        
+        #pprint(res)
+        #pd.set_option('display.max_rows', None)
+        #pd.set_option('display.max_columns', None)
+        #print(res)
 
         # 4. save results
-        #self.data['rortex_magnitude'] = rortex_magnitude
+        #self.data = pd.concat([self.data, tmp2], axis=1)
+
+        #pd.set_option('display.max_rows', None)
+        #pd.set_option('display.max_columns', None)
+        #print(self.data)
+
+
+        ## 3. calculate rortex and shear
 
 
 
