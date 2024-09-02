@@ -43,6 +43,18 @@ class t2d3():
             if (arg == 'trace'):
                 self.trace(verbose)
 
+            if (arg == 'isotropic'):
+                self.isotropic(verbose)
+
+            if (arg == 'deviator'):
+                self.deviator(verbose)
+
+            if (arg == 'antisymmetric'):
+                self.antisymmetric(verbose)
+
+            if (arg == 'deviator_anisotropy'):
+                self.deviator_anisotropy(verbose)
+
 
                 #if (arg == 'tensor_inv1'):
                 #    self.tensor_inv1()
@@ -53,17 +65,6 @@ class t2d3():
                 #if (arg == 'tensor_inv3'):
                 #    self.tensor_inv3()
 
-                #if (arg == 'isotropic'):
-                #    self.isotropic()
-
-                #if (arg == 'deviator'):
-                #    self.deviator()
-
-                #if (arg == 'antisymmetric'):
-                #    self.antisymmetric()
-
-                #if (arg == 'deviator_anisotropy'):
-                #    self.deviator_anisotropy()
 
                 #if (arg == 'rortex_tensor_combined'):
                 #    self.rortex_tensor_combined()
@@ -182,8 +183,7 @@ class t2d3():
             pprint(self.data)
 
 
-
-    def isotropic(self):
+    def isotropic(self, verbose):
 
         '''
         calculate the isotropic part of the second-order tensor
@@ -195,17 +195,19 @@ class t2d3():
         type of output data: scalar
         '''
 
-        for i, d in enumerate(self.t2d3_points):
+        self.trace(verbose)
+        isotropic = self.data['trace']/3.0
+        self.data['isotropic'] = isotropic
 
-            trace = d['xx'] + d['yy'] + d['zz']
-            isotropic = trace/3.0
-            self.t2d3_points[i]['isotropic'] = isotropic
+        print('Output from isotropic:')
+        pprint(self.data)
+        if verbose:
+            print('Output from isotropic:')
+            pprint(self.data)
 
-        # add to data to be wriiten to the output file:
-        self.t2d3_cols.append('isotropic')
 
 
-    def deviator(self):
+    def deviator(self, verbose):
 
         '''
         calculate the 'deviator' of the second-order tensor;
@@ -223,34 +225,25 @@ class t2d3():
 
         '''
 
+        self.isotropic(verbose)
 
-        self.isotropic()
+        for a in ['1', '2', '3']:
+            for b in ['1', '2', '3']:
+                l1 = a+b
+                l2 = b+a
+                self.data['deviator_'+l1] = (self.data['t'+l1] + self.data['t'+l2])/2.0
 
-        for i, d in enumerate(self.t2d3_points):
+                if (a == b):
+                    self.data['deviator_'+l1] = self.data['deviator_'+l1] - self.data['isotropic']
 
-            result = {}
-            cols   = []
-
-            for a in ['x', 'y', 'z']:
-                for b in ['x', 'y', 'z']:
-
-                    e1 = a+b
-                    e2 = b+a
-                    s  = (d[e1] + d[e2])/2.0
-                    if (a == b):
-                        result[e1] = s - self.t2d3_points[i]['isotropic']
-                    else:
-                        result[e1] = s
-
-                    self.t2d3_points[i]['deviator'+'_'+e1] = result[e1]
-                    cols.append('deviator'+'_'+e1)
-
-        # add to data to be wriiten to the output file:
-        for col in cols:
-            self.t2d3_cols.append(col)
+        print('Output from deviator:')
+        pprint(self.data)
+        if verbose:
+            print('Output from deviator:')
+            pprint(self.data)
 
 
-    def antisymmetric(self):
+    def antisymmetric(self, verbose):
 
         '''
         calculate the antisymmetric part of the second-order tensor;
@@ -263,29 +256,21 @@ class t2d3():
 
         '''
 
-        for i, d in enumerate(self.t2d3_points):
+        for a in ['1', '2', '3']:
+            for b in ['1', '2', '3']:
+                l1 = a+b
+                l2 = b+a
+                self.data['antisymmetric_'+l1] = (self.data['t'+l1] - self.data['t'+l2])/2.0
 
-            result = {}
-            cols   = []
-
-            for a in ['x', 'y', 'z']:
-                for b in ['x', 'y', 'z']:
-
-                    e1 = a+b
-                    e2 = b+a
-                    t  = (d[e1] - d[e2])/2.0
-                    result[e1] = t
-
-                    self.t2d3_points[i]['antisymmetric'+'_'+e1] = result[e1]
-                    cols.append('antisymmetric'+'_'+e1)
-
-        # add to data to be wriiten to the output file:
-        for col in cols:
-            self.t2d3_cols.append(col)
+        print('Output from antisymmetric:')
+        pprint(self.data)
+        if verbose:
+            print('Output from antisymmetric:')
+            pprint(self.data)
 
 
 
-    def deviator_anisotropy(self):
+    def deviator_anisotropy(self, verbose):
 
         '''
         calculate the anisotropy of the 'deviator' of the second-order tensor;
@@ -312,29 +297,29 @@ class t2d3():
             * deviator_anisotropy = AD = sqrt((AD)^2)
         '''
 
-        self.isotropic()
+        self.isotropic(verbose)
 
-        for i, d in enumerate(self.t2d3_points):
+        a1 = self.data['t11'] - self.data['t22']
+        a2 = self.data['t22'] - self.data['t33']
+        a3 = self.data['t33'] - self.data['t11']
 
-            result = {}
+        b1 = self.data['t12'] + self.data['t21']
+        b2 = self.data['t23'] + self.data['t32']
+        b3 = self.data['t31'] + self.data['t13']
 
-            a1 = d['xx'] - d['yy']
-            a2 = d['yy'] - d['zz']
-            a3 = d['zz'] - d['xx']
+        result = (a1**2 + a2**2 + a3**2)/3.0 \
+               + (b1**2 + b2**2 + b3**2)/2.0
 
-            b1 = d['xy'] + d['yx']
-            b2 = d['yz'] + d['zy']
-            b3 = d['zx'] + d['xz']
+        self.data['deviator_anisotropy_squared'] = result
+        self.data['deviator_anisotropy']         = np.sqrt(result)
 
-            result = (a1**2 + a2**2 + a3**2)/3.0 \
-                   + (b1**2 + b2**2 + b3**2)/2.0
 
-            self.t2d3_points[i]['deviator_anisotropy_squared'] = result
-            self.t2d3_points[i]['deviator_anisotropy']         = np.sqrt(result)
+        print('Output from deviator anisotropy:')
+        pprint(self.data)
+        if verbose:
+            print('Output from deviator anisotropy:')
+            pprint(self.data)
 
-        # add to data to be wriiten to the output file:
-        self.t2d3_cols.append('deviator_anisotropy_squared')
-        self.t2d3_cols.append('deviator_anisotropy')
 
 
     def gradient(self, f):

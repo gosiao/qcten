@@ -1,0 +1,30 @@
+# 
+# 1. decide which files with input data should be read in:
+#
+--finp=csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
+#
+# 2. decide which columns correspond to grid points and which - to data
+#
+#    order of grid points coordinates:
+#       x, y, z
+--grid=[x, y, z]
+#
+# 3. decide which data 'makes a tensor':
+#     * the names of tensor elements must match the names of (selected) columns on input files read in point 1 (with --finp). 
+#     * the order of tensor elements matters! see below:
+#
+#                                       order of tensor elements:
+#                         xx      xy     xz     yx     yy    yz     zx      zy     zz
+--form_tensor_2order_3d=[bx_jx, by_jx, bz_jx, bx_jy, by_jy, bz_jy, bx_jz, by_jz, bz_jz]
+#
+# 4. decide what you want to calculate for this tensor:
+#
+--calc_from_tensor_2order_3d=antisymmetric
+--resampled_dim=10,10,10
+#
+# 5. decide what output you need:
+#
+--fout=csv; antisymmetric.csv; cols=[x, y, z, antisymmetric_11,antisymmetric_12,antisymmetric_13,antisymmetric_21,antisymmetric_22,antisymmetric_23,antisymmetric_31,antisymmetric_32,antisymmetric_33]
+--fout=vti; antisymmetric.vti; cols=[x, y, z, antisymmetric_11,antisymmetric_12,antisymmetric_13,antisymmetric_21,antisymmetric_22,antisymmetric_23,antisymmetric_31,antisymmetric_32,antisymmetric_33]
+--fout_select=all
+--flog=result_log.txt
