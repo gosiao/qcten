@@ -30,7 +30,7 @@
 # 5. vector function to calculate:
 #
 #
---calc_from_tensor_1order_3d=rortex
+--calc_from_tensor_1order_3d=omega_rortex
 # additionally: fill empty fields with 0
 #--rortex_fill_empty=0
 #
@@ -41,7 +41,7 @@
 #
 # 7. decide what output you need:
 #
---fout=csv; rortex_jbz.csv; cols=[x, y, z, rortex_magnitude:rortex_magnitude_jbz, rortex_vector_1:jbz_rortex_vector_x, rortex_vector_2:jbz_rortex_vector_y, rortex_vector_3:jbz_rortex_vector_z]
---fout=vti; rortex_jbz.vti; cols=[x, y, z, rortex_magnitude:rortex_magnitude_jbz, rortex_vector_1:jbz_rortex_vector_x, rortex_vector_2:jbz_rortex_vector_y, rortex_vector_3:jbz_rortex_vector_z]
+--fout=csv; jbz_omega_rortex.csv; cols=[x, y, z, omega_rortex:jbz_omega_rortex]
+--fout=vti; jbz_omega_rortex.vti; cols=[x, y, z, omega_rortex:jbz_omega_rortex]
 --fout_select=all
 --flog=result_log.txt

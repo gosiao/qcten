@@ -131,14 +131,15 @@ class t1d3():
         return selected_vector_element
 
 
-    def rortex_in_point(self, m, w, projection_axis):
+    def rortex_in_point(self, m, w, projection_axis, verbose):
 
-        #print('m ' , type(m))
-        #print('number_complex_eigenvalues = ', m['number_complex_eigenvalues'], type(m['number_complex_eigenvalues']))
-        #print('real_eigval_ind = ', m['real_eigval_ind'])
-        #print('eig_pair_0 = ', m['eig_pair_0'], type(m['eig_pair_0']))
-        #print('eig_pair_1 = ', m['eig_pair_1'], type(m['eig_pair_1']))
-        #print('eig_pair_2 = ', m['eig_pair_2'], type(m['eig_pair_2']))
+        if verbose:
+            print('rortex_in_point: entering m ' , type(m))
+            print('number_complex_eigenvalues = ', m['number_complex_eigenvalues'], type(m['number_complex_eigenvalues']))
+            print('real_eigval_ind = ', m['real_eigval_ind'])
+            print('eig_pair_0 = ', m['eig_pair_0'], type(m['eig_pair_0']))
+            print('eig_pair_1 = ', m['eig_pair_1'], type(m['eig_pair_1']))
+            print('eig_pair_2 = ', m['eig_pair_2'], type(m['eig_pair_2']))
 
         thr_same_numbers = 10**(-10)
         res = {}
@@ -146,8 +147,6 @@ class t1d3():
         # 1. first, work on points, in which the number of complex eigenvalues == 2
 
         if m['number_complex_eigenvalues'] == 2:
-            #print(m)
-            #print(w)
 
             # find vectors corresponding to complex and real eigenvalues,
             # and rename variables as in Xu et al. Phys Fluids 31, 095102 (2019)
@@ -167,16 +166,18 @@ class t1d3():
             else:
                 print('ERROR')
 
-            #print('lambda_r = ', lambda_r)
-            #print('lambda_ci= ', lambda_ci)
-            #print('lambda_cr= ', lambda_cr)
+            if verbose:
+                print('lambda_r = ', lambda_r)
+                print('lambda_ci= ', lambda_ci)
+                print('lambda_cr= ', lambda_cr)
 
             # calculate the normalized real eigenvector corresponding to the real eigenvalue:
 
             eigvec_real_magn = np.sqrt(eig_vec_real[0]**2 + eig_vec_real[1]**2 + eig_vec_real[2]**2)
             eigvec_real_normalized = [e/eigvec_real_magn for e in eig_vec_real]
-            #print('eigvec_real_magn = ', eigvec_real_magn)
-            #print('eigvec_real_normalized = ', eigvec_real_normalized)
+            if verbose:
+                print('eigvec_real_magn = ', eigvec_real_magn)
+                print('eigvec_real_normalized = ', eigvec_real_normalized)
 
             # calculate rortex vector
             # these are eqs. 33 and 34 in Xu et al. Phys Fluids 31, 095102 (2019)
@@ -235,10 +236,17 @@ class t1d3():
                     l2=str(i+1)+str(j+1)
                     res['rortex_tensor_'+l2] = rortex_tensor["t"+l2]
 
+            # calculate 'omega_rortex'
+            # using Eq. 36 from Xu et al. Phys Fluids 31, 095102 (2019)
+            omega_rortex = omega_cdot_r**2 / (2*(omega_cdot_r**2 - 2*(lambda_ci**2) + 2*(lambda_cr**2) + lambda_r**2))
+            res['omega_rortex'] = omega_rortex
+
+
         # 2. then, work on the remaining points
         else:
             res['rortex_magnitude'] = np.nan
             res['rortex_cdot_axis'] = np.nan
+            res['omega_rortex'] = np.nan
             for i in range(3):
                 label=str(i+1)
                 res['rortex_vector_'+label] = np.nan
@@ -246,89 +254,6 @@ class t1d3():
                     l2=str(i+1)+str(j+1)
                     res['rortex_tensor_'+l2] = np.nan
         return res
-
-        #    if ('omega_rortex' in self.input_options['calc_from_tensor_1order_3d']):
-        #        # we use Eq. 36 from Xu et al. Phys Fluids 31, 095102 (2019)
-
-        #        omega_rortex = omega_cdot_r**2 / (2*(omega_cdot_r**2 - 2*(lambda_ci**2) + 2*(lambda_cr**2) + lambda_r**2))
-
-        #        grad_vec_magn = (self.t1d3_points[point_index]['dvx_dx']**2
-        #                       + self.t1d3_points[point_index]['dvx_dy']**2
-        #                       + self.t1d3_points[point_index]['dvx_dz']**2
-        #                       + self.t1d3_points[point_index]['dvy_dx']**2
-        #                       + self.t1d3_points[point_index]['dvy_dy']**2
-        #                       + self.t1d3_points[point_index]['dvy_dz']**2
-        #                       + self.t1d3_points[point_index]['dvz_dx']**2
-        #                       + self.t1d3_points[point_index]['dvz_dy']**2
-        #                       + self.t1d3_points[point_index]['dvz_dz']**2)
-
-        #        self.t1d3_points[point_index]['omega_rortex'] = omega_rortex
-        #        self.t1d3_cols.append('omega_rortex')
-
-        #else:
-        #    # TODO: what's best to do here?
-        #    # first let's assign these values to None
-        #    # in final analysis they will be set to 0
-        #    self.t1d3_points[point_index]['rortex_vector_x'] = None
-        #    self.t1d3_points[point_index]['rortex_vector_y'] = None
-        #    self.t1d3_points[point_index]['rortex_vector_z'] = None
-        #    self.t1d3_points[point_index]['rortex_magnitude'] = None
-
-        #    self.t1d3_points[point_index]['rortex_tensor_xx'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_xy'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_xz'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_yx'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_yy'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_yz'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_zx'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_zy'] = None
-        #    self.t1d3_points[point_index]['rortex_tensor_zz'] = None
-
-        #    self.t1d3_points[point_index]['omega_rortex'] = None
-        #    self.t1d3_points[point_index]['omega_rortex2'] = None
-
-        #    if self.input_options['projection_axis'] is not None:
-        #        self.t1d3_points[point_index]['rortex_cdot_axis'] = None
-
-
-        ## decide what to save on the output file:
-        #self.t1d3_cols.append('rortex_vector_x')
-        #self.t1d3_cols.append('rortex_vector_y')
-        #self.t1d3_cols.append('rortex_vector_z')
-        #self.t1d3_cols.append('rortex_magnitude')
-        #if self.input_options['projection_axis'] is not None:
-        #    self.t1d3_cols.append('rortex_cdot_axis')
-
-
-        #if ((self.input_options['fout_select'] == 'all') or (self.input_options['fout_select'] == 'selected')):
-
-        #    self.t1d3_cols.append('rortex_tensor_xx')
-        #    self.t1d3_cols.append('rortex_tensor_xy')
-        #    self.t1d3_cols.append('rortex_tensor_xz')
-        #    self.t1d3_cols.append('rortex_tensor_yx')
-        #    self.t1d3_cols.append('rortex_tensor_yy')
-        #    self.t1d3_cols.append('rortex_tensor_yz')
-        #    self.t1d3_cols.append('rortex_tensor_zx')
-        #    self.t1d3_cols.append('rortex_tensor_zy')
-        #    self.t1d3_cols.append('rortex_tensor_zz')
-
-        #if self.input_options['fout_select'] == 'all':
-
-        #    self.t1d3_cols.append('number_complex_eigenvalues')
-
-        #    self.t1d3_cols.append('dv_eig_val1')
-        #    self.t1d3_cols.append('dv_eig_val2')
-        #    self.t1d3_cols.append('dv_eig_val3')
-
-        #    self.t1d3_cols.append('dv_eig_vec1_x')
-        #    self.t1d3_cols.append('dv_eig_vec1_y')
-        #    self.t1d3_cols.append('dv_eig_vec1_z')
-        #    self.t1d3_cols.append('dv_eig_vec2_x')
-        #    self.t1d3_cols.append('dv_eig_vec2_y')
-        #    self.t1d3_cols.append('dv_eig_vec2_z')
-        #    self.t1d3_cols.append('dv_eig_vec3_x')
-        #    self.t1d3_cols.append('dv_eig_vec3_y')
-        #    self.t1d3_cols.append('dv_eig_vec3_z')
 
 
     def rortex_and_shear(self, verbose):
@@ -384,7 +309,7 @@ class t1d3():
             paxis = [self.data['projection_axis_x'], self.data['projection_axis_y'], self.data['projection_axis_z']]
         else:
             paxis = None
-        tmp2 = tmp.apply(lambda x: self.rortex_in_point(x, w = [x['curlv_x'], x['curlv_y'], x['curlv_z']], projection_axis=paxis), axis=1)
+        tmp2 = tmp.apply(lambda x: self.rortex_in_point(x, w = [x['curlv_x'], x['curlv_y'], x['curlv_z']], projection_axis=paxis, verbose=verbose), axis=1)
 
         tmp2 = pd.DataFrame(tmp2.to_list(), index=tmp2.index)
         res = pd.concat([tmp2, self.data], axis=1)

@@ -104,10 +104,11 @@ def cleanup(testdir):
 def list_viable_tests(test_paths=None):
 
     testdirs = [
-                #"t1d3_omega",
+                "t1d3_vorticity",
+                "t1d3_omega",
                 "t1d3_rortex_shear",
-                #"t1d3_norm_mean",
-                #"t1d3_vorticity",
+                "t1d3_omega_rortex",
+                "t1d3_norm_mean",
                 ]
 
     return testdirs

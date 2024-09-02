@@ -65,7 +65,7 @@ class work():
                         new_col = col.strip().split(':')[1].strip()
                     else:
                         old_col = col.strip()
-                        new_col = col.strip()
+                        new_col = old_col
 
                     if old_col in self.fulldata.columns:
                         data_cols.append(old_col)
@@ -73,6 +73,8 @@ class work():
                     else:
                         msg = 'ERROR: column {} not available for output'.format(col)
 
+                if verbose:
+                    print('IN write_and_close: ', fout, data_cols, requested_cols)
                 df = self.fulldata[data_cols].rename(columns={k:v for k, v in zip(data_cols,requested_cols)})
 
                 f = fout.file_path
@@ -398,9 +400,6 @@ class work():
 
         self.fulldata = pd.concat((self.fulldata, result_df), axis=1)
         self.fulldata = self.fulldata.loc[:,~self.fulldata.columns.duplicated()]
-
-
-        return result_df
 
 
     def update_df(self, new_df, new_df_cols=None):
