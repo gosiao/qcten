@@ -393,9 +393,10 @@ class work():
 
             cols_to_remove=self.assign_data("t2d3")
             self.fulldata.drop(columns=cols_to_remove, inplace=True)
+            self.verify_data_for_calcs("t2d3", verbose)
             work = t2d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
-            result_df = work.work_data
+            result_df = work.data
 
 
         self.fulldata = pd.concat((self.fulldata, result_df), axis=1)
@@ -504,6 +505,32 @@ class work():
                         else:
                             if self.options['calc_grad_method'] == 'numpy':
                                 print('Gradient of t1d3 will be calculated using numpy')
+                            else:
+                                print('Other methods for calculating the gradient are not available')
+                                sys.exit(1)
+
+        elif label == "t2d3":
+            if self.options['calc_from_tensor_2order_3d'] is None:
+
+                msg = 'WARNING: Nothing to calculate from the tensor field of rank 2. ' \
+                    + 'Check --calc_from_tensor_2order_3d in your input'
+                sys.exit(msg)
+    
+                for arg in self.options['calc_from_tensor_2order_3d']:
+                    if arg not in self.all_fun_t2d3:
+                        msg = 'ERROR: requested function not in the list of available functions ' \
+                            + 'Check --calc_from_tensor_2order_3d in your input. ' \
+                            + 'Available functions: ', self.all_fun_t2d3
+                        sys.exit(msg)
+    
+            else:
+                for arg in self.options['calc_from_tensor_2order_3d']:
+                    if (arg in global_data.fun_t2d3_req_grad):
+                        if self.options['use_grad_from_file']:
+                            print('Gradient of t2d3 will be read from file')
+                        else:
+                            if self.options['calc_grad_method'] == 'numpy':
+                                print('Gradient of t2d3 will be calculated using numpy')
                             else:
                                 print('Other methods for calculating the gradient are not available')
                                 sys.exit(1)

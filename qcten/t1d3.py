@@ -20,7 +20,6 @@ class t1d3():
 
     def __init__(self, cli_options, output_options, input_data):
 
-        #
         # input data and general setup
         self.input_options   = cli_options # FIXME - move this out
         self.output_options  = output_options
@@ -29,7 +28,6 @@ class t1d3():
 
         # global data structures
         self.t1d3          = {}
-        self.t1d3_points   = []
 
         # column names defined by the user:
         self.colnames_inp = []
@@ -41,8 +39,6 @@ class t1d3():
         """
         main routine
         """
-
-        # TODO: here starts a loop over points, can be expensive!
 
         for arg in self.input_options['calc_from_tensor_1order_3d']:
 

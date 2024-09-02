@@ -21,180 +21,56 @@ class t2d3():
 
     def __init__(self, cli_options, output_options, input_data):
 
-        # general setup
-        #self.input_options = cli_options # FIXME - move this out
-        self.calc_options  = output_options
-        self.input_data    = input_data
-        #self.flog          = self.input_options['flog']
-
-        # global data structures 
-        self.t2d3          = {}
-        self.t2d3_points   = []
+        # input data and general setup
+        self.input_options   = cli_options # FIXME - move this out
+        self.output_options  = output_options
+        self.data            = input_data  # dataframe to work on
+        self.flog            = self.input_options['flog']
 
         # column names defined by the user:
         self.colnames_inp = []
         self.colnames_out = []
-        # column names used in this class:
-        self.colnames_qcten = {}
-
-        self.all_fun_t2d3 = global_data.all_fun_t2d3
-        self.fun_t2d3_req_grad = global_data.fun_t2d3_req_grad
-
-        # working data
-        self.work_data = pd.DataFrame()
-
-        # data columns that will be written to output(s)
-        self.data_cols_to_export = {}
-
-        # variables to be saved to the output:
-        self.data_to_export= {}
-        self.t2d3_cols     = []
-
-        # grid spacing
-        self.dx = 0
-        self.dy = 0
-        self.dz = 0
-
-        # grid dimensions
-        self.dim_x = 0
-        self.dim_y = 0
-        self.dim_z = 0
-        self.dim_cube = 0
-
-        self.projection_axis = {}
 
 
     def run(self, verbose=False):
 
-        #print("ERROR: operations on t2d3 not available in this version")
-        #sys.exit()
-
-        # 1. verify input data
-        self.verify_data_for_calcs(verbose=verbose)
-
-        # 1. assign the data specified by a user to names used in qcten
-        self.assign_t2d3_input_names(verbose=verbose)
-
-        # 2. get the data (into pandas dataframe)
-        self.get_t2d3_data_points(verbose=verbose)
-
-        # 3. get grid information
-
-        # 4. prepare the data for output
-        self.assign_t2d3_output_names()
-
-        # work
-        if self.input_options['calc_from_tensor_2order_3d'] is not None:
-
-            for arg in self.input_options['calc_from_tensor_2order_3d']:
-
-                if (arg == 'tensor_inv1'):
-                    self.tensor_inv1()
-
-                if (arg == 'tensor_inv2'):
-                    self.tensor_inv2()
-
-                if (arg == 'tensor_inv3'):
-                    self.tensor_inv3()
-
-                if (arg == 'trace'):
-                    self.trace()
-
-                if (arg == 'isotropic'):
-                    self.isotropic()
-
-                if (arg == 'deviator'):
-                    self.deviator()
-
-                if (arg == 'antisymmetric'):
-                    self.antisymmetric()
-
-                if (arg == 'deviator_anisotropy'):
-                    self.deviator_anisotropy()
-
-                if (arg == 'rortex_tensor_combined'):
-                    self.rortex_tensor_combined()
-
-                if (arg == 'omega_rortex_tensor_combined'):
-                    self.omega_rortex_tensor_combined()
-
-
-        if 'calc_from_tensor_2order_3d_fragments' in self.input_options and self.input_options['calc_from_tensor_2order_3d_fragments'] is not None:
-            args = self.input_options['calc_from_tensor_2order_3d_fragments'].split(':')
-            if (args[0]  == 'gradient'):
-                self.gradient(args[1])
-
-        # prepare output
-        self.prepare_output()
-
-
-    def prepare_output(self):
-        pass
-
-
-    def assign_t2d3_output_names(self, verbose=False):
-
         """
-        prepare the data for output(s)
+        main routine
         """
 
-        cols_available_for_outputs = self.all_fun_t2d3 + self.colnames_inp 
+        for arg in self.input_options['calc_from_tensor_2order_3d']:
 
-        for v in self.calc_options:
-            if v.file_path is not None:
-                data_cols = []
-                for icol, col in enumerate(v.file_column_names):
-                    if ':' in col:
-                        old_col = col.strip().split(':')[0]
-                    else:
-                        old_col = col
-
-                    if old_col in cols_available_for_outputs:
-                        data_cols.append(old_col.strip())
-                    else:
-                        msg = 'ERROR: column {} not available for output, ' \
-                            + 'check --fout'.format(col)
-
-                self.colnames_out=data_cols
+            if (arg == 'trace'):
+                self.trace(verbose)
 
 
+                #if (arg == 'tensor_inv1'):
+                #    self.tensor_inv1()
 
+                #if (arg == 'tensor_inv2'):
+                #    self.tensor_inv2()
 
+                #if (arg == 'tensor_inv3'):
+                #    self.tensor_inv3()
 
-    def verify_data_for_calcs(self, verbose=False):
-        """
-        verify whether all data needed for the type of calculations exists;
-        take care of missing data, exceptions, etc.
-        """
+                #if (arg == 'isotropic'):
+                #    self.isotropic()
 
-        if self.input_options['grid'] is None:
-            msg = 'ERROR: check --grid in your input'
-            sys.exit(msg)
-        else:
-            pass
-            # fixme: get grid data
+                #if (arg == 'deviator'):
+                #    self.deviator()
 
-        if self.input_options['calc_from_tensor_2order_3d'] is None:
+                #if (arg == 'antisymmetric'):
+                #    self.antisymmetric()
 
-            msg = 'WARNING: Nothing to calculate from the vector field. ' \
-                + 'Check --calc_from_tensor_2order_3d in your input'
-            sys.exit(msg)
+                #if (arg == 'deviator_anisotropy'):
+                #    self.deviator_anisotropy()
 
-            for arg in self.input_options['calc_from_tensor_2order_3d']:
-                if arg not in self.all_fun_t2d3:
-                    msg = 'ERROR: requested function not in the list of available functions ' \
-                        + 'Check --calc_from_tensor_2order_3d in your input. ' \
-                        + 'Available functions: ', self.all_fun_t2d3
-                    sys.exit(msg)
+                #if (arg == 'rortex_tensor_combined'):
+                #    self.rortex_tensor_combined()
 
-        else:
-            for arg in self.input_options['calc_from_tensor_2order_3d']:
-                if (arg in self.fun_t2d3_req_grad):
-                    if self.input_options['use_grad_from_file']:
-                        print('Gradient of t2d3 is read from file')
-                    else:
-                        print('Gradient of t2d3 is calculated')
-                        # TODO: calc gradient here!
+                #if (arg == 'omega_rortex_tensor_combined'):
+                #    self.omega_rortex_tensor_combined()
+
 
 
     def assign_t2d3_input_names(self, verbose=False):
@@ -263,7 +139,7 @@ class t2d3():
 
         """
 
-        read input data into a "self.work_data" dataframe;
+        read input data into a "self.data" dataframe;
         to proceed, we read only these columns which are needed for the computation, i.e.:
 
         * columns corresponding to grid: self.t2d3['x'], ... 
@@ -273,17 +149,17 @@ class t2d3():
         """
 
         cols = {v: k for k, v in self.colnames_qcten.items() if v is not None}
-        self.work_data = self.input_data.rename(columns=cols)
-        self.work_data = self.work_data[cols.values()]
+        self.data = self.input_data.rename(columns=cols)
+        self.data = self.data[cols.values()]
 
         if verbose:
             print('working input data in t2d3: ')
-            pprint(self.work_data)
+            pprint(self.data)
 
 
 
 
-    def trace(self):
+    def trace(self, verbose):
 
         '''
         calculate the trace of the second-order tensor
@@ -295,13 +171,16 @@ class t2d3():
         type of output data: scalar
         '''
 
-        data = self.work_data[['xx','xy','xz','yx','yy','yz','zx','zy','zz']].rename(columns={
-                               'xx':'t11','xy':'t12','xz':'t13','yx':'t21','yy':'t22','yz':'t23','zx':'t31','zy':'t32','zz':'t33'})
+        trace = trace_of_t2d3(self.data)                       
+        data = pd.concat([self.data, trace], axis=1)
+        self.data = data
 
-        trace = trace_of_t2d3(data)                       
+        print('Output from trace:')
+        pprint(self.data)
+        if verbose:
+            print('Output from trace:')
+            pprint(self.data)
 
-        data = pd.concat([self.work_data, trace], axis=1)
-        self.work_data = data
 
 
     def isotropic(self):
