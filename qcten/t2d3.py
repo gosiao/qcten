@@ -55,15 +55,14 @@ class t2d3():
             if (arg == 'deviator_anisotropy'):
                 self.deviator_anisotropy(verbose)
 
+            if (arg == 'invariant1'):
+                self.invariant1(verbose)
 
-                #if (arg == 'tensor_inv1'):
-                #    self.tensor_inv1()
+            if (arg == 'invariant2'):
+                self.invariant2(verbose)
 
-                #if (arg == 'tensor_inv2'):
-                #    self.tensor_inv2()
-
-                #if (arg == 'tensor_inv3'):
-                #    self.tensor_inv3()
+            if (arg == 'invariant3'):
+                self.invariant3(verbose)
 
 
                 #if (arg == 'rortex_tensor_combined'):
@@ -322,27 +321,6 @@ class t2d3():
 
 
 
-    def gradient(self, f):
-        '''
-        calculate gradient of f
-        f is an 'original' element name
-        '''
-
-        tensor_elements         = dict(zip(self.t2d3.values(), self.t2d3.keys()))
-        selected_tensor_element = tensor_elements[f]
-
-        self.gradient_from_finite_elements(selected_tensor_element)
-
-        #self.t2d3_points[i]['gradient'] = result
-        #print('tensor element: ', selected_tensor_element)
-
-
-
-    def gradient_from_finite_elements(self, f):
-        '''
-        gradient
-        '''
-        pass
 
 
     def rortex_tensor_combined(self):
@@ -350,79 +328,40 @@ class t2d3():
         '''
         pass
 
-    def test_eigen(self, a, eigenvalues, eigenvectors):
-        for i in range(3):
-            v     = eigenvectors[:, i].reshape(3,1)
-            left  = a @ v
-            right = eigenvalues[i]*v
-            compare_OK = np.allclose(left, right, atol=1e-8)
-            if not compare_OK:
-                with open(self.flog, 'a') as f:
-                    f.write('WARNING: problems with eigendecomposition!\n')
+
+    def invariants_in_point(self, m, verbose):
+
+        if verbose:
+            print('invariants_in_point: entering m ' , type(m))
+            print('number_complex_eigenvalues = ', m['number_complex_eigenvalues'], type(m['number_complex_eigenvalues']))
+            print('real_eigval_ind = ', m['real_eigval_ind'])
+            print('eig_pair_0 = ', m['eig_pair_0'], type(m['eig_pair_0']))
+            print('eig_pair_1 = ', m['eig_pair_1'], type(m['eig_pair_1']))
+            print('eig_pair_2 = ', m['eig_pair_2'], type(m['eig_pair_2']))
+
+        res = {}
+
+        inv1 = m['eig_pair_0'][0] + m['eig_pair_1'][0] + m['eig_pair_2'][0]
+        res['inv1'] = complex_to_real(inv1)
+        #res['inv1'] = inv1
+
+        inv3 = m['eig_pair_0'][0] * m['eig_pair_1'][0] * m['eig_pair_2'][0]
+        #res['inv3'] = complex_to_real(inv3)
+        #FIXME
+        res['inv3'] = np.nan
+
+        inv2 = m['eig_pair_0'][0] * m['eig_pair_1'][0] \
+             + m['eig_pair_0'][1] * m['eig_pair_2'][0] \
+             + m['eig_pair_2'][0] * m['eig_pair_2'][0]
+        #res['inv2'] = complex_to_real(inv2)
+        #FIXME
+        res['inv2'] = np.nan
+
+        return res
 
 
-    def tensor_eigendecomposition(self):
-        '''
-        Here we do the eigendecomposition of the second-order tensor.
-        Notes:
-            * this is done in every point on a grid, can be expensive!
-            * we use scipy.linalg package, TODO: 
-                * compare with other python packages, esp. in terms of timing
-                * better test checking whether the imaginary part of an
-                  eigenvalue is 0 or close to 0
-                * is the test_eigen necessary/sufficient?
-                * check all values used as tolerance to compare numbers
-
-        '''
-
-        for i, d in enumerate(self.t2d3_points):
-
-            a = np.array([[d['xx'], d['xy'], d['xz']], \
-                          [d['yx'], d['yy'], d['yz']], \
-                          [d['zx'], d['zy'], d['zz']]])
-
-            eigenvalues, eigenvectors = la.eig(a)
-
-            # first, second and third column on "eigenvectors" 
-            # corresponds to first, second and third eigenvector, respectively 
-            # the corresponding eigenvalues are eigenvalues[0], eigenvalues[1], eigenvalues[2]
-            ev1 = eigenvectors[:, 0]
-            ev2 = eigenvectors[:, 1]
-            ev3 = eigenvectors[:, 2]
-
-            eigenvalues = [e.real if (e.imag==0.0) else e for e in eigenvalues]
-            #eigenvalues = [e.real if math.isclose(e.imag, 0.0, abs_tol=1e-15) else e for e in eigenvalues]
-            # add verbose
-            #for e in eigenvalues:
-            #    if np.iscomplex(e) and math.isclose(e.imag, 0.0, abs_tol=1e-15):
-            #        with open(self.flog, 'a') as f:
-            #            f.write('WARNING: small imaginary part of eigenvalue: {}\n'.format(e))
-
-            self.test_eigen(a, eigenvalues, eigenvectors)
-            #number_complex_eigenvalues = 0
-            #for i, e in enumerate(eigenvalues):
-            #    if isinstance(e, complex):
-            #        number_complex_eigenvalues += 1
-            #if (number_complex_eigenvalues) > 0:
-            #    print('we have complex eigenvalues in point ', i, number_complex_eigenvalues)
-
-            self.t2d3_points[i]['eigenvalue1']  = eigenvalues[0]
-            self.t2d3_points[i]['eigenvalue2']  = eigenvalues[1]
-            self.t2d3_points[i]['eigenvalue3']  = eigenvalues[2]
-            self.t2d3_points[i]['eigenvector1'] = ev1
-            self.t2d3_points[i]['eigenvector2'] = ev2
-            self.t2d3_points[i]['eigenvector3'] = ev3
-
-        if self.input_options['fout_select'] == 'all':
-            self.t2d3_cols.append('eigenvalue1')
-            self.t2d3_cols.append('eigenvalue2')
-            self.t2d3_cols.append('eigenvalue3')
-            self.t2d3_cols.append('eigenvector1')
-            self.t2d3_cols.append('eigenvector2')
-            self.t2d3_cols.append('eigenvector3')
-
-
-    def tensor_inv1(self):
+    
+    def invariant1(self, verbose):
         '''
         Here we calculate the first principal invariant of the second-order tensor.
 
@@ -432,16 +371,23 @@ class t2d3():
 
         '''
 
-        self.tensor_eigendecomposition()
+        data = self.data[global_data.cols_to_use["t2d3"]]
+        data["t2d3_as_npndarray"] = data.apply(lambda row: row.to_numpy().reshape((3,3)), axis=1)
+        tmp = data.apply(lambda x: tensor_eigendecomposition(x["t2d3_as_npndarray"]), axis=1)
+        tmp = pd.DataFrame(tmp.tolist(), index=tmp.index)
+        tmp2 = tmp.apply(lambda x: self.invariants_in_point(x, verbose=verbose), axis=1)
+        tmp2 = pd.DataFrame(tmp2.to_list(), index=tmp2.index)
 
-        for i, d in enumerate(self.t2d3_points):
-            result = d['eigenvalue1'] + d['eigenvalue2'] + d['eigenvalue3']
-            self.t2d3_points[i]['tensor_inv1'] = result
+        self.data['t2d3_invariant1'] = tmp2['inv1']
 
-        #self.t2d3_cols.append('tensor_inv1')
+        print('Output from invariant1:')
+        pprint(self.data)
+        if verbose:
+            print('Output from invariant1:')
+            pprint(self.data)
 
 
-    def tensor_inv2(self):
+    def invariant2(self, verbose):
         '''
         Here we calculate the second principal invariant of the second-order tensor.
 
@@ -452,16 +398,23 @@ class t2d3():
 
         '''
 
-        self.tensor_eigendecomposition()
+        data = self.data[global_data.cols_to_use["t2d3"]]
+        data["t2d3_as_npndarray"] = data.apply(lambda row: row.to_numpy().reshape((3,3)), axis=1)
+        tmp = data.apply(lambda x: tensor_eigendecomposition(x["t2d3_as_npndarray"]), axis=1)
+        tmp = pd.DataFrame(tmp.tolist(), index=tmp.index)
+        tmp2 = tmp.apply(lambda x: self.invariants_in_point(x, verbose=verbose), axis=1)
+        tmp2 = pd.DataFrame(tmp2.to_list(), index=tmp2.index)
 
-        for i, d in enumerate(self.t2d3_points):
-            result = d['eigenvalue1']*d['eigenvalue2'] + d['eigenvalue2']*d['eigenvalue3'] + d['eigenvalue1']*d['eigenvalue3']
-            self.t2d3_points[i]['tensor_inv2'] = result
+        self.data['t2d3_invariant2'] = tmp2['inv2']
 
-        #self.t2d3_cols.append('tensor_inv2')
+        print('Output from invariant2:')
+        pprint(self.data)
+        if verbose:
+            print('Output from invariant2:')
+            pprint(self.data)
 
 
-    def tensor_inv3(self):
+    def invariant3(self, verbose):
         '''
         Here we calculate the third principal invariant of the second-order tensor.
 
@@ -471,13 +424,20 @@ class t2d3():
 
         '''
 
-        self.tensor_eigendecomposition()
+        data = self.data[global_data.cols_to_use["t2d3"]]
+        data["t2d3_as_npndarray"] = data.apply(lambda row: row.to_numpy().reshape((3,3)), axis=1)
+        tmp = data.apply(lambda x: tensor_eigendecomposition(x["t2d3_as_npndarray"]), axis=1)
+        tmp = pd.DataFrame(tmp.tolist(), index=tmp.index)
+        tmp2 = tmp.apply(lambda x: self.invariants_in_point(x, verbose=verbose), axis=1)
+        tmp2 = pd.DataFrame(tmp2.to_list(), index=tmp2.index)
 
-        for i, d in enumerate(self.t2d3_points):
-            result = d['eigenvalue1']*d['eigenvalue2']*d['eigenvalue3']
-            self.t2d3_points[i]['tensor_inv3'] = result
+        self.data['t2d3_invariant3'] = tmp2['inv3']
 
-        #self.t2d3_cols.append('tensor_inv3')
+        print('Output from invariant3:')
+        pprint(self.data)
+        if verbose:
+            print('Output from invariant3:')
+            pprint(self.data)
 
 
 

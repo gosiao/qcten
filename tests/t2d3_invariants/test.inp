@@ -2,9 +2,6 @@
 # 1. decide which files with input data should be read in:
 #
 --finp=csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
---finp=csv; ../testdata/lih_jbtensor_cubegrid10/gradjbz.csv; cols=[x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]; sep= ; skip=0
-#--finp=txt; ../testdata/lih_jbvector_cubegrid10/jbz.txt; [x, y, z, bz_jx, bz_jy, bz_jz]
-#--finp=txt; ../testdata/lih_jbvector_cubegrid10/gradjbz.txt; [x, y, z, bz_jx_gradX, bz_jx_gradY, bz_jx_gradZ, bz_jy_gradX, bz_jy_gradY, bz_jy_gradZ, bz_jz_gradX, bz_jz_gradY, bz_jz_gradZ]
 #
 # 2. decide which columns correspond to grid points and which - to data
 #
@@ -22,14 +19,14 @@
 #
 # 4. decide what you want to calculate for this tensor:
 #
---calc_from_tensor_2order_3d=tensor_inv1
---calc_from_tensor_2order_3d=tensor_inv2
---calc_from_tensor_2order_3d=tensor_inv3
+--calc_from_tensor_2order_3d=invariant1
+--calc_from_tensor_2order_3d=invariant2
+--calc_from_tensor_2order_3d=invariant3
 --resampled_dim=10,10,10
 #
 # 5. decide what output you need:
 #
---fout=csv; tensor_inv.csv; cols=[x, y, z, tensor_inv1, tensor_inv2, tensor_inv3]
---fout=vti; tensor_inv.vti; cols=[x, y, z, tensor_inv1, tensor_inv2, tensor_inv3]
+--fout=csv; invariants.csv; cols=[x, y, z, t2d3_invariant1, t2d3_invariant2, t2d3_invariant3]
+--fout=vti; invariants.vti; cols=[x, y, z, t2d3_invariant1, t2d3_invariant2, t2d3_invariant3]
 --fout_select=all
 --flog=result_log.txt

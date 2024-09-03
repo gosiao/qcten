@@ -10,6 +10,9 @@ from pprint import pprint
 #
     # TODO - ensure m is t1d3
 
+thr_zero_abs = 1.0e-12
+thr_zero_rel = 1.0e-6
+
 
 def get_mean_of_t1d3(m):
 
@@ -124,6 +127,15 @@ def tensor_eigendecomposition(m):
 
     """
     entering m is 3x3 np.array
+
+
+
+            * we use scipy.linalg package, TODO: 
+                * compare with other python packages, esp. in terms of timing
+                * better test checking whether the imaginary part of an
+                  eigenvalue is 0 or close to 0
+                * is the test_eigen necessary/sufficient?
+                * check all values used as tolerance to compare numbers
     """
 
     eigenvalues, eigenvectors = la.eig(m)
@@ -142,7 +154,7 @@ def tensor_eigendecomposition(m):
     real_eigval_ind = []
     for ind, e in enumerate(eigenvalues):
         if isinstance(e, complex):
-            if (abs(e.imag) < 10**(-6)*abs(e.real)):
+            if (abs(e.imag) < thr_zero_rel * abs(e.real)):
                 eigval = np.real(e)
                 real_eigval_ind.append(ind)
             else:
@@ -286,3 +298,15 @@ def find_real(x, label, ind_range):
             i_real.append(i)
     return i_real
 
+
+def complex_to_real(e):
+    if isinstance(e, complex):
+        if (abs(e.imag) < thr_zero_rel * abs(e.real)):
+            r = np.real(e)
+        else:
+            r = e.astype(complex)
+            print('imaginary part of {} is non-negligible. Return original value'.format(e))
+    else:
+        r = e.astype(complex)
+    return r
+ 

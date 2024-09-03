@@ -33,9 +33,9 @@ class global_data:
                     'deviator_anisotropy',
                     'rortex_tensor_combined',
                     'omega_rortex_tensor_combined',
-                    'tensor_inv1',
-                    'tensor_inv2',
-                    'tensor_inv3']
+                    'invariant1',
+                    'invariant2',
+                    'invariant3']
 
     # functions that require the gradient of a vector
     # ===============================================

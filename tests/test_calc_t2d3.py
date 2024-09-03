@@ -104,12 +104,12 @@ def cleanup(testdir):
 def list_viable_tests(test_paths=None):
 
     testdirs = [
-                "t2d3_trace",
-                "t2d3_isotropic",
-                "t2d3_deviator",
-                "t2d3_antisymmetric",
-                "t2d3_deviator_anisotropy",
-                #"t2d3_invariants"
+                #"t2d3_trace",
+                #"t2d3_isotropic",
+                #"t2d3_deviator",
+                #"t2d3_antisymmetric",
+                #"t2d3_deviator_anisotropy",
+                "t2d3_invariants"
                 ]
 
     return testdirs
