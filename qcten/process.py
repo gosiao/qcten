@@ -375,9 +375,10 @@ class work():
         
             cols_to_remove=self.assign_data("t0d3")
             self.fulldata.drop(columns=cols_to_remove, inplace=True)
+            self.verify_data_for_calcs("t0d3", verbose)
             work = t0d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)
-            result_df = work.work_data
+            result_df = work.data
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 
@@ -482,6 +483,32 @@ class work():
                 if col not in self.fulldata.columns:
                     msg = 'ERROR: missing assignment to `--grid`'
                     sys.exit(msg)
+
+        if label == "t0d3":
+            if self.options['calc_from_tensor_0order_3d'] is None:
+
+                msg = 'WARNING: Nothing to calculate from the vector field. ' \
+                    + 'Check --calc_from_tensor_0order_3d in your input'
+                sys.exit(msg)
+    
+                for arg in self.options['calc_from_tensor_0order_3d']:
+                    if arg not in self.all_fun_t0d3:
+                        msg = 'ERROR: requested function not in the list of available functions ' \
+                            + 'Check --calc_from_tensor_0order_3d in your input. ' \
+                            + 'Available functions: ', self.all_fun_t0d3
+                        sys.exit(msg)
+    
+            else:
+                for arg in self.options['calc_from_tensor_0order_3d']:
+                    if (arg in global_data.fun_t1d3_req_grad):
+                        if self.options['use_grad_from_file']:
+                            print('Gradient of t0d3 will be read from file')
+                        else:
+                            if self.options['calc_grad_method'] == 'numpy':
+                                print('Gradient of t0d3 will be calculated using numpy')
+                            else:
+                                print('Other methods for calculating the gradient are not available')
+                                sys.exit(1)
 
         if label == "t1d3":
             if self.options['calc_from_tensor_1order_3d'] is None:
