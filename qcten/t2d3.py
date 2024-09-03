@@ -73,91 +73,6 @@ class t2d3():
 
 
 
-    def assign_t2d3_input_names(self, verbose=False):
-
-        """
-
-        assign user-specified data names to names used in qcten:
-
-
-        1. grid
-        -------
-        assign user-specified names for grid coordinates 
-        (with "--grid=["coorx, coory, coorz]")
-        to names of grid coordinates used in qcten: "x", "y", "z";
-
-        NOTE: grid points are read in the following order from the input data file:
-
-            x, y, z
-
-        2. tensor field
-        ---------------
-        assign user-specified names for tensor components 
-        (with "--form_tensor_2order_3d=["t_xx, t_xy, ...]")
-        to names of tensor components used in qcten: "xx", "xy", ...
-
-        NOTE: tensor components are read in the following order from the input data file:
-
-            xx, xy, xz, yx, yy, yz, zx, zy, zz
-
-
-        3. the gradient of the tensor field components
-        ----------------------------------------------
-        assign user-specified names for components of the gradient of the tensor
-        (with "--form_grad_tensor_2order_3d=["t_xx/dx, t_xx/dy, t_xx/dz, t_xy/dx, ...]")
-        to names of components of the gradient of the tensor used in qcten:
-        "dxx_dx", "dxx_dy", "dxx_dz", "dxy_dx", "dxy_dy", ...
-
-        NOTE: components of the gradient of the tensor are read in the following order from the input data file:
-
-            dxx_dx, dxx_dy, dxx_dz, dxy_dx, dxy_dy, dxy_dz, ...
-
-        """
-
-        # grid
-        # ====
-        for col in global_data.cols_to_use['grid']:
-            self.colnames_qcten[col] = self.input_data[col]
-
-        # data
-        # ====
-
-        # tensor
-        for col in global_data.cols_to_use['t2d3']:
-            self.colnames_qcten[col] = self.input_data[col]
-
-        # tensor gradient
-        if (self.input_options['form_grad_tensor_2order_3d'] is not None) and (self.input_options['use_grad_from_file']):
-            for col in global_data.grad_cols_to_use['t2d3']:
-                self.colnames_qcten[col] = self.input_data[col]
-
-        if verbose:
-            print('grid and data columns are assigned: ' + str(x) for x in self.colnames_qcten[col])
-
-
-    def get_t2d3_data_points(self, verbose=False):
-
-        """
-
-        read input data into a "self.data" dataframe;
-        to proceed, we read only these columns which are needed for the computation, i.e.:
-
-        * columns corresponding to grid: self.t2d3['x'], ... 
-        * columns corresponding to t1d3: self.t2d3['xx'], ... 
-        * (if needed) columns corresponding to grad(t2d3): self.t2d3['dxx_dx'], ... 
-
-        """
-
-        cols = {v: k for k, v in self.colnames_qcten.items() if v is not None}
-        self.data = self.input_data.rename(columns=cols)
-        self.data = self.data[cols.values()]
-
-        if verbose:
-            print('working input data in t2d3: ')
-            pprint(self.data)
-
-
-
 
     def trace(self, verbose):
 
@@ -439,25 +354,6 @@ class t2d3():
             print('Output from invariant3:')
             pprint(self.data)
 
-
-
-    def tensor_frobenius_norm(self, tensor):
-        '''
-        Here we calculate the tensor Frobenius norm
-
-        For tensor T, whose elements are t_ij
-
-            F = sqrt(sum_{ij} (t_{ij})**2)
-
-        '''
-
-        sum_t2 = 0
-        for t in tensor:
-            sum_t2 += t**2
-
-        result = np.sqrt(sum_t2)
-
-        return result
 
 
     def omega_rortex_tensor_combined(self):

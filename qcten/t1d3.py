@@ -69,44 +69,6 @@ class t1d3():
 
 
 
-    def assign_t1d3_output_names(self, verbose=False):
-
-        """
-        prepare the data for output(s)
-        """
-
-        cols_available_for_outputs = global_data.all_fun_t1d3 + self.colnames_inp 
-
-        for v in self.output_options:
-            if v.file_path is not None:
-                data_cols = []
-                for icol, col in enumerate(v.file_column_names):
-                    if ':' in col:
-                        old_col = col.strip().split(':')[0]
-                    else:
-                        old_col = col
-
-                    if old_col in cols_available_for_outputs:
-                        data_cols.append(old_col.strip())
-                    else:
-                        msg = 'ERROR: column {} not available for output, ' \
-                            + 'check --fout'.format(col)
-
-                self.colnames_out=data_cols
-
-
-    #        # the order of elements:
-    #        # (is the same as in Xu, Phys.Fluids 31, 095102 (2019), which we follow here)
-    #        #
-    #        #  xx  xy  xz       dvx/dx  dvx/dy  dvx/dz 
-    #        #  yx  yy  yz  ->   dvy/dx  dvy/dy  dvy/dz
-    #        #  zx  zy  zz       dvz/dx  dvz/dy  dvz/dz
-    #        #
-    #        full_grad_tensor = np.array([[grad_vecx[0][i], grad_vecx[1][i], grad_vecx[2][i]],
-    #                                     [grad_vecy[0][i], grad_vecy[1][i], grad_vecy[2][i]],
-    #                                     [grad_vecz[0][i], grad_vecz[1][i], grad_vecz[2][i]]],
-    #                                     dtype=np.float64)
-
 
 
 
