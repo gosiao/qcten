@@ -105,8 +105,8 @@ def list_viable_tests(test_paths=None):
 
     testdirs = [
                 #"t0d3_vti_from_txt",
-                #"t0d3_vti_from_txt",
-                "t0d3_gradient_numpy"
+                "t0d3_vti_from_hdf5",
+                #"t0d3_gradient_numpy"
                 ]
 
     return testdirs

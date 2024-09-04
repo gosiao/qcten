@@ -1,0 +1,30 @@
+# 
+# 1. decide which files with input data should be read in:
+#
+--finp=hdf5; ../testdata/c6h6/grid_3d.h5
+--finp=hdf5; ../testdata/c6h6/jBz.h5
+#
+# 2. dataset corresponding to grid points
+#
+--grid=[coor_1, coor_2, coor_3]
+#
+# 3. dataset corresponding to a tensor:
+#
+#--form_tensor_0order_3d=[/result/grid_function/j/visualize/values/t1_icomp_3]
+--form_tensor_0order_3d=[t1_icomp_3]
+#
+# 4. do some simple work in TTK
+#
+#   - signal that TTK will be used as a calculator
+#   - apply "resample to image"
+#
+--calc_from_tensor_0order_3d=gradient
+--calc_grad_method=numpy
+--resampled_dim=10,10,10
+#
+# 5. decide what output you need:
+#
+--fout=csv; grad_jbz.csv; cols=[x, y, z, t0_dx:bz_jz_dx, t0_dy:bz_jz_dy, t0_dz:bz_jz_dz]
+--fout=vti; grad_jbz.vti; cols=[x, y, z, t0_dx:bz_jz_dx, t0_dy:bz_jz_dy, t0_dz:bz_jz_dz]
+--fout_select=all
+--flog=result_log.txt

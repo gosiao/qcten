@@ -234,8 +234,19 @@ def gradient_from_numpy(m, t):
     grad_t_y = np.gradient(m[t], dy, edge_order=2)
     grad_t_z = np.gradient(m[t], dz, edge_order=2)
 
+    #grad_t_x = np.gradient(m[t], dx, edge_order=2)
+
     return [grad_t_x, grad_t_y, grad_t_z]
 
+
+def debug_print_df(df, msg=None):
+    if msg is not None:
+        print('DEBUG PRINT: ', msg)
+    print('DEBUG PRINT: df.columns =  ', df.columns)
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pprint(df)
+    pd.reset_option('all') 
 
 
 #
@@ -252,10 +263,19 @@ def find_spacing_of_uniform_grid(m):
 
     #TODO: ensure a regular grid
 
+    #debug_print_df(m, msg = "debugging diffs; entering m")
     diffs = m.diff().dropna()
-    dx = min(filter(lambda x: x > 0, diffs["x"]))
-    dy = min(filter(lambda x: x > 0, diffs["y"]))
-    dz = min(filter(lambda x: x > 0, diffs["z"]))
+    #debug_print_df(diffs, msg = "debugging diffs")
+    dx = min(filter(lambda x: x > 0, diffs["x"].to_numpy()))
+    dy = min(filter(lambda x: x > 0, diffs["y"].to_numpy()))
+    dz = min(filter(lambda x: x > 0, diffs["z"].to_numpy()))
+
+    print("BUBA x: ", dx)
+    pprint(diffs["x"])
+    print("BUBA y: ", dy)
+    pprint(diffs["y"])
+    print("BUBA z: ", dz)
+    pprint(diffs["z"])
 
     return dx, dy, dz
 

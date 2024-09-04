@@ -120,10 +120,10 @@ class input_data:
                                    dest='grid_type',
                                    action='store',
                                    choices=self.grid_types,
-                                   default='uniform_rectilinear',
+                                   default='rectilinear_3d',
                                    required=False,
                                    help='''
-                                        mesh type (default: uniform_rectilinear)
+                                        mesh type (default: rectilinear_3d)
                                         ''')
 
         optional_args.add_argument('--inptest',

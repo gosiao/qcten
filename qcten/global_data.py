@@ -1,14 +1,7 @@
 
 class global_data:
 
-    """
-    Functionalities covered:
-    * A list of available functions for a selected type of input data;
-      these are also the accepted labels for output data
-    * A list of functions with special requirements
-    * A list of types of grids
-    """
-
+    #
     # lists of available functions
     # ============================
 
@@ -37,8 +30,12 @@ class global_data:
                     'invariant2',
                     'invariant3']
 
+    #
     # functions that require the gradient of a vector
     # ===============================================
+
+    fun_t0d3_req_grad = []
+
     fun_t1d3_req_grad = ['vorticity',
                          'rortex',
                          'omega_rortex',
@@ -47,12 +44,16 @@ class global_data:
 
     fun_t2d3_req_grad = []
 
+
+    #
     # grid types
     # ==========
-    grid_types = ['uniform_rectilinear']
+    grid_types = ['rectilinear_3d']
 
-    # input/output data - other naming conventions
-    # ============================================
+
+    #
+    # I/O - internal naming conventions
+    # =================================
     # x, y, z              - grid
     # t0                   - scalar field ("t0d3")
     # t1, t2, t3           - components of a vector field ("t1d3")

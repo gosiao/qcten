@@ -10,6 +10,7 @@ import subprocess
 from .t2d3 import *
 from .t1d3 import *
 from .t0d3 import *
+from .common import *
 from .common_ttk import *
 
 class work():
@@ -28,7 +29,7 @@ class work():
         self.flog      = self.options['flog']
 
         # grid and grid functions
-        self.grid = {}
+        self.grid_info = {}
         self.fulldata = pd.DataFrame()
 
 
@@ -85,11 +86,12 @@ class work():
                     pass
                 elif fout.file_type == 'vti':
                     # check if csv file exsists; 
-                    ttk_support = ttk_basics(self.options, df, f)
+                    ttk_support = ttk_basics(self.options, df, f, grid_info=self.grid_info)
                     ttk_support.write_data_to_vti()
                 else:
                     msg = 'ERROR: unsupported file format for output; check --fout'
                     sys.exit(msg)
+                    self.write_df_to_hdf5(df, f)
 
                 if verbose:
                     print('dataframe for file ', f)
@@ -289,26 +291,70 @@ class work():
                                      dtype = np.float64)[v.file_column_names]
 
             elif v.file_type.lower() == 'hdf5':
-                print('hdf5 inputs not supported in this version')
-                pass
+                data_dict=self.read_hdf5(v.file_path)
+                dd = {}
+                for key, val in data_dict.items():
+                    if 'nr_points_dim_' in key:
+                        self.grid_info[key.split('/')[-1]] = val['value'][0]
+                    if isinstance(val['value'], np.ndarray) and len(val['value'])>1:
+                        if 'coor_' in key:
+                            dd[key.split('/')[-1]] = val['value']
+                        else:
+                            dd[key.split('/')[-1]] = val['value']
+                            #dd[key] = val['value']
+                for key, val in dd.items():
+                    print('NEW ', key, dd[key])
+                
+                df = pd.DataFrame.from_dict(dd)
+                #debug_print_df(df, msg='df from {}'.format(v.file_path))  
+                pprint(dd)
 
             df.apply(pd.to_numeric, errors='coerce')
 
             dfs.append(df)
+        for key, val in self.grid_info.items():
+            print('GRID INFO ', key, val)
 
         # 2. combine a list of dataframes into one dataframe;
         #    first, remove the excess 'grid' columns (now -assuming the same grids):
-        for df in dfs[1:]:
-            df.drop(columns=['x', 'y', 'z'], inplace=True)
+        #for df in dfs[1:]:
+        #    df.drop(columns=global_data.grid_cols_to_use['rectilinear_3d'], inplace=True)
 
         fulldata = pd.concat([df for df in dfs], axis=1, sort=False)
         if self.fulldata.empty:
-            self.fulldata = fulldata
+            self.fulldata = fulldata.loc[:,~fulldata.columns.duplicated()].copy()
 
+        verbose = True
         if verbose:
             print('Original data (from prepare_data): ')
             pprint(fulldata.columns)
             pprint(fulldata)
+
+
+#    code copied/adapted from dirac:
+    def read_hdf5(self, file_name):
+        """
+        Open hdf5-type file and return dictionary of its contents
+        """
+        import h5py
+        data_dict = {}
+        with h5py.File(file_name, 'r') as h5file:
+            self.recursively_load_dict_contents_from_group(h5file, data_dict,'/')
+        return data_dict
+    
+    def recursively_load_dict_contents_from_group(self, h5file, data_dict, path):
+        """
+        Modified from code found at Stack Exchange to get flat dictionary
+        """
+        import h5py
+        for key, item in h5file[path].items():
+            if isinstance(item, h5py._hl.dataset.Dataset):
+                data_dict[path+key] = {}
+                data_dict[path+key]['value'] = item[()]
+            elif isinstance(item, h5py._hl.group.Group):
+               self.recursively_load_dict_contents_from_group(h5file, data_dict, path + key + '/')
+        return
+#    end ofcode copied from dirac
 
 
     def assign_data(self, label, verbose=False):
@@ -348,17 +394,17 @@ class work():
         for col in self.fulldata.columns:
             if grid_args is not None:
                 for iarg, arg in enumerate(grid_args):
-                    if arg == col:
+                    if arg == col and arg not in _cols_to_use:
                         self.fulldata.rename(columns={col:global_data.grid_cols_to_use[grid_label][iarg]}, inplace=True)
                         _cols_to_use.append(global_data.grid_cols_to_use[grid_label][iarg])
             if args is not None:
                 for iarg, arg in enumerate(args):
-                    if arg == col:
+                    if arg == col and arg not in _cols_to_use:
                         self.fulldata.rename(columns={col:global_data.cols_to_use[label][iarg]}, inplace=True)
                         _cols_to_use.append(global_data.cols_to_use[label][iarg])
             if grad_args is not None:
                 for iarg, arg in enumerate(grad_args):
-                    if arg == col:
+                    if arg == col and arg not in _cols_to_use:
                         self.fulldata.rename(columns={col:global_data.grad_cols_to_use[label][iarg]}, inplace=True)
                         _cols_to_use.append(global_data.grad_cols_to_use[label][iarg])
 
@@ -375,6 +421,8 @@ class work():
         
             cols_to_remove=self.assign_data("t0d3")
             self.fulldata.drop(columns=cols_to_remove, inplace=True)
+            print('BEFORE')
+            pprint(self.fulldata)
             self.verify_data_for_calcs("t0d3", verbose)
             work = t0d3(self.options, self.allfouts, self.fulldata)
             work.run(verbose=verbose)

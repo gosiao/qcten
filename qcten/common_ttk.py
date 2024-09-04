@@ -9,11 +9,12 @@ from paraview.simple import *
 
 class ttk_basics():
 
-    def __init__(self, options, data, fout_vti, finp_csv=None):
+    def __init__(self, options, data, fout_vti, finp_csv=None, grid_info=None):
         """
         """
         self.options = options
         self.data = data 
+        self.grid_info = grid_info
         self.finp_csv = finp_csv
         self.fout_vti = fout_vti
         #self.inpgrid_dim = [int(x) for x in self.options['resampled_dim'].split(',')]
@@ -32,16 +33,21 @@ class ttk_basics():
         denscsv = CSVReader(FileName=fcsv)
         print('In write_data_to_vti: ', type(denscsv))
         pprint(denscsv)
-        if self.options['grid_type'] == 'uniform_rectilinear':
-            npoints = len(self.data.index)  
-            n1dim = np.cbrt(npoints)
-            if n1dim.is_integer():
-                nx = int(n1dim)-1
-                ny = int(n1dim)-1
-                nz = int(n1dim)-1
+        if self.options['grid_type'] == 'rectilinear_3d':
+            if self.grid_info is not None:
+                nx = self.grid_info['nr_points_dim_1'] - 1
+                ny = self.grid_info['nr_points_dim_2'] - 1
+                nz = self.grid_info['nr_points_dim_3'] - 1
             else:
-                msg='ERROR: non-integer number of grid points (write_data_to_vti)', n1dim
-                sys.exit(msg)
+                npoints = len(self.data.index)  
+                n1dim = np.cbrt(npoints)
+                if n1dim.is_integer():
+                    nx = int(n1dim)-1
+                    ny = int(n1dim)-1
+                    nz = int(n1dim)-1
+                else:
+                    msg='ERROR: non-integer number of grid points (write_data_to_vti)', n1dim
+                    sys.exit(msg)
 
             tableToStructuredGrid = TableToStructuredGrid(Input=denscsv)
             tableToStructuredGrid.WholeExtent = [0, nx, 0, ny, 0, nz]
