@@ -82,3 +82,11 @@ class global_data:
                         }
 
 
+    #
+    # thresholds
+    # ==========
+ 
+    thr_zero_abs = 1.0e-12
+    thr_zero_rel = 1.0e-6
+
+
