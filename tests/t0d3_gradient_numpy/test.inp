@@ -1,37 +1,31 @@
 # 
-# 1. decide which files with input data should be read in:
+# 1. files with input data:
 #
---finp=csv; ../testdata/lih_jbtensor_cubegrid10/data.csv; cols=[x, y, z, bx_jx, bx_jy, bx_jz, by_jx, by_jy, by_jz, bz_jx, bz_jy, bz_jz]; sep= ; skip=1
+--finp=hdf5; ../testdata/c6h6/grid_3d.h5
+--finp=hdf5; ../testdata/c6h6/ed.h5
 #
-# 2. columns corresponding to grid points
+# 2. labels of grid points
+#    to find labels on the *.h5 file, you can do `h5dump -n FILE.h5`
 #
-#    order of grid points coordinates:
-#       x, y, z
---grid=[x, y, z]
+--grid=[coor_1, coor_2, coor_3]
 #
-# 3. columns corresponding to a vectr:
-#     * the names of vector elements must match the names of columns on input files read in point 1
+# 3. labels of grid functions
 #
---form_tensor_0order_3d=[bz_jz]
+#--form_tensor_0order_3d=[/result/grid_function/j/visualize/values/t1_icomp_3]
+--form_tensor_0order_3d=[t0_icomp_1]
 #
-# 5. vector function to calculate:
+# 4. what+how to calculate:
 #
 --calc_from_tensor_0order_3d=gradient
 --calc_grad_method=numpy
 #
-# 6. since we plan to write to vti by calling ttk,
-#    add a few simple options to test
+# 5. apply basic filters from TTK; here: resample; this creates an image-data object
 #
---resampled_dim=10,10,10
+--resampled_dim=33,35,17
 #
-# 6. we also select z-direction, this will additionally print out the 'selected_axis cdot vectors'
+# 6. output:
 #
-#--selected_axis=[0,0,1]
-#
-#
-# 7. decide what output you need:
-#
---fout=csv; grad_bz_jz.csv; cols=[x, y, z, t0_dx:bz_jz_dx, t0_dy:bz_jz_dy, t0_dz:bz_jz_dz]
---fout=vti; grad_bz_jz.vti; cols=[x, y, z, t0_dx:bz_jz_dx, t0_dy:bz_jz_dy, t0_dz:bz_jz_dz]
+--fout=csv; grad_ed.csv; cols=[x, y, z, t0:ed, t0_dx:ed_grad_x, t0_dy:ed_grad_y, t0_dz:ed_grad_z]
+--fout=vti; grad_ed.vti; cols=[x, y, z, t0:ed, t0_dx:ed_grad_x, t0_dy:ed_grad_y, t0_dz:ed_grad_z]
 --fout_select=all
 --flog=result_log.txt
