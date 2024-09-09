@@ -50,7 +50,13 @@ class ttk_basics():
                     sys.exit(msg)
 
             tableToStructuredGrid = TableToStructuredGrid(Input=denscsv)
-            tableToStructuredGrid.WholeExtent = [0, nx, 0, ny, 0, nz]
+            # VTK interface for all datasets uses a flat index:
+            # (i,j,k)-ind = k*(Nx*Ny) + j*Nx + i
+            # assuming lexicographical order (k changes first)
+            # see https://docs.paraview.org/en/latest/UsersGuide/understandingData.html
+            # because of that, we need to swap the x-z axes:
+            #tableToStructuredGrid.WholeExtent = [0, nx, 0, ny, 0, nz]
+            tableToStructuredGrid.WholeExtent = [0, nz, 0, ny, 0, nx]
             tableToStructuredGrid.XColumn = 'x'
             tableToStructuredGrid.YColumn = 'y'
             tableToStructuredGrid.ZColumn = 'z'
@@ -66,7 +72,13 @@ class ttk_basics():
                 ny = self.resampled_dim[1]
                 nz = self.resampled_dim[2]
 
-            finalResampleToImage.SamplingDimensions = [nx, ny, nz]
+            # VTK interface for all datasets uses a flat index:
+            # (i,j,k)-ind = k*(Nx*Ny) + j*Nx + i
+            # assuming lexicographical order (k changes first)
+            # see https://docs.paraview.org/en/latest/UsersGuide/understandingData.html
+            # because of that, we need to swap the x-z axes:
+            #finalResampleToImage.SamplingDimensions = [nx, ny, nz]
+            finalResampleToImage.SamplingDimensions = [nz, ny, nx]
     
             SaveData(self.fout_vti.as_posix(), proxy=finalResampleToImage)
 
