@@ -204,27 +204,36 @@ class work():
         # (unless it is an hdf5 file)
         f_cols   = None
         if len(args) > 2:
-            if (f_type != 'hdf5'):
+            if (f_type == 'hdf5'):
+                arg = args[2].strip()
+                if arg != 'None':
+                    if arg[0:7] == 'labels=':
+                        f_cols   = [a.strip().strip('[').strip(']') for a in arg[7:].split(',')]
+            elif (f_type == 'csv' or f_type == 'txt' or f_type == 'vti'):
                 arg = args[2].strip()
                 if arg != 'None':
                     if arg[0:5] == 'cols=':
                         f_cols   = [a.strip().strip('[').strip(']') for a in arg[5:].split(',')]
+            else:
+                sys.exit('Unsupported file type')
 
         # column separator; defaults to a coma
         f_sep = ','
         if len(args) > 3:
-            arg = args[3].lstrip()
-            if arg != 'None':
-                if arg[0:4] == 'sep=':
-                    f_sep = arg[4:]
+            if (f_type == 'csv' or f_type == 'txt'):
+                arg = args[3].lstrip()
+                if arg != 'None':
+                    if arg[0:4] == 'sep=':
+                        f_sep = arg[4:]
 
         # index of a row line to skip
         f_skiprow = None
         if len(args) > 4:
-            arg = args[4].strip()
-            if arg != 'None':
-                if arg[0:5] == 'skip=':
-                    f_skiprow = int(arg[5:].strip())
+            if (f_type == 'csv' or f_type == 'txt'):
+                arg = args[4].strip()
+                if arg != 'None':
+                    if arg[0:5] == 'skip=':
+                        f_skiprow = int(arg[5:].strip())
 
         d = {}
         d['file_type'] = f_type
@@ -294,16 +303,21 @@ class work():
                 data_dict=self.read_hdf5(v.file_path)
                 dd = {}
                 for key, val in data_dict.items():
+                    # check for information about the number of grid points
+                    # fixme - hardcoded label
                     if 'nr_points_dim_' in key:
                         self.grid_info[key.split('/')[-1]] = val['value'][0]
-                    if isinstance(val['value'], np.ndarray) and len(val['value'])>1:
-                        if 'coor_' in key:
-                            dd[key.split('/')[-1]] = val['value']
-                        else:
-                            dd[key.split('/')[-1]] = val['value']
-                            #dd[key] = val['value']
+                    for user_label in v.file_column_names:
+                        if key == user_label:
+                            dd[key] = val['value']
+                    #if isinstance(val['value'], np.ndarray) and len(val['value'])>1:
+                    #    if 'coor_' in key:
+                    #        dd[key.split('/')[-1]] = val['value']
+                    #    else:
+                    #        dd[key.split('/')[-1]] = val['value']
+                    #        #dd[key] = val['value']
                 for key, val in dd.items():
-                    print('NEW ', key, dd[key])
+                    print('NEWNOW ', key, dd[key])
                 
                 df = pd.DataFrame.from_dict(dd)
                 #debug_print_df(df, msg='df from {}'.format(v.file_path))  
@@ -421,12 +435,15 @@ class work():
         
             cols_to_remove=self.assign_data("t0d3")
             self.fulldata.drop(columns=cols_to_remove, inplace=True)
-            print('BEFORE')
             pprint(self.fulldata)
             self.verify_data_for_calcs("t0d3", verbose)
-            work = t0d3(self.options, self.allfouts, self.fulldata)
-            work.run(verbose=verbose)
-            result_df = work.data
+            if self.options['calc_from_tensor_0order_3d'] == 'generate_vti':
+                # no work, only generate vti from input data
+                result_df = self.fulldata
+            else:
+                work = t0d3(self.options, self.allfouts, self.fulldata)
+                work.run(verbose=verbose)
+                result_df = work.data
 
         if 'form_tensor_1order_3d' in self.options and self.options['form_tensor_1order_3d'] is not None:
 

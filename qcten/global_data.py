@@ -6,7 +6,8 @@ class global_data:
     # ============================
 
     # input is t0d3 (zero-rank tensor field (= scalar field) in 3D)
-    all_fun_t0d3 = ['gradient']
+    all_fun_t0d3 = ['gradient',
+                    'generate_vti']
 
     # input is t1d3 (first-rank tensor field (= vector field) in 3D)
     all_fun_t1d3 = ['rortex',
@@ -16,7 +17,8 @@ class global_data:
                     'vorticity',
                     'omega',
                     'curlv_cdot_axis',
-                    'rortex_cdot_axis']
+                    'rortex_cdot_axis',
+                    'generate_vti']
 
     # input is t2d3 (second-rank tensor field in 3D)
     all_fun_t2d3 = ['trace',
@@ -28,7 +30,8 @@ class global_data:
                     'omega_rortex_tensor_combined',
                     'invariant1',
                     'invariant2',
-                    'invariant3']
+                    'invariant3',
+                    'generate_vti']
 
     #
     # functions that require the gradient of a vector
