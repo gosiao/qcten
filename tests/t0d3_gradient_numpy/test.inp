@@ -3,6 +3,7 @@
 #
 --finp=hdf5; ../testdata/c6h6/grid_3d.h5
 --finp=hdf5; ../testdata/c6h6/ed.h5
+#--finp=hdf5; ../testdata/c6h6/ed_gradient.h5
 #
 # 2. labels of grid points
 #    to find labels on the *.h5 file, you can do `h5dump -n FILE.h5`
@@ -13,6 +14,7 @@
 #
 #--form_tensor_0order_3d=[/result/grid_function/j/visualize/values/t1_icomp_3]
 --form_tensor_0order_3d=[t0_icomp_1]
+#--form_tensor_1order_3d=[t1_icomp_1, t1_icomp_2, t1_icomp_3]
 #
 # 4. what+how to calculate:
 #
